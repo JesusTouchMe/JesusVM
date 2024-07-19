@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "util.h"
+#include "util/util.h"
 #include "vm.h"
 
 #define inst(opcode, ...) case opcode:
