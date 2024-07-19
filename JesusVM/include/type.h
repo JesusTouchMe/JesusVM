@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "string.h"
+#include "util/string.h"
 
 #define PRIMITIVE_BYTE_ID NewConstString("b")
 #define PRIMITIVE_SHORT_ID NewConstString("s")

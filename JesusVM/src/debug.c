@@ -1,6 +1,6 @@
 #include "debug.h"
 #include "io.h"
-#include "util.h"
+#include "util/util.h"
 #include "vm.h"
 
 static String GetFunctionModifiersAsString(u16 modifiers) {
