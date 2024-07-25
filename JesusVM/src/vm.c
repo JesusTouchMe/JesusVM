@@ -1,6 +1,7 @@
 #include "debug.h"
-#include "util/util.h"
 #include "vm.h"
+
+#include "util/util.h"
 
 #define inst(opcode, ...) case opcode:
 
@@ -17,6 +18,11 @@
 #define narrow else
 
 JesusVM vm = { 0 };
+
+static u8 safetyByteCode[] = {
+	OP_DEBUG,
+	OP_HLT
+};
 
 static inline i16 _op2(void) {
 	u8 t1 = *vm.ip++;
@@ -60,31 +66,22 @@ static inline void JumpConditionalNot(i64 relative, u16 flags) {
 	}
 }
 
-static Constant* GetConstant(u32 index) {
-	if (index >= vm.constPool.size) {
-		printf("VM error: IndexOutOfBoundsException: constant pool has %u elements, but %u was requested\n", vm.constPool.size, index);
+static Constant* GetConstant(Module* module, u32 index) {
+	if (index >= module->constPool.size) {
+		printf("VM error: IndexOutOfBoundsException: constant pool has %u elements, but %u was requested\n", module->constPool.size, index);
 		ExitVM();
 		exit(1);
 	}
 
-	return &vm.constPool.constants[index];
+	return &module->constPool.constants[index];
 }
 
-void StartVM(u8* bytecode, u32 constPoolSize, u32 functionCount) {
-	vm.ip = bytecode;
+void StartVM() {
+	vm.ip = safetyByteCode;
 
-	vm.constPool.constants = calloc(constPoolSize, sizeof(Constant));
-	vm.constPool.size = constPoolSize;
-	vm.constPool.index = 0;
-
-	vm.functions = calloc(functionCount, sizeof(Function));
-	vm.functionCount = functionCount;
-	vm.functionIndex = 0;
-
-	if (vm.functions == null) {
-		puts("VM error: NullPointerException: function array allocation returned null");
-		exit(1);
-	}
+	vm.modules = malloc(sizeof(Module) * 16);
+	vm.moduleCount = 0;
+	vm.moduleCapacity = 16;
 
 	NewStack(&vm.stack, 1024);
 }
@@ -92,15 +89,18 @@ void StartVM(u8* bytecode, u32 constPoolSize, u32 functionCount) {
 void ExitVM() {
 	FreeFunctionTypes();
 
-	free(vm.constPool.constants);
-	free(vm.functions);
+	for (u32 i = 0; i < vm.moduleCount; i++) {
+		DeleteModule(&vm.modules[i]);
+	}
+
+	free(vm.modules);
 
 	DeleteStack(&vm.stack);
 
 	vm = (JesusVM) {0};
 }
 
-void VMBeginExecution(nullable() Function* entry) {
+void VMBeginExecution(Module* module, nullable() Function* entry) {
 	if (entry->paramCount > 0) {
 		puts("TODO: param stuff");
 		ExitVM();
@@ -110,6 +110,7 @@ void VMBeginExecution(nullable() Function* entry) {
 	if (entry != null) {
 		vm.ip = entry->entry;
 		vm.currentFunction = entry;
+		vm.currentModule = module;
 
 		vm.stack.top += entry->localCount;
 		vm.stackFrame = 0;
@@ -427,12 +428,12 @@ void VMBeginExecution(nullable() Function* entry) {
 				
 				wide {
 					op32(const32);
-					constant = GetConstant((u32) const32);
+					constant = GetConstant(vm.currentModule, (u32) const32);
 				}
 
 				narrow {
 					op16(const16);
-					constant = GetConstant((u32) const16);
+					constant = GetConstant(vm.currentModule, (u32) const16);
 				}
 
 				if (constant->kind != CONST_FUNCTION) {
@@ -442,7 +443,7 @@ void VMBeginExecution(nullable() Function* entry) {
 				}
 
 				i64* params = vm.stack.data + vm.stack.top - constant->function->paramCount;
-				memmove(params + 3, params, constant->function->paramCount * sizeof(i64));
+				memmove(params + 4, params, constant->function->paramCount * sizeof(i64));
 
 				u64 index = vm.stack.top - constant->function->paramCount;
 				u64 byteOffset = index / 8;
@@ -461,7 +462,7 @@ void VMBeginExecution(nullable() Function* entry) {
 					vm.stack.typeInfos[byteIndex] &= ~(1 << bitInByte);
 				}
 
-				shiftedBits >>= 3;
+				shiftedBits >>= 4;
 
 				for (u16 i = 0; i < constant->function->paramCount; i++) {
 					u64 bitPosition = index + i;
@@ -474,6 +475,7 @@ void VMBeginExecution(nullable() Function* entry) {
 				vm.stack.top -= constant->function->paramCount;
 
 				StackPush(&vm.stack, (i64) vm.ip, false);
+				StackPush(&vm.stack, (i64) vm.currentModule, false);
 				StackPush(&vm.stack, (i64) vm.currentFunction, false);
 				StackPush(&vm.stack, (i64) vm.stackFrame, false);
 
@@ -499,6 +501,7 @@ void VMBeginExecution(nullable() Function* entry) {
 
 				vm.stackFrame = StackPop(&vm.stack, null);
 				vm.currentFunction = (Function*) StackPop(&vm.stack, null);
+				vm.currentModule = (Module*) StackPop(&vm.stack, null);
 				vm.ip = (u8*) StackPop(&vm.stack, null);
 
 				if (hasReturnType) {
@@ -513,12 +516,12 @@ void VMBeginExecution(nullable() Function* entry) {
 
 				wide {
 					op32(const32);
-					constant = GetConstant((u32) const32);
+					constant = GetConstant(vm.currentModule, (u32) const32);
 				}
 
 				narrow {
 					op16(const16);
-					constant = GetConstant((u32) const16);
+					constant = GetConstant(vm.currentModule, (u32) const16);
 				}
 
 				switch (constant->kind) {

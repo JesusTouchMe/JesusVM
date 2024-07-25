@@ -1,9 +1,11 @@
 #include "debug.h"
 #include "io.h"
-#include "util/util.h"
 #include "vm.h"
 
-static String GetFunctionModifiersAsString(u16 modifiers) {
+#include "util/util.h"
+#include "util/io.h"
+
+static String GetFunctionModifiersAsString(FunctionModifiers modifiers) {
 	static char buffer[128];
 	memset(buffer, 0, sizeof(buffer));
 
@@ -40,6 +42,53 @@ static String GetTypeAsString(Type* type) {
 	}
 }
 
+static void PrintFunction(Function* function) {
+	Printf(str("%s%s %s("), GetFunctionModifiersAsString(function->modifiers), GetTypeAsString(function->type->returnType), function->name);
+
+	if (function->paramCount > 0) {
+		for (u16 i = 0; i < function->paramCount; i++) {
+			Printf(str("%s"), GetTypeAsString(function->type->argumentTypes[i]));
+
+			if (i + 1 < function->paramCount) {
+				printf(", ");
+			}
+		}
+	}
+
+	printf(");\n");
+}
+
+static void PrintConstant(Constant* constant) {
+	switch (constant->kind) {
+		case CONST_FUNCTION: {
+			printf("(function) ");
+			PrintFunction(constant->function);
+			break;
+		}
+	}
+}
+
+static void PrintModuleDebug(Module* module) {
+	Printf(str("\nModule \"%s\":\n"), module->name);
+
+	if (module->constPool.size > 0) {
+		puts("\nConst pool:");
+
+		for (u32 i = 0; i < module->constPool.size; i++) {
+			printf("%u: ", i);
+			PrintConstant(&module->constPool.constants[i]);
+		}
+	}
+
+	if (module->functionCount > 0) {
+		puts("\nFunctions:");
+
+		for (u32 i = 0; i < module->functionCount; i++) {
+			PrintFunction(&module->functions[i]);
+		}
+	}
+}
+
 void PrintVMDebug() {
 	printf("Instruction pointer: %p\n", vm.ip);
 	printf("Flags: ");
@@ -47,33 +96,19 @@ void PrintVMDebug() {
 
 	if (vm.stack.top > 0) {
 		printf("Stack frame: %llu\n", vm.stackFrame);
-		printf("Stack top: %llu\n", vm.stack.top);
-		puts("\nStack (top to bottom):");
+		printf("Stack top: %llu\n\n", vm.stack.top);
+		puts("Stack (top to bottom):");
 
 		for (i64 i = vm.stack.top - 1; i >= 0; i--) {
 			printf("%llu (%s)\n", vm.stack.data[i], StackIsObject(&vm.stack, i) ? "objectref" : "primitive");
 		}
 	}
 
-	if (vm.functionCount > 0) {
-		puts("\nFunctions:");
+	if (vm.moduleCount > 0) {
+		printf("\n%u modules loaded.\n", vm.moduleCount);
 
-		for (u64 i = 0; i < vm.functionCount; i++) {
-			Function* function = &vm.functions[i];
-
-			Printf(str("%s%s %s("), GetFunctionModifiersAsString(function->modifiers), GetTypeAsString(function->type->returnType), function->name);
-
-			if (function->paramCount > 0) {
-				for (u64 j = 0; j < function->paramCount; j++) {
-					Printf(str("%s"), GetTypeAsString(function->type->argumentTypes[j]));
-
-					if (j + 1 != function->paramCount) {
-						printf(", ");
-					}
-				}
-			}
-
-			printf(");\n");
+		for (u32 i = 0; i < vm.moduleCount; i++) {
+			PrintModuleDebug(&vm.modules[i]);
 		}
 	}
 }

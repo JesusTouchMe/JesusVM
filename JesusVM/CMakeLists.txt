@@ -12,12 +12,14 @@ set(SOURCES
 	"src/util/io.c"
 	"src/util/string.c"
 	"src/util/util.c"
+	"src/module.c"
 )
 
 set(HEADERS
 	"include/constpool.h"
 	"include/debug.h"
 	"include/function.h"
+	"include/module.h"
 	"include/opcodes.h"
 	"include/pch.h"
 	"include/stack.h"
@@ -27,7 +29,7 @@ set(HEADERS
 	"include/util/io.h"
 	"include/util/string.h"
 	"include/util/util.h"
-)
+ )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
 

@@ -3,6 +3,8 @@
 #include "function.h"
 #include "pch.h"
 
+typedef struct Module Module;
+
 typedef enum ConstantKind {
 	CONST_FUNCTION,
 } ConstantKind;
@@ -21,6 +23,8 @@ typedef struct ConstPool {
 	u32 index;
 } ConstPool;
 
-Constant* AllocConstant(); // TODO: make this allocate in module instead of the global vm
+void NewConstPool(ConstPool* constPool, u32 size);
+
+Constant* AllocConstant(Module* module);
 
 void NewConstFunction(Constant* constant, Function* function);

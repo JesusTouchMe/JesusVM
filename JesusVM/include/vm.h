@@ -1,7 +1,6 @@
 #pragma once
 
-#include "constpool.h"
-#include "function.h"
+#include "module.h"
 #include "pch.h"
 #include "stack.h"
 #include "type.h"
@@ -15,16 +14,14 @@
 
 typedef struct JesusVM {
 	u8* ip;
-
 	u16 flags;
 
-	ConstPool constPool;
-
-	Function* functions;
-	u32 functionCount;
-	u32 functionIndex;
-
 	Function* currentFunction;
+	Module* currentModule;
+
+	Module* modules;
+	u32 moduleCount;
+	u32 moduleCapacity;
 
 	Stack stack;
 	u64 stackFrame;
@@ -32,8 +29,8 @@ typedef struct JesusVM {
 
 extern JesusVM vm;
 
-void StartVM(u8* bytecode, u32 constPoolSize, u32 functionCount);
+void StartVM();
 
 void ExitVM();
 
-void VMBeginExecution(nullable() Function* entry);
+void VMBeginExecution(Module* module, nullable() Function* entry);

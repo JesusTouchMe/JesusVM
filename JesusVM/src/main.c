@@ -20,7 +20,10 @@ i32 main(i32 argc, char** argv) {
 		OP_RET,
 	};
 
-	StartVM(bytecode, 2, 2);
+	StartVM();
+
+	Module* module = AllocModule();
+	NewModule(module, str("test"), 2, 2, bytecode);
 
 	Type* testArguments[] = {
 		&intType,
@@ -31,7 +34,7 @@ i32 main(i32 argc, char** argv) {
 
 	FunctionType* addType = AllocFunctionType();
 	NewFunctionType(addType, &intType, testArguments, 2);
-	Function* addFunc = AllocFunction();
+	Function* addFunc = AllocFunction(module);
 
 	addFunc->type = addType;
 	addFunc->name = str("add");
@@ -45,7 +48,7 @@ i32 main(i32 argc, char** argv) {
 
 	FunctionType* mainType = AllocFunctionType();
 	NewFunctionType(mainType, &voidType, mainArguments, 0);
-	Function* mainFunc = AllocFunction();
+	Function* mainFunc = AllocFunction(module);
 
 	mainFunc->type = mainType;
 	mainFunc->name = str("main");
@@ -57,13 +60,13 @@ i32 main(i32 argc, char** argv) {
 	
 	mainFunc->entry = bytecode;
 
-	Constant* testConstant = AllocConstant();
+	Constant* testConstant = AllocConstant(module);
 	NewConstFunction(testConstant, addFunc);
 
-	Constant* mainConstant = AllocConstant();
+	Constant* mainConstant = AllocConstant(module);
 	NewConstFunction(mainConstant, mainFunc);
 
-	VMBeginExecution(mainFunc);
+	VMBeginExecution(module, mainFunc);
 
 	puts("Bad exit");
 	ExitVM();

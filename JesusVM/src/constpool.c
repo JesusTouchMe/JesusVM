@@ -1,13 +1,19 @@
 #include "constpool.h"
-#include "vm.h"
+#include "module.h"
 
-Constant* AllocConstant() {
-	if (vm.constPool.index >= vm.constPool.size) {
+void NewConstPool(ConstPool* constPool, u32 size) {
+	constPool->constants = malloc(sizeof(Constant) * size);
+	constPool->size = size;
+	constPool->index = 0;
+}
+
+Constant* AllocConstant(Module* module) {
+	if (module->constPool.index >= module->constPool.size) {
 		puts("VM error: attempt to allocate more constants than was specified in file");
 		return null;
 	}
 
-	return &vm.constPool.constants[vm.constPool.index++];
+	return &module->constPool.constants[module->constPool.index++];
 }
 
 void NewConstFunction(Constant* constant, Function* function) {
