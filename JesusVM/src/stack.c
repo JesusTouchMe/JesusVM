@@ -3,34 +3,58 @@
 
 void NewStack(Stack* stack, u64 size) {
 	stack->data = calloc(size, sizeof(i64));
-	stack->typeInfos = calloc((size + 7) / 8, sizeof(u8));
+	stack->references = calloc(size, sizeof(bool));
 	stack->top = 0;
 	stack->size = size;
+	stack->frame = 0;
 }
 
 void DeleteStack(Stack* stack) {
+	for (u64 i = 0; i < stack->top; i++) {
+		if (stack->references[i]) {
+			RemoveReference((Object*) stack->data[i]);
+		}
+	}
+
 	free(stack->data);
-	free(stack->typeInfos);
+	free(stack->references);
 }
 
-void StackPush(Stack* stack, i64 value, bool isObject) {
+void StackPush(Stack* stack, i64 value) {
 	if (stack->top >= stack->size) {
 		puts("VM error: StackOverflowException");
 		exit(1);
 	}
 
 	stack->data[stack->top] = value;
-
-	if (isObject) {
-		stack->typeInfos[stack->top / 8] |= (1 << (stack->top % 8));
-	} else {
-		stack->typeInfos[stack->top / 8] &= ~(1 << (stack->top % 8));
-	}
-
+	stack->references[stack->top] = false;
 	stack->top++;
 }
 
-i64 StackPop(Stack* stack, nullable() bool* isObjectBuf) {
+void StackPushObj(Stack* stack, Object* obj) {
+	if (stack->top >= stack->size) {
+		puts("VM error: StackOverflowException");
+		exit(1);
+	}
+
+	stack->data[stack->top] = (i64) obj;
+	stack->references[stack->top] = true;
+	stack->top++;
+
+	AddReference(obj);
+}
+
+i64 StackPop(Stack* stack) {
+	i64 value = StackPop2(stack);
+
+	if (stack->references[stack->top]) {
+		RemoveReference((Object*) value);
+	}
+
+	return value;
+}
+
+i64 StackPop2(Stack* stack) {
 	if (stack->top <= 0) {
 		puts("VM error: StackUnderflowException");
 		exit(1);
@@ -38,18 +62,5 @@ i64 StackPop(Stack* stack, nullable() bool* isObjectBuf) {
 
 	stack->top--;
 
-	if (isObjectBuf != null) *isObjectBuf = StackIsObject(stack, stack->top);
 	return stack->data[stack->top];
-}
-
-bool StackIsObject(Stack* stack, u64 index) {
-	return (stack->typeInfos[index / 8] & (1 << (index % 8))) != 0;
-}
-
-void StackSetObject(Stack* stack, u64 index, bool isObject) {
-	if (isObject) {
-		stack->typeInfos[index / 8] |= (1 << (index % 8));
-	} else {
-		stack->typeInfos[index / 8] &= ~(1 << (index % 8));
-	}
 }

@@ -21,3 +21,15 @@ Function* AllocFunction(Module* module) {
 bool ValidateFunction(Function* function) {
 	return ValidateType(function->type) && ValidateAccessModifiers(function->modifiers);
 }
+
+Function* GetFunction(Module* module, String descriptor) {
+	for (u32 i = 0; i < module->functionCount; i++) {
+		Function* function = &module->functions[i];
+
+		if (StringEquals(&function->fullDescriptor, &descriptor)) {
+			return function;
+		}
+	}
+
+	return null;
+}

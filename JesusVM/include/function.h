@@ -13,6 +13,9 @@ typedef u16 FunctionModifiers;
 typedef struct Function {
 	FunctionType* type;
 	String name;
+	String fullDescriptor; // name(argTypes...)returnType
+
+	Module* module;
 
 	FunctionModifiers modifiers;
 
@@ -25,3 +28,5 @@ typedef struct Function {
 Function* AllocFunction(Module* module);
 
 bool ValidateFunction(Function* function);
+
+Function* GetFunction(Module* module, String descriptor);

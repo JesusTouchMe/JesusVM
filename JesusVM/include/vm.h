@@ -24,7 +24,6 @@ typedef struct JesusVM {
 	u32 moduleCapacity;
 
 	Stack stack;
-	u64 stackFrame;
 } JesusVM;
 
 extern JesusVM vm;
@@ -34,3 +33,5 @@ void StartVM();
 void ExitVM();
 
 void VMBeginExecution(Module* module, nullable() Function* entry);
+
+Module* VMGetModule(String name);

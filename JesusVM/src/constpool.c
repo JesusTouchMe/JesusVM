@@ -20,3 +20,18 @@ void NewConstFunction(Constant* constant, Function* function) {
 	constant->kind = CONST_FUNCTION;
 	constant->function = function;
 }
+
+void NewConstClass(Constant* constant, Class* class) {
+	constant->kind = CONST_CLASS;
+	constant->clas = class;
+}
+
+void NewConstField(Constant* constant, FieldRef* field) {
+	constant->kind = CONST_FIELD;
+	constant->field = field;
+}
+
+void NewConstMethod(Constant* constant, MethodRef* method) {
+	constant->kind = CONST_METHOD;
+	constant->method = method;
+}

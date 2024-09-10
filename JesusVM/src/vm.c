@@ -1,7 +1,10 @@
 #include "debug.h"
 #include "vm.h"
 
+#include "object/object.h"
 #include "util/util.h"
+
+#include "object/heap/heap.h"
 
 #define inst(opcode, ...) case opcode:
 
@@ -87,7 +90,7 @@ void StartVM() {
 }
 
 void ExitVM() {
-	FreeFunctionTypes();
+	FreeTypes();
 
 	for (u32 i = 0; i < vm.moduleCount; i++) {
 		DeleteModule(&vm.modules[i]);
@@ -112,14 +115,15 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 		vm.currentFunction = entry;
 		vm.currentModule = module;
 
+
 		vm.stack.top += entry->localCount;
-		vm.stackFrame = 0;
+		vm.stack.frame = 0;
 	}
 
 	bool wideInst = false;
 
 	main_loop:
-	for (;;) { // weird trick for infinite loop
+	for (;;) { // weird infinite loop
 		u8 instruction = *vm.ip++;
 
 		switch (instruction) {
@@ -128,14 +132,20 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 			}
 
 			inst(OP_POP) {
-				StackPop(&vm.stack, null);
+				StackPop(&vm.stack);
 				break;
 			}
 
 			inst(OP_DUP) {
 				u64 index = vm.stack.top - 1;
+				i64 element = vm.stack.data[index];
+				bool isObject = vm.stack.references[index];
 
-				StackPush(&vm.stack, vm.stack.data[index], StackIsObject(&vm.stack, index));
+				if (isObject) {
+					StackPushObj(&vm.stack, (Object*) element);
+				} else {
+					StackPush(&vm.stack, element);
+				}
 
 				break;
 			}
@@ -143,41 +153,223 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 			inst(OP_LOAD, index8|index16) {
 				wide {
 					op16(index16);
-					StackPush(&vm.stack, *(vm.stack.data + vm.stackFrame + index16), StackIsObject(&vm.stack, vm.stackFrame + index16));
+					i64 value = *(vm.stack.data + vm.stack.frame + index16);
+
+					StackPush(&vm.stack, value);
+
 					break;
 				}
 
 				narrow {
 					op(index8);
-					StackPush(&vm.stack, *(vm.stack.data + vm.stackFrame + index8), StackIsObject(&vm.stack, vm.stackFrame + index8));
+					i64 value = *(vm.stack.data + vm.stack.frame + index8);
+
+					StackPush(&vm.stack, *(vm.stack.data + vm.stack.frame + index8));
+
 					break;
 				}
 			}
+
+			inst(OP_LOADOBJ, index8|index16) {
+				wide {
+					op16(index16);
+					Object* value = (Object*) *(vm.stack.data + vm.stack.frame + index16);
+
+					StackPushObj(&vm.stack, value);
+					
+					break;
+				}
+
+				narrow {
+					op(index8);
+					Object* value = (Object*) *(vm.stack.data + vm.stack.frame + index8);
+
+					StackPushObj(&vm.stack, value);
+
+					break;
+				}
+			}
+
 
 			inst(OP_STORE, index8|index16) {
 				wide {
 					op16(index16);
 
-					bool isObject;
-					i64 value = StackPop(&vm.stack, &isObject);
+					i64 value = StackPop(&vm.stack);
 
-					*(vm.stack.data + vm.stackFrame + index16) = value;
-					StackSetObject(&vm.stack, vm.stackFrame + index16, isObject);
+					*(vm.stack.data + vm.stack.frame + index16) = value;
+					*(vm.stack.references + vm.stack.frame + index16) = false; // this instruction treats the value as a non-object no matter what it pops
 
 					break;
 				}
 
 				narrow {
-					op16(index8);
+					op(index8);
 
-					bool isObject;
-					i64 value = StackPop(&vm.stack, &isObject);
+					i64 value = StackPop(&vm.stack);
 
-					*(vm.stack.data + vm.stackFrame + index8) = value;
-					StackSetObject(&vm.stack, vm.stackFrame + index8, isObject);
+					*(vm.stack.data + vm.stack.frame + index8) = value;
+					*(vm.stack.references + vm.stack.frame + index8) = false;
 
 					break;
 				}
+			}
+
+			inst(OP_STOREOBJ, index8|index16) {
+				wide {
+					op16(index16);
+
+					i64 value = StackPop2(&vm.stack); // just gotta hope it's actually an object, otherewise it's a user mistake
+
+					Object* obj = (Object*) *(vm.stack.data + vm.stack.frame + index16);
+					if (obj != null) RemoveReference(obj); // this instruction expects the type of the variable index to always be of object type
+					
+					*(vm.stack.data + vm.stack.frame + index16) = value;
+					*(vm.stack.references + vm.stack.frame + index16) = true; // this instruction treats the value as an object no matter what it pops
+
+					break;
+				}
+
+				narrow {
+					op(index8);
+
+					i64 value = StackPop2(&vm.stack); // just gotta hope it's actually an object, otherewise it's a user mistake
+
+					Object* obj = (Object*) *(vm.stack.data + vm.stack.frame + index8);
+					if (obj != null) RemoveReference(obj); // this instruction expects the type of the variable index to always be of object type
+
+					*(vm.stack.data + vm.stack.frame + index8) = value;
+					*(vm.stack.references + vm.stack.frame + index8) = true; // this instruction treats the value as an object no matter what it pops
+
+					break;
+				}
+			}
+
+			inst(OP_ALOAD) {
+				break;
+			}
+
+			inst(OP_ALOADOBJ) {
+				break;
+			}
+
+			inst(OP_ASTORE) {
+				break;
+			}
+
+			inst(OP_ASTOREOBJ) {
+				break;
+			}
+
+			inst(OP_NEW, const16|const32) {
+				Constant* constant;
+
+				wide {
+					op32(const32);
+					constant = GetConstant(vm.currentModule, (u32) const32);
+				}
+
+				narrow {
+					op16(const16);
+					constant = GetConstant(vm.currentModule, (u32) const16);
+				}
+
+				if (constant->kind != CONST_CLASS) {
+					puts("Attempt to allocate a non-class constant");
+					ExitVM();
+					exit(1);
+				}
+
+				Object* obj = AllocObject(constant->clas);
+
+				StackPushObj(&vm.stack, obj);
+				obj->refCount--; // StackPushObj adds its own reference to the obj so we gotta remove our reference from AllocObject now
+
+				break;
+			}
+
+			inst(OP_NEWARRAY, const16|const32) {
+				break;
+			}
+
+			inst(OP_NEWARRAYPRIM, typeId) {
+				break;
+			}
+
+			inst(OP_GETFIELD, index16|index32) {
+				Constant* constant;
+
+				wide {
+					op32(const32);
+					constant = GetConstant(vm.currentModule, (u32) const32);
+				}
+
+				narrow {
+					op16(const16);
+					constant = GetConstant(vm.currentModule, (u32) const16);
+				}
+
+				if (constant->kind != CONST_FIELD) {
+					puts("VM error: attempt to find field from non-field constant");
+					ExitVM();
+					exit(1);
+				}
+
+				Object* object = (Object*) StackPop2(&vm.stack);
+				Field* field = &object->fields[constant->field->classFieldIndex];
+
+				if (field->type->isPrimitive) {
+					StackPush(&vm.stack, field->value.i);
+				} else {
+					StackPushObj(&vm.stack, field->value.ref);
+				}
+
+				RemoveReference(object);
+
+				break;
+			}
+
+			inst(OP_PUTFIELD, index16|index32) {
+				Constant* constant;
+
+				wide {
+					op32(const32);
+					constant = GetConstant(vm.currentModule, (u32) const32);
+				}
+
+				narrow {
+					op16(const16);
+					constant = GetConstant(vm.currentModule, (u32) const16);
+				}
+
+				if (constant->kind != CONST_FIELD) {
+					puts("VM error: attempt to find field from non-field constant");
+					ExitVM();
+					exit(1);
+				}
+
+				i64 value = StackPop2(&vm.stack);
+
+				Object* object = (Object*) StackPop2(&vm.stack); // StackPop2 cuz we don't wanna accidentally free this before we done
+				Field* field = &object->fields[constant->field->classFieldIndex];
+				
+
+				if (!field->type->isPrimitive) { // making assumption that the value is a valid object pointer
+					RemoveReference((Object*) field->value.ref);
+					Object* valueObject = (Object*) value; // no need to add a reference to this cuz it lost 1 from stack and gained 1 from being put in field
+
+					if (field->type->classRef != valueObject->type) { // classes don't match, freak
+						puts("VM error: field type doesn't match value type"); // make this explain the error more :pray:
+						ExitVM();
+						exit(1);
+					}
+				}
+
+				field->value.i = value;
+
+				RemoveReference(object); // we do this after everything else so there won't be freaky memory issues
+
+				break;
 			}
 
 			inst(OP_ADD) {
@@ -436,54 +628,42 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 					constant = GetConstant(vm.currentModule, (u32) const16);
 				}
 
-				if (constant->kind != CONST_FUNCTION) {
-					puts("VM error: attempt to call a non-function constant");
+				Function* function;
+
+				if (constant->kind == CONST_FUNCTION) {
+					function = constant->function;
+				} else if (constant->kind == CONST_METHOD) {
+					function = constant->method->function;
+				} else {
+					puts("VM error: attempt to call a non-callable constant");
 					ExitVM();
 					exit(1);
 				}
 
-				i64* params = vm.stack.data + vm.stack.top - constant->function->paramCount;
-				memmove(params + 4, params, constant->function->paramCount * sizeof(i64));
+				i64* params = vm.stack.data + vm.stack.top - function->paramCount;
+				bool* paramsRef = vm.stack.references + vm.stack.top - function->paramCount;
 
-				u64 index = vm.stack.top - constant->function->paramCount;
-				u64 byteOffset = index / 8;
-				u64 bitOffset = index % 8;
+				memmove(params + 4, params, function->paramCount * sizeof(i64)); // the +4 is for the 4 pushed to stack later 
+				memmove(paramsRef + 4, paramsRef, function->paramCount * sizeof(i64)); // the +4 is for the 4 pushed to stack later 
 
-				u64 shiftedBits = 0;
-
-				for (u16 i = 0; i < constant->function->paramCount; i++) {
-					u64 bitPosition = index + i;
-					u64 byteIndex = bitPosition / 8;
-					u64 bitInByte = bitPosition % 8;
-
-					u64 bitValue = (vm.stack.typeInfos[byteIndex] >> bitInByte) & 0x01;
-					shiftedBits |= (bitValue << i);
-
-					vm.stack.typeInfos[byteIndex] &= ~(1 << bitInByte);
-				}
-
-				shiftedBits >>= 4;
-
-				for (u16 i = 0; i < constant->function->paramCount; i++) {
-					u64 bitPosition = index + i;
-					u64 byteIndex = bitPosition / 8;
-					u64 bitInByte = bitPosition % 8;
-
-					vm.stack.typeInfos[byteIndex] |= ((shiftedBits >> i) & 0x01) << bitInByte;
-				}
-
-				vm.stack.top -= constant->function->paramCount;
+				vm.stack.top -= function->paramCount;
 
 				StackPush(&vm.stack, (i64) vm.ip, false);
 				StackPush(&vm.stack, (i64) vm.currentModule, false);
 				StackPush(&vm.stack, (i64) vm.currentFunction, false);
-				StackPush(&vm.stack, (i64) vm.stackFrame, false);
+				StackPush(&vm.stack, (i64) vm.stack.frame, false);
 
-				vm.ip = constant->function->entry;
-				vm.currentFunction = constant->function;
-				vm.stackFrame = vm.stack.top;
+				vm.ip = function->entry;
+				vm.currentModule = function->module;
+				vm.currentFunction = function;
+				vm.stack.frame = vm.stack.top;
 
-				vm.stack.top += constant->function->localCount + constant->function->paramCount;
+				vm.stack.top += function->localCount + function->paramCount;
+
+				for (u64 i = vm.stack.frame + function->paramCount; i < vm.stack.top; i++) {
+					vm.stack.data[i] = 0;
+					vm.stack.references[i] = false;
+				}
 
 				break;
 			}
@@ -491,27 +671,36 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 			inst(OP_RET) {
 				bool hasReturnType = vm.currentFunction->type->returnType != &voidType;
 				i64 returnValue;
-				bool isReturnValueObject;
 
 				if (hasReturnType) {
-					returnValue = StackPop(&vm.stack, &isReturnValueObject);
+					returnValue = StackPop2(&vm.stack);
 				}
 
-				vm.stack.top = vm.stackFrame;
+				for (u64 i = vm.stack.frame; i < vm.stack.top; i++) {
+					if (vm.stack.references[i]) {
+						Object* obj = (Object*) vm.stack.data[i];
 
-				vm.stackFrame = StackPop(&vm.stack, null);
-				vm.currentFunction = (Function*) StackPop(&vm.stack, null);
-				vm.currentModule = (Module*) StackPop(&vm.stack, null);
-				vm.ip = (u8*) StackPop(&vm.stack, null);
+						if (obj != null) {
+							RemoveReference(obj);
+						}
+					}
+				}
+
+				vm.stack.top = vm.stack.frame;
+
+				vm.stack.frame = StackPop2(&vm.stack, null);
+				vm.currentFunction = (Function*) StackPop2(&vm.stack, null);
+				vm.currentModule = (Module*) StackPop2(&vm.stack, null);
+				vm.ip = (u8*) StackPop2(&vm.stack, null);
 
 				if (hasReturnType) {
-					StackPush(&vm.stack, returnValue, isReturnValueObject);
+					StackPush(&vm.stack, returnValue);
 				}
 
 				break;
 			}
 
-			inst(OP_CONSTLOAD, const16|const32) {
+			inst(OP_LDC, const16|const32) {
 				Constant* constant;
 
 				wide {
@@ -525,8 +714,11 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 				}
 
 				switch (constant->kind) {
-					case CONST_FUNCTION: {
-						StackPush(&vm.stack, (i64) constant->function, false);
+					case CONST_FUNCTION:
+					case CONST_CLASS:
+					case CONST_FIELD:
+					case CONST_METHOD: {
+						StackPush(&vm.stack, constant->generic);
 						break;
 					}
 				}
@@ -560,7 +752,7 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 			}
 
 			inst(OP_HLT) {
-				register i64 exitCode = (vm.stack.top != 0) ? StackPop(&vm.stack, null) : 0;
+				i64 exitCode = (vm.stack.top != 0) ? StackPop(&vm.stack, null) : 0;
 				ExitVM();
 				exit((int) exitCode);
 			}
@@ -574,4 +766,18 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 
 		wideInst = false;
 	}
+}
+
+Module* VMGetModule(String name) {
+	// check the opened modules first. reverse iteration because it's likely it'll try to find the latest opened
+	for (i64 i = vm.moduleCount - 1; i >= 0; i--) {
+		Module* module = &vm.modules[i];
+
+		if (StringEquals(&module->name, &name)) {
+			return module;
+		}
+	}
+
+	return null;
+	//TODO: either vm or special moduleloader will know what modules it's allowed to open, but aren't yet opened
 }

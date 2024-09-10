@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
 typedef int8_t	i8;
 typedef int16_t i16;
 typedef int32_t i32;
@@ -24,3 +27,11 @@ typedef u8 bool;
 
 #define null NULL
 #define nullable(...)
+
+#if defined(__clang__)
+#  define COMPILER_CLANG
+#elif defined(_MSC_VER)
+#  define COMPILER_CL
+#elif defined(__GNUC__)
+#  define COMPILER_GCC
+#endif

@@ -1,12 +1,13 @@
 #include "util/io.h"
+#include "util/io.h"
 #include "stdarg.h"
 
 static inline void WriteOut(String str) {
-	fwrite(str.cString, sizeof(char), str.length, stdout);
+	fwrite(str.buffer, sizeof(char), str.length, stdout);
 }
 
 static inline void WriteOutP(String* str) {
-	fwrite(str->cString, sizeof(char), str->length, stdout);
+	fwrite(str->buffer, sizeof(char), str->length, stdout);
 }
 
 static u32 IntToString(char* buffer, i32 value) {
@@ -55,7 +56,7 @@ void Printf(String format, ...) {
 	va_list args;
 	va_start(args, format);
 
-	const char* fmt = format.cString;
+	const char* fmt = format.buffer;
 	const u64 length = format.length;
 
 	for (u64 i = 0; i < length; i++) {
@@ -81,7 +82,7 @@ void Printf(String format, ...) {
 							sp = &s;
 						}
 
-						if (sp->cString == null) {
+						if (sp->buffer == null) {
 							WriteOut(str("null"));
 						} else {
 							WriteOutP(sp);
