@@ -1,8 +1,11 @@
 #include "type.h"
 #include "template/vector.h"
 
-DeclareVector(Type);
-DefineVector(Type);
+typedef Type* TypeP;
+typedef FunctionType* FunctionTypeP;
 
-DeclareVector(FunctionType);
-DefineVector(FunctionType);
+DeclareVector(TypeP);
+DefineVector(TypeP);
+
+DeclareVector(FunctionTypeP);
+DefineVector(FunctionTypeP);

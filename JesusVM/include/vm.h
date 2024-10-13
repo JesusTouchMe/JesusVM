@@ -35,3 +35,5 @@ void ExitVM();
 void VMBeginExecution(Module* module, nullable() Function* entry);
 
 Module* VMGetModule(String name);
+
+void ExecuteCode(bool runningCodeBlock, u8* codeStart, u16 localCount);

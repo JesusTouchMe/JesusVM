@@ -3,6 +3,8 @@
 #include "vm.h"
 #include "os/init.h"
 
+#include <assert.h>
+
 i32 main(i32 argc, char** argv) {
 	OSInit();
 
@@ -11,7 +13,7 @@ i32 main(i32 argc, char** argv) {
 
 	Module* module = OpenModule(str("C:/Users/JesusTouchMe/IdeaProjects/JesusASM/run/test.jmod"));
 
-	Constant* entryConstant = &module->constPool.constants[module->functionIndex];
+	Constant* entryConstant = GetConstant(module, module->functionIndex);
 
 	if (entryConstant->kind != CONST_FUNCTION) {
 		puts("Module entry may only point to a constant pool item with the kind 'FUNCTION'");

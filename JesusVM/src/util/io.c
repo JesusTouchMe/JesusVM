@@ -16,7 +16,7 @@ static u32 IntToString(char* buffer, i32 value) {
 		return 1;
 	}
 
-	u32 i = 0;
+	i32 i = 0;
 	bool is_negative = false;
 
 	if (value < 0) {

@@ -12,6 +12,10 @@ typedef struct Object {
 	Field fields[];
 } Object;
 
+Object* AllocObject(Class* clas);
+
+void FreeObject(Object* object);
+
 void AddReference(Object* object);
 
 void RemoveReference(Object* object);

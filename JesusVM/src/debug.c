@@ -5,6 +5,8 @@
 #include "util/util.h"
 #include "util/io.h"
 
+debug_global(extern u32 totalAllocatedObjects);
+
 static String GetModifiersAsString(FunctionModifiers modifiers) {
 	static char buffer[128];
 	memset(buffer, 0, sizeof(buffer));
@@ -81,6 +83,7 @@ static void PrintConstant(Constant* constant) {
 		case CONST_METHOD: {
 			printf("(method) ");
 			PrintFunction(constant->method->function);
+			break;
 		}
 	}
 }
@@ -194,5 +197,10 @@ void PrintVMDebug() {
 		for (u32 i = 0; i < vm.moduleCount; i++) {
 			PrintModuleDebug(&vm.modules[i]);
 		}
+	}
+
+	debug_block {
+		printf("\nDebug info:\n");
+		printf("Total allocated objects: %u\n", totalAllocatedObjects);
 	}
 }

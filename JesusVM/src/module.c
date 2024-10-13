@@ -3,7 +3,7 @@
 
 static const u32 MODULE_MAGIC = 0x4E696765;
 
-#define HEADER_SIZE 44
+#define HEADER_SIZE 48
 
 #define HEADER_MAGIC 0
 #define HEADER_NAMEINDEX 4
@@ -21,45 +21,18 @@ static const u32 MODULE_MAGIC = 0x4E696765;
 #define HEADER_STRINGTABLESIZE 36
 #define HEADER_BYTECODESIZE 40
 
-#define GetPrimarySections(f, h) Section functionSection = GetFunctionSection(f, h); \
-    Section classesSection = GetClassesSection(f, h); \
-    Section constPoolSection = GetConstPoolSection(f, h); \
-    Section stringTabSection = GetStringTableSection(f, h); \
-    Section bytecodeSection = GetBytecodeSection(f, h)
+#define HEADER_SECTIONCOUNT 44
 
-static inline i8 Immediate8(u8** buffer) {
-    i8 value = (i8) (*buffer)[0];
-    *buffer += 1;
-    return value;
-}
+#define SECTION_HEADER_SIZETOTAL 8
 
-static inline i16 Immediate16(u8** buffer) {
-    i16 value = (i16) (((*buffer)[0] << 8) | (*buffer)[1]);
-    *buffer += 2;
-    return value;
-}
+#define SECTION_HEADER_NAMEINDEX 0
+#define SECTION_HEADER_SIZE 4
 
-static inline i32 Immediate32(u8** buffer) {
-    i32 value = (i32) (((*buffer)[0] << 24) |
-        ((*buffer)[1] << 16) |
-        ((*buffer)[2] << 8) |
-        (*buffer)[3]);
-    *buffer += 4;
-    return value;
-}
-
-static inline i64 Immediate64(u8** buffer) {
-    i64 value = (i64) (((u64) (*buffer)[0] << 56) |
-        ((u64) (*buffer)[1] << 48) |
-        ((u64) (*buffer)[2] << 40) |
-        ((u64) (*buffer)[3] << 32) |
-        ((u64) (*buffer)[4] << 24) |
-        ((u64) (*buffer)[5] << 16) |
-        ((u64) (*buffer)[6] << 8) |
-        ((u64) (*buffer)[7]));
-    *buffer += 8;
-    return value;
-}
+#define GetPrimarySections(m, f, h) Section* functionSection = _GetFunctionSection(m, f, h); \
+    Section* classesSection = _GetClassesSection(m, f, h); \
+    Section* constPoolSection = _GetConstPoolSection(m, f, h); \
+    Section* stringTabSection = _GetStringTableSection(m, f, h); \
+    Section* bytecodeSection = _GetBytecodeSection(m, f, h)
 
 static inline u32 HeaderLookup(u8* header, u32 element) {
     header += element;
@@ -70,103 +43,118 @@ static inline u32 HeaderLookup(u8* header, u32 element) {
         header[3]);
 }
 
-static inline Section GetFunctionSection(FILE* file, u8* header) {
+static inline Section* _GetFunctionSection(Module* module, FILE* file, u8* header) {
     u32 size = HeaderLookup(header, HEADER_FUNCTIONSSIZE);
 
     if (size == 0) {
-        return (Section) { 0 };
+		module->sections[FUNCTIONS_SECTION_INDEX] = (Section) { str("functions"), 0, null };
+		return GetFunctionsSection(module);
     }
 
     u8* buffer = malloc(size);
 
     if (buffer == null) {
         puts("malloc fail");
-        return (Section) {0};
+		module->sections[FUNCTIONS_SECTION_INDEX] = (Section) { str("functions"), 0, null };
+		return GetFunctionsSection(module);
     }
 
     fread_s(buffer, size, 1, size, file);
 
-    return (Section) { size, buffer };
+    module->sections[FUNCTIONS_SECTION_INDEX] = (Section) { str("functions"), size, buffer};
+    return GetFunctionsSection(module);
 }
 
-static inline Section GetClassesSection(FILE* file, u8* header) {
+static inline Section* _GetClassesSection(Module* module, FILE* file, u8* header) {
     u32 size = HeaderLookup(header, HEADER_CLASSESSIZE);
 
     if (size == 0) {
-        return (Section) { 0 };
+		module->sections[CLASSES_SECTION_INDEX] = (Section) { str("classes"), 0, null };
+		return GetClassesSection(module);
     }
 
     u8* buffer = malloc(size);
 
     if (buffer == null) {
         puts("malloc fail");
-        return (Section) { 0 };
+		module->sections[CLASSES_SECTION_INDEX] = (Section) { str("classes"), size, null };
+		return GetClassesSection(module);
     }
 
     fread_s(buffer, size, 1, size, file);
 
-    return (Section) { size, buffer };
+    module->sections[CLASSES_SECTION_INDEX] = (Section) { str("classes"), size, buffer};
+    return GetClassesSection(module);
 }
 
-static inline Section GetConstPoolSection(FILE* file, u8* header) {
+static inline Section* _GetConstPoolSection(Module* module, FILE* file, u8* header) {
     u32 size = HeaderLookup(header, HEADER_CONSTPOOLSIZE);
 
     if (size == 0) {
-        return (Section) { 0 };
+		module->sections[CONSTPOOL_SECTION_INDEX] = (Section) { str("constpool"), 0, null };
+		return GetConstPoolSection(module);
     }
 
     u8* buffer = malloc(size);
 
     if (buffer == null) {
         puts("malloc fail");
-        return (Section) { 0 };
+		module->sections[CONSTPOOL_SECTION_INDEX] = (Section) { str("constpool"), size, null };
+		return GetConstPoolSection(module);
     }
 
     fread_s(buffer, size, 1, size, file);
 
-    return (Section) { size, buffer };
+    module->sections[CONSTPOOL_SECTION_INDEX] = (Section) { str("constpool"), size, buffer};
+    return GetConstPoolSection(module);
 }
 
-static inline Section GetStringTableSection(FILE* file, u8* header) {
+static inline Section* _GetStringTableSection(Module* module, FILE* file, u8* header) {
     u32 size = HeaderLookup(header, HEADER_STRINGTABLESIZE);
 
     if (size == 0) {
-        return (Section) { 0 };
+		module->sections[STRTAB_SECTION_INDEX] = (Section) { str("strtab"), 0, null };
+		return GetStrtabSection(module);
     }
 
     u8* buffer = malloc(size);
 
     if (buffer == null) {
         puts("malloc fail");
-        return (Section) { 0 };
+		module->sections[STRTAB_SECTION_INDEX] = (Section) { str("strtab"), size, null };
+		return GetStrtabSection(module);
     }
 
     fread_s(buffer, size, 1, size, file);
 
-    return (Section) { size, buffer };
+    module->sections[STRTAB_SECTION_INDEX] = (Section) { str("strtab"), size, buffer};
+    return GetStrtabSection(module);
 }
 
-static inline Section GetBytecodeSection(FILE* file, u8* header) {
+static inline Section* _GetBytecodeSection(Module* module, FILE* file, u8* header) {
     u32 size = HeaderLookup(header, HEADER_BYTECODESIZE);
 
     if (size == 0) {
-        return (Section) { 0 };
+		module->sections[CODE_SECTION_INDEX] = (Section) { str("code"), 0, null };
+		return GetCodeSection(module);
     }
 
     u8* buffer = malloc(size);
 
     if (buffer == null) {
         puts("malloc fail");
-        return (Section) { 0 };
+		module->sections[CODE_SECTION_INDEX] = (Section) { str("code"), size, null };
+		return GetCodeSection(module);
     }
 
     fread_s(buffer, size, 1, size, file);
 
-    return (Section) { size, buffer };
+    module->sections[CODE_SECTION_INDEX] = (Section) { str("code"), size, buffer};
+    return GetCodeSection(module);
 }
 
-static inline String ModuleGetString_internal(Section stringTab, u32 index) {
-    u8* buffer = stringTab.buffer + index;
+static inline String ModuleGetString_internal(Section* stringTab, u32 index) {
+    u8* buffer = stringTab->buffer + index;
     u16 size = Immediate16(&buffer);
 
     return (String) { buffer, size, false, false, true };
@@ -287,10 +275,26 @@ static bool CheckModulesCapacity() {
 	return true;
 }
 
+Section* AllocSection(Module* module, u32 index) {
+    return &module->sections[PRIMARY_SECTION_COUNT + index];
+}
+
 void FreeSection(Section* section) {
     if (section->buffer != null) {
         free(section->buffer);
     }
+}
+
+Section* GetSectionByName(Module* module, String name) {
+    for (u32 i = 0; i < module->sectionCount; i++) {
+        Section* section = &module->sections[i];
+
+        if (StringEquals(&section->name, &name)) {
+            return section;
+        }
+    }
+
+    return null;
 }
 
 // TODO: new solution to dynamically resizing the module array. currently there's gonna be garbage pointers everywhere if there's over the first size of the modules array (16)
@@ -300,7 +304,7 @@ Module* AllocModule() {
 	return &vm.modules[vm.moduleCount++];
 }
 
-void NewModule(Module* module, String name, u32 constPoolSize, u32 classCount, u32 functionCount, Section stringTab, Section bytecode) {
+void NewModule(Module* module, String name, u32 constPoolSize, u32 classCount, u32 functionCount) {
 	module->name = name;
 	
 	NewConstPool(&module->constPool, constPoolSize);
@@ -311,9 +315,6 @@ void NewModule(Module* module, String name, u32 constPoolSize, u32 classCount, u
 	module->functions = malloc(sizeof(Function) * functionCount);
 	module->functionCount = functionCount;
 	module->functionIndex = 0;
-
-    module->stringTable = stringTab;
-	module->bytecode = bytecode;
 }
 
 void DeleteModule(Module* module) {
@@ -338,7 +339,13 @@ Module* OpenModule(String fileName) {
         return;
     }
 
-    GetPrimarySections(file, header);
+    Module* module = AllocModule();
+
+    u32 sectionCount = PRIMARY_SECTION_COUNT + HeaderLookup(header, HEADER_SECTIONCOUNT);
+    module->sectionCount = sectionCount;
+    module->sections = calloc(sectionCount, sizeof(Section));
+
+    GetPrimarySections(module, file, header);
 
     String moduleName = ModuleGetString_internal(stringTabSection, HeaderLookup(header, HEADER_NAMEINDEX));
 
@@ -346,12 +353,11 @@ Module* OpenModule(String fileName) {
     u32 classCount = HeaderLookup(header, HEADER_CLASSCOUNT);
     u32 constantCount = HeaderLookup(header, HEADER_CONSTANTCOUNT);
 
-    Module* module = AllocModule();
-    NewModule(module, moduleName, constantCount, classCount, functionCount, stringTabSection, bytecodeSection);
+    NewModule(module, moduleName, constantCount, classCount, functionCount);
 
     // functions
 
-    u8* buffer = functionSection.buffer;
+    u8* buffer = functionSection->buffer;
 
     for (u32 i = 0; i < functionCount; i++) {
         Function* function = AllocFunction(module);
@@ -363,7 +369,7 @@ Module* OpenModule(String fileName) {
         u32 descriptorIndex = Immediate32(&buffer);
         String descriptor = ModuleGetString_internal(stringTabSection, descriptorIndex);
 
-        u8* entry = bytecodeSection.buffer + Immediate64(&buffer);
+        u8* entry = bytecodeSection->buffer + Immediate64(&buffer);
 
         u32 index = LastIndexOf(&descriptor, '(');
 
@@ -389,7 +395,7 @@ Module* OpenModule(String fileName) {
 
     // classes
 
-    buffer = classesSection.buffer;
+    buffer = classesSection->buffer;
 
     for (u32 i = 0; i < classCount; i++) {
         Class* class = AllocClass(module, i);
@@ -475,96 +481,52 @@ Module* OpenModule(String fileName) {
         function->type = ParseFunctionType(module, typeString, function->type->argumentCount); // fix the memory wasted by making the type twice :sob:
     }
 
-    // const pool
 
-    buffer = constPoolSection.buffer;
+    if (sectionCount > PRIMARY_SECTION_COUNT) {
+        sectionCount -= PRIMARY_SECTION_COUNT;
 
-    for (u32 i = 0; i < constantCount; i++) {
-        Constant* constant = AllocConstant(module);
+        for (u32 i = 0; i < sectionCount; i++) {
+            u8 header[SECTION_HEADER_SIZETOTAL];
+            fread_s(header, SECTION_HEADER_SIZETOTAL, 1, SECTION_HEADER_SIZETOTAL, file);
 
-        ConstantKind kind = (ConstantKind) Immediate8(&buffer);
-        switch (kind) {
-            case CONST_FUNCTION: {
-                u32 moduleIndex = Immediate32(&buffer);
-                u32 descriptorIndex = Immediate32(&buffer);
+            u32 nameIndex = HeaderLookup(header, SECTION_HEADER_NAMEINDEX);
+            u32 size = HeaderLookup(header, SECTION_HEADER_SIZE);
 
-                String moduleName = ModuleGetString_internal(stringTabSection, moduleIndex);
-                String descriptor = ModuleGetString_internal(stringTabSection, descriptorIndex);
-
-                Module* module = VMGetModule(moduleName);
-                Function* function = GetFunction(module, descriptor);
-
-                NewConstFunction(constant, function);
-                break;
+            u8* buffer = malloc(size);
+            if (buffer == null) {
+                puts("alloc error");
+                continue;
             }
 
-            case CONST_CLASS: {
-                u32 moduleIndex = Immediate32(&buffer);
-                u32 nameIndex = Immediate32(&buffer);
+            fread_s(buffer, size, 1, size, file);
 
-                String moduleName = ModuleGetString_internal(stringTabSection, moduleIndex);
-                String name = ModuleGetString_internal(stringTabSection, nameIndex);
+            Section* section = AllocSection(module, i);
 
-                Module* module = VMGetModule(moduleName);
-                Class* class = GetClass(module, name);
-
-                NewConstClass(constant, class);
-                break;
-            }
-
-            case CONST_FIELD: {
-                u32 moduleIndex = Immediate32(&buffer);
-                u32 classIndex = Immediate32(&buffer);
-                u32 nameIndex = Immediate32(&buffer);
-
-                String moduleName = ModuleGetString_internal(stringTabSection, moduleIndex);
-                String className = ModuleGetString_internal(stringTabSection, classIndex);
-                String name = ModuleGetString_internal(stringTabSection, nameIndex);
-
-                Module* module = VMGetModule(moduleName);
-                Class* class = GetClass(module, className);
-                FieldRef* field = GetFieldRef(class, name);
-
-                NewConstField(constant, field);
-                break;
-            }
-
-            case CONST_METHOD: {
-                u32 moduleIndex = Immediate32(&buffer);
-                u32 classIndex = Immediate32(&buffer);
-                u32 nameIndex = Immediate32(&buffer);
-
-                String moduleName = ModuleGetString_internal(stringTabSection, moduleIndex);
-                String className = ModuleGetString_internal(stringTabSection, classIndex);
-                String name = ModuleGetString_internal(stringTabSection, nameIndex);
-
-                Module* module = VMGetModule(moduleName);
-                Class* class = GetClass(module, className);
-                MethodRef* method = GetMethodRef(class, name);
-
-                NewConstMethod(constant, method);
-                break;
-            }
-
-            default: {
-                printf("bad constant kind %d\n", kind);
-                break;
-            }
+            section->name = ModuleGetString_internal(GetStrtabSection(module), nameIndex);
+            section->size = size;
+            section->buffer = buffer;
         }
     }
 
     module->functionIndex = HeaderLookup(header, HEADER_ENTRYINDEX);
 
-    FreeSection(&functionSection);
-    FreeSection(&constPoolSection);
+    fclose(file);
+
+    Section* init = GetSectionByName(module, str("init"));
+    if (init != null) {
+        u8* buff = init->buffer;
+        u16 localCount = Immediate16(&buff);
+
+        ExecuteCode(true, buff, localCount);
+    }
 
     return module;
 }
 
 String ModuleGetString(Module* module, u32 index) {
-    if (index >= module->stringTable.size) {
+    if (index >= GetStrtabSection(module)->size) {
         return NullString;
     }
 
-    return ModuleGetString_internal(module->stringTable, index);
+    return ModuleGetString_internal(GetStrtabSection(module), index);
 }

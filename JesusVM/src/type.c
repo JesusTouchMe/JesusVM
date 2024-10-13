@@ -2,8 +2,11 @@
 #include "util/arrayutil.h"
 #include "template/vector.h"
 
-DeclareVector(Type);
-DeclareVector(FunctionType);
+typedef Type* TypeP;
+typedef FunctionType* FunctionTypeP;
+
+DeclareVector(TypeP);
+DeclareVector(FunctionTypeP);
 
 Type byteType = {
 	.isPrimitive = true,
@@ -41,14 +44,14 @@ Type voidType = {
 	.primitiveSize = 0
 };
 
-static Vector(Type) classTypes;
-static Vector(FunctionType) functionTypes;
+static Vector(TypeP) classTypes;
+static Vector(FunctionTypeP) functionTypes;
 
 void NewEmptyString_internal(String* string, u32 length);
 
 void InitTypeSystem() {
-	classTypes = NewVector(Type);
-	functionTypes = NewVector(FunctionType);
+	classTypes = NewVector(TypeP);
+	functionTypes = NewVector(FunctionTypeP);
 }
 
 Type* GetClassType(Class* class) {
@@ -57,35 +60,39 @@ Type* GetClassType(Class* class) {
 	}
 
 	for (u64 i = 0; i < classTypes.size; i++) {
-		Type* type = &classTypes.data[i];
+		Type* type = classTypes.data[i];
 
 		if (type->classRef == class && !type->isPrimitive) {
 			return type;
 		}
 	}
 
-	Type type;
-	type.isPrimitive = false;
-	type.id = ViewString(&class->name);
-	type.classRef = class;
+	Type* type = malloc(sizeof(Type));
+	type->isPrimitive = false;
+	type->id = ViewString(&class->name);
+	type->classRef = class;
 	
 	VectorAdd(&classTypes, type);
-	return &VectorBack(&classTypes);
+	return type;
 }
 
 FunctionType* AllocFunctionType() {
-	VectorAdd(&functionTypes, (FunctionType) {0});
-	return &VectorBack(&functionTypes);
+	FunctionType* type = malloc(sizeof(FunctionType));
+	VectorAdd(&functionTypes, type);
+
+	return type;
 }
 
-void NewFunctionType(FunctionType* functionType, Type* returnType, nullable(if argumentCount <= 0) Type** argumentTypes, u16 argumentCount) {
+void NewFunctionType(FunctionType* functionType, Type* returnType, nullable(if argumentCount == 0) Type** argumentTypes, u16 argumentCount) {
 	if (functionType == null) {
 		return;
 	}
 
 	u64 size = sizeof(Type*) * argumentCount;
-	Type** arguments = malloc(size);
-	memcpy_s(arguments, size, argumentTypes, size);
+	Type** arguments = (argumentTypes == null) ? null : malloc(size);
+	if (argumentCount > 0) {
+		memcpy_s(arguments, size, argumentTypes, size);
+	}
 
 	functionType->returnType = returnType;
 	functionType->argumentTypes = arguments;
@@ -101,18 +108,24 @@ FunctionType* GetFunctionType(Type* returnType, nullable(if argumentCount <= 0) 
 		}
 	}
 
-	FunctionType type;
-	NewFunctionType(&type, returnType, argumentTypes, argumentCount);
+	FunctionType* type = AllocFunctionType();
+	NewFunctionType(type, returnType, argumentTypes, argumentCount);
 
-	VectorAdd(&functionTypes, type);
-
-	return &VectorBack(&functionTypes);
+	return type;
 }
 
 void FreeTypes() {
+	for (u64 i = 0; i < classTypes.size; i++) {
+		Type* type = classTypes.data[i];
+
+		free(type);
+	}
+
 	for (u64 i = 0; i < functionTypes.size; i++) {
-		free(functionTypes.data[i].argumentTypes);
-		DeleteString(&functionTypes.data[i].id);
+		FunctionType* type = functionTypes.data[i];
+
+		free(type->argumentTypes);
+		free(type);
 	}
 
 	DeleteVector(&classTypes);
