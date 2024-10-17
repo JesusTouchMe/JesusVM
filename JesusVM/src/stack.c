@@ -12,7 +12,8 @@ void NewStack(Stack* stack, u64 size) {
 void DeleteStack(Stack* stack) {
 	for (u64 i = 0; i < stack->top; i++) {
 		if (stack->references[i]) {
-			RemoveReference((Object*) stack->data[i]);
+			Object* obj = (Object*) stack->data[i];
+			if (obj != null) RemoveReference(obj);
 		}
 	}
 
@@ -41,14 +42,15 @@ void StackPushObj(Stack* stack, Object* obj) {
 	stack->references[stack->top] = true;
 	stack->top++;
 
-	AddReference(obj);
+	if (obj != null) AddReference(obj);
 }
 
 i64 StackPop(Stack* stack) {
 	i64 value = StackPop2(stack);
 
 	if (stack->references[stack->top]) {
-		RemoveReference((Object*) value);
+		Object* obj = (Object*) value;
+		if (obj != null) RemoveReference(obj);
 	}
 
 	return value;

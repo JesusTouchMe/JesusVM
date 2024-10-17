@@ -63,7 +63,7 @@ void VMBeginExecution(Module* module, nullable() Function* entry) {
 	vm.currentModule = module;
 	vm.stack.frame = 0;
 
-	ExecuteCode(false, entry->entry, entry->localCount);
+	ExecuteCode(entry->entry);
 	puts("VMBeginExecution (this should never show)");
 }
 

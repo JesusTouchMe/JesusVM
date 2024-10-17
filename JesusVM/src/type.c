@@ -99,13 +99,23 @@ void NewFunctionType(FunctionType* functionType, Type* returnType, nullable(if a
 	functionType->argumentCount = argumentCount;
 }
 
+static bool FunctionTypeEquals(FunctionType* type, Type* returnType, Type** argumentTypes, u16 argumentCount) {
+	if (type->argumentCount != argumentCount) return false;
+
+	for (u16 i = 0; i < argumentCount; i++) {
+		if (type->argumentTypes[i] != argumentTypes[i])
+			return false;
+	}
+
+	return type->returnType == returnType;
+}
+
 FunctionType* GetFunctionType(Type* returnType, nullable(if argumentCount <= 0) Type** argumentTypes, u16 argumentCount) {
 	for (u64 i = 0; i < functionTypes.size; i++) {
 		FunctionType* type = &functionTypes.data[i];
 
-		if (type->returnType == returnType && ArrayEquals(type->argumentTypes, type->argumentCount, argumentTypes, argumentCount)) {
+		if (FunctionTypeEquals(type, returnType, argumentTypes, argumentCount)) 
 			return type;
-		}
 	}
 
 	FunctionType* type = AllocFunctionType();

@@ -1,3 +1,4 @@
+#include "type.h"
 #include "object/object.h"
 
 debug_global(u32 totalAllocatedObjects = 0);
@@ -33,6 +34,12 @@ Object* AllocObject(Class* class) {
 
 void FreeObject(Object* object) {
 	debug(totalAllocatedObjects--);
+
+	for (u16 i = 0; i < object->type->fieldRefCount; i++) {
+		if (!object->fields[i].type->isPrimitive) { // it has an object
+			RemoveReference(object->fields[i].value.ref);
+		}
+	}
 	free(object);
 }
 
