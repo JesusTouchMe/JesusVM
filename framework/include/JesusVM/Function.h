@@ -2,10 +2,15 @@
 
 #include "types.h"
 
+#include "JesusVM/JesusNative.h"
+
 #include "JesusVM/type/FunctionType.h"
 #include "JesusVM/type/TypeSystem.h"
 
 namespace JesusVM {
+	template <typename ReturnType>
+	using NativeFunctionPtr = ReturnType(NATIVECALL *)(VMContext, JValue*);
+
 	class Executor;
 	class Module;
 
@@ -13,6 +18,8 @@ namespace JesusVM {
 	friend class Module;
 	public:
 		using Modifiers = u16;
+
+		static constexpr Modifiers NATIVE = 0x0001;
 
 		Function(TypeSystem& typeSystem, std::string_view descriptor, Modifiers modifiers, u16 localCount, u16 stackSize, u8* entry, u32 bytecodeSize);
 
@@ -26,8 +33,6 @@ namespace JesusVM {
 		u8* getEntry() const;
 		u32 getBytecodeSize() const;
 
-		void call(Executor& executor);
-		
 	private:
 		Module* mModule;
 		

@@ -8,11 +8,14 @@ namespace JesusVM {
 		name += returnType->getName();
 		name += '(';
 
-		for (auto i = 0; i < argumentTypes.size() - 1; i++) {
-			name += argumentTypes[i]->getName();
-			name += ", ";
+		if (!argumentTypes.empty()) {
+			for (auto i = 0; i < argumentTypes.size() - 1; i++) {
+				name += argumentTypes[i]->getName();
+				name += ", ";
+			}
+			name += argumentTypes.back()->getName();
 		}
-		name += argumentTypes.back()->getName();
+
 		name += ')';
 
 		return StringPool::Intern(name);

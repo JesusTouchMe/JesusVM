@@ -54,6 +54,9 @@ namespace JesusVM {
 				printInsn();
 				break;
 
+			case Opcodes::EXIT:
+				std::exit(0);
+
 			default:
 				std::cout << "Unknown instruction: " << instruction << ". TODO: proper error stuff\n";
 				std::exit(1);
@@ -114,7 +117,7 @@ namespace JesusVM {
 	}
 
 	void Executor::printInsn() {
-		i32 value = getInt();
+		i32 value = mFrame->pop();
 		std::cout << value << "\n";
 	}
 }

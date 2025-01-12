@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include <string_view>
+
 namespace JesusVM {
 	class Module;
 
@@ -11,5 +13,9 @@ namespace JesusVM {
 
 		Module* getModule();
 		std::string_view getName() const;
+
+	private:
+		Module* mModule;
+		std::string_view mName;
 	};
 }

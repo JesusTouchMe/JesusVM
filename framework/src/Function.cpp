@@ -56,8 +56,4 @@ namespace JesusVM {
 	u32 Function::getBytecodeSize() const {
 		return mBytecodeSize;
 	}
-
-	void call(Executor& executor) {
-		
-	}
 }

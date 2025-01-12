@@ -1,5 +1,7 @@
 #include "JesusVM/JesusVM.h"
 
+#include <array>
+
 namespace JesusVM {
 	JesusVM::JesusVM()
 		: mTypeSystem(*this)
@@ -11,16 +13,27 @@ namespace JesusVM {
 			std::exit(1);
 		}
 
-		VThread* runner = mMainThread->getAvailableThread();
-		if (runner == nullptr) {
-			std::unique_ptr<VThread> ptr = std::make_unique<VThread>();
-			runner = ptr.get();
-			mMainThread->addVThread(std::move(ptr));
+		if (main->getModifiers() & Function::NATIVE) {
+			//TODO: thread system supporting native execution
+
+			std::array<JValue, 1> params = {
+				69
+			};
+
+			NativeFunctionPtr<void> ptr = reinterpret_cast<NativeFunctionPtr<void>>(main->getEntry());
+			ptr(nullptr, params.data());
+		} else {
+			VThread* runner = mMainThread->getAvailableThread();
+			if (runner == nullptr) {
+				std::unique_ptr<VThread> ptr = std::make_unique<VThread>();
+				runner = ptr.get();
+				mMainThread->addVThread(std::move(ptr));
+			}
+
+			runner->executeFunction(main);
+
+			mMainThread->run();
 		}
-
-		runner->executeFunction(main);
-
-		mMainThread->run();
 	}
 
 	void JesusVM::stop() {
@@ -39,19 +52,19 @@ namespace JesusVM {
 	}
 
 	VThread* JesusVM::getAvailableThread() {
-		Thread* least = nullptr;
+		if (mThreads.empty()) return nullptr;
+
+		Thread* least = mThreads.front().get();
 		for (auto& thread : mThreads) {
 			VThread* vThread = thread->getAvailableThread();
 			if (vThread != nullptr) {
 				return vThread;
 			}
 
-			if (least == nullptr || thread->getThreadCount() < least->getThreadCount()) {
+			if (thread->getThreadCount() < least->getThreadCount()) {
 				least = thread.get();
 			}
 		}
-
-		if (least == nullptr) return nullptr; // there are no system threads
 
 		std::unique_ptr<VThread> vThread = std::make_unique<VThread>();
 		VThread* result = vThread.get();
@@ -62,10 +75,14 @@ namespace JesusVM {
 	}
 
 	void JesusVM::addModule(std::unique_ptr<Module> module) {
-		mModules.push_back(std::move(module));
+		if (module != nullptr) {
+			mModules.push_back(std::move(module));
+		}
 	}
 
 	void JesusVM::addThread(std::unique_ptr<Thread> thread) {
-		mThreads.push_back(std::move(thread));
+		if (thread != nullptr) {
+			mThreads.push_back(std::move(thread));
+		}
 	}
 }

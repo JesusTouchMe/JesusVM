@@ -9,6 +9,7 @@ namespace JesusVM {
 			SUB,
 			IPUSH_8,
 			PRINT,
+			EXIT,
 		};
 	}
 }
