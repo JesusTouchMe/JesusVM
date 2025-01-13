@@ -8,6 +8,7 @@ namespace JesusVM {
 	class Thread;
 
 	class VThread {
+	friend class Executor;
 	friend class Thread;
 	public:
 		VThread();

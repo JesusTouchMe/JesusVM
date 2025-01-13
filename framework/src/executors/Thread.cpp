@@ -49,6 +49,12 @@ namespace JesusVM {
 			if (currentThread != nullptr && currentThread->mIsActive) {
 				currentThread->executeCycles(5);
 			}
+
+			if (mIsMainThread && mMainVThread != nullptr) {
+				if (!mMainVThread->mIsActive) {
+					mVM.stop();
+				}
+			}
 		}
 	}
 

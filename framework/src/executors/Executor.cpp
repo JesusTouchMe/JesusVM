@@ -1,6 +1,7 @@
 #include "JesusVM/bytecode/Opcodes.h"
 
 #include "JesusVM/executors/Executor.h"
+#include "JesusVM/executors/VThread.h"
 
 namespace JesusVM {
 	constexpr u8 ReadU8(const u8* data, u32 index) {
@@ -30,9 +31,11 @@ namespace JesusVM {
 			(static_cast<u64>(data[index + 7]) << 56);
 	}
 
-	Executor::Executor(Stack<0>& stack)
-		: mStack(stack)
-		, mFrame(stack.getTopFrame()) {}
+	Executor::Executor(VThread& thread, Stack<0>& stack)
+		: mThread(thread)
+		, mStack(stack)
+		, mFrame(stack.getTopFrame())
+		, mPC(nullptr) {}
 
 	void Executor::executeInstruction() {
 		u8 instruction = *mPC++;
@@ -45,17 +48,6 @@ namespace JesusVM {
 			case Opcodes::SUB:
 				subInsn();
 				break;
-
-			case Opcodes::IPUSH_8:
-				ipush8Insn();
-				break;
-
-			case Opcodes::PRINT:
-				printInsn();
-				break;
-
-			case Opcodes::EXIT:
-				std::exit(0);
 
 			default:
 				std::cout << "Unknown instruction: " << instruction << ". TODO: proper error stuff\n";
@@ -111,13 +103,302 @@ namespace JesusVM {
 		mFrame->push(lhs - rhs);
 	}
 
-	void Executor::ipush8Insn() {
+	void Executor::mulInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		mFrame->push(lhs * rhs);
+	}
+
+	void Executor::divInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		mFrame->push(lhs / rhs);
+	}
+	
+	void Executor::remInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		mFrame->push(lhs - (lhs / rhs) * rhs);
+	}
+	
+	void Executor::laddInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs + rhs);
+	}
+	
+	void Executor::lsubInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs - rhs);
+	}
+	
+	void Executor::lmulInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs * rhs);
+	}
+	
+	void Executor::ldivInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs / rhs);
+	}
+	
+	void Executor::lremInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs - (lhs / rhs) * rhs);
+	}
+
+	void Executor::andInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		mFrame->push(lhs & rhs);
+	}
+	
+	void Executor::orInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		mFrame->push(lhs | rhs);
+	}
+	
+	void Executor::xorInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		mFrame->push(lhs ^ rhs);
+	}
+	
+	void Executor::landInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs & rhs);
+	}
+	
+	void Executor::lorInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs | rhs);
+	}
+	
+	void Executor::lxorInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		mFrame->pushLong(lhs ^ rhs);
+	}
+
+	void Executor::notInsn() {
+		i32 value = mFrame->pop();
+		mFrame->push(~value);
+	}
+	
+	void Executor::negInsn() {
+		i32 value = mFrame->pop();
+		mFrame->push(-value);
+	}
+
+	void Executor::lnotInsn() {
+		i32 value = mFrame->popLong();
+		mFrame->pushLong(~value);
+	}
+	
+	void Executor::lnegInsn() {
+		i32 value = mFrame->popLong();
+		mFrame->pushLong(-value);
+	}
+
+	void Executor::jmp_icmpeqInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs == rhs) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmp_icmpneInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs != rhs) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmp_icmpltInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs < rhs) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmp_icmpgtInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs > rhs) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmp_icmpleInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs <= rhs) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmp_icmpgeInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs >= rhs) {
+			mPC += branch;
+		}
+	}
+
+	void Executor::jmpeqInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 value = mFrame->pop();
+
+		if (value == 0) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmpneInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 value = mFrame->pop();
+
+		if (value != 0) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmpltInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 value = mFrame->pop();
+
+		if (value < 0) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmpgtInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 value = mFrame->pop();
+
+		if (value > 0) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmpleInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 value = mFrame->pop();
+
+		if (value <= 0) {
+			mPC += branch;
+		}
+	}
+	
+	void Executor::jmpgeInsn() {
+		i16 branch = getShort(); // relative
+
+		i32 value = mFrame->pop();
+
+		if (value >= 0) {
+			mPC += branch;
+		}
+	}
+
+	void Executor::icmpInsn() {
+		i32 rhs = mFrame->pop();
+		i32 lhs = mFrame->pop();
+
+		if (lhs < rhs) mFrame->push(-1);
+		else if (lhs > rhs) mFrame->push(1);
+		else mFrame->push(0);
+	}
+	
+	void Executor::lcmpInsn() {
+		i64 rhs = mFrame->popLong();
+		i64 lhs = mFrame->popLong();
+
+		if (lhs < rhs) mFrame->push(-1);
+		else if (lhs > rhs) mFrame->push(1);
+		else mFrame->push(0);
+	}
+
+	void Executor::bpushInsn() {
 		i8 value = getByte();
 		mFrame->push(value);
 	}
+	
+	void Executor::spushInsn() {
+		i16 value = getShort();
+		mFrame->push(value);
+	}
+	
+	void Executor::ipushInsn() {
+		i32 value = getInt();
+		mFrame->push(value);
+	}
+	
+	void Executor::lpushInsn() {
+		i64 value = getLong();
+		mFrame->pushLong(value);
+	}
 
-	void Executor::printInsn() {
-		i32 value = mFrame->pop();
-		std::cout << value << "\n";
+	void Executor::constInsn(i32 value) {
+		mFrame->push(value);
+	}
+	
+	void Executor::lconstInsn(i64 value) {
+		mFrame->pushLong(value);
+	}
+
+	void Executor::returnInsn() {
+		mPC = mFrame->getReturnAddress();
+		mFrame = mStack.leaveFrame();
+
+		if (mFrame == nullptr) {
+			mThread.mIsActive = false;
+		}
 	}
 }

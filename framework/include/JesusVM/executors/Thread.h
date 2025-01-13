@@ -6,7 +6,10 @@
 #include <vector>
 
 namespace JesusVM {
+	class JesusVM;
+
 	class Thread {
+	friend class JesusVM;
 	public:
 		Thread(JesusVM& mVM);
 
@@ -29,5 +32,7 @@ namespace JesusVM {
 
 		JesusVM& mVM;
 		bool mIsMainThread;
+
+		VThread* mMainVThread;
 	};
 }

@@ -16,12 +16,8 @@ namespace JesusVM {
 		if (main->getModifiers() & Function::NATIVE) {
 			//TODO: thread system supporting native execution
 
-			std::array<JValue, 1> params = {
-				69
-			};
-
 			NativeFunctionPtr<void> ptr = reinterpret_cast<NativeFunctionPtr<void>>(main->getEntry());
-			ptr(nullptr, params.data());
+			ptr(nullptr, nullptr);
 		} else {
 			VThread* runner = mMainThread->getAvailableThread();
 			if (runner == nullptr) {
@@ -30,6 +26,7 @@ namespace JesusVM {
 				mMainThread->addVThread(std::move(ptr));
 			}
 
+			mMainThread->mMainVThread = runner;
 			runner->executeFunction(main);
 
 			mMainThread->run();
@@ -37,7 +34,9 @@ namespace JesusVM {
 	}
 
 	void JesusVM::stop() {
-		mMainThread->stop();
+		for (auto& thread : mThreads) {
+			thread->stop();
+		}
 	}
 
 	TypeSystem& JesusVM::getTypeSystem() {

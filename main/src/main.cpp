@@ -4,16 +4,12 @@
 #include "JesusVM/bytecode/Opcodes.h"
 
 u8 mainCode[] = {
-	JesusVM::Opcodes::IPUSH_8, 2,
-	JesusVM::Opcodes::IPUSH_8, 3,
-	JesusVM::Opcodes::ADD,
+	JesusVM::Opcodes::IPUSH_8, 100,
+	JesusVM::Opcodes::IPUSH_8, 31,
+	JesusVM::Opcodes::SUB,
 	JesusVM::Opcodes::PRINT,
 	JesusVM::Opcodes::EXIT,
 };
-
-extern "C" NATIVEEXPORT void NATIVECALL JesusVM_TestModule_main_I(VMContext ctx, JValue* passedArgs) {
-	std::cout << std::thread::hardware_concurrency() << "\n";
-}
 
 int main(int argc, char** argv) {
 	JesusVM::JesusVM vm;
@@ -21,14 +17,14 @@ int main(int argc, char** argv) {
 
 	mainThread->setMainThread();
 
-	JesusVM::Function mainFunc(vm.getTypeSystem(), "main(I)V", JesusVM::Function::NATIVE, 0, 0, reinterpret_cast<u8*>(JesusVM_TestModule_main_I), 0);
+	JesusVM::Function mainFunc(vm.getTypeSystem(), "main()V", JesusVM::Function::NO_MODIFIERS, 0, 2, mainCode, sizeof(mainCode));
 
 	std::unique_ptr<JesusVM::Module> module = std::make_unique<JesusVM::Module>("TestModule", 0, std::vector<JesusVM::Class>(), std::vector<JesusVM::Function>({ mainFunc }), std::vector<JesusVM::Section>());
 
 	vm.addThread(std::move(mainThread));
 	vm.addModule(std::move(module));
 
-	JesusVM::Function* func = vm.getModule("TestModule")->getFunction("main(I)V");
+	JesusVM::Function* func = vm.getModule("TestModule")->getFunction("main()V");
 	vm.start(func);
 
 	return 0;

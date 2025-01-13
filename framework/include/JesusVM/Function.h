@@ -19,6 +19,7 @@ namespace JesusVM {
 	public:
 		using Modifiers = u16;
 
+		static constexpr Modifiers NO_MODIFIERS = 0;
 		static constexpr Modifiers NATIVE = 0x0001;
 
 		Function(TypeSystem& typeSystem, std::string_view descriptor, Modifiers modifiers, u16 localCount, u16 stackSize, u8* entry, u32 bytecodeSize);

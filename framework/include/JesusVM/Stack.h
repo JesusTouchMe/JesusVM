@@ -228,8 +228,7 @@ namespace JesusVM {
 			auto newFrame = std::move(mTop->mPrevious);
 
 			if (newFrame == nullptr) {
-				std::cout << "Lowest frame left. Exiting VM\n";
-				std::exit(1);
+				return nullptr;
 			}
 
 			Frame* result = newFrame.get();

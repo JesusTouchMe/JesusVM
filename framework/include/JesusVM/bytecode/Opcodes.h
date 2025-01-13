@@ -5,11 +5,61 @@
 namespace JesusVM {
 	namespace Opcodes {
 		enum EnumOpcodes : u8 {
+			NOP,
+
 			ADD,
 			SUB,
-			IPUSH_8,
-			PRINT,
-			EXIT,
+			MUL,
+			DIV,
+			REM,
+			LADD,
+			LSUB,
+			LMUL,
+			LDIV,
+			LREM,
+
+			AND,
+			OR,
+			XOR,
+			LAND,
+			LOR,
+			LXOR,
+
+			NOT,
+			NEG,
+			LNOT,
+			LNEG,
+
+			JMP_ICMPEQ,
+			JMP_ICMPNE,
+			JMP_ICMPLT,
+			JMP_ICMPGT,
+			JMP_ICMPLE,
+			JMP_ICMPGE,
+
+			JMPEQ,
+			JMPNE,
+			JMPLT,
+			JMPGT,
+			JMPLE,
+			JMPGE,
+
+			ICMP,
+			LCMP,
+						
+			BPUSH,
+			SPUSH,
+			IPUSH,
+			LPUSH,
+
+			CONST_M1,
+			CONST_0,
+			CONST_1,
+
+			LCONST_0,
+			LCONST_1,
+
+			RETURN,
 		};
 	}
 }
