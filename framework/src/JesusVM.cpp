@@ -21,7 +21,7 @@ namespace JesusVM {
 		} else {
 			VThread* runner = mMainThread->getAvailableThread();
 			if (runner == nullptr) {
-				std::unique_ptr<VThread> ptr = std::make_unique<VThread>();
+				std::unique_ptr<VThread> ptr = std::make_unique<VThread>(*this);
 				runner = ptr.get();
 				mMainThread->addVThread(std::move(ptr));
 			}
@@ -38,6 +38,10 @@ namespace JesusVM {
 			thread->stop();
 		}
 	}
+
+    VMContext JesusVM::getContext() {
+        return reinterpret_cast<VMContext>(&mContext);
+    }
 
 	TypeSystem& JesusVM::getTypeSystem() {
 		return mTypeSystem;
@@ -65,7 +69,7 @@ namespace JesusVM {
 			}
 		}
 
-		std::unique_ptr<VThread> vThread = std::make_unique<VThread>();
+		std::unique_ptr<VThread> vThread = std::make_unique<VThread>(*this);
 		VThread* result = vThread.get();
 
 		least->addVThread(std::move(vThread));

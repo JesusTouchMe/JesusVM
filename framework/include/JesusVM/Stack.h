@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "JesusVM/Module.h"
+#include "JesusVM/Function.h"
 
 #include <concepts>
 #include <iostream>

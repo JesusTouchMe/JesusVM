@@ -1,3 +1,4 @@
+#include "JesusVM/Module.h"
 #include "JesusVM/Stack.h"
 
 #include "JesusVM/constpool/ConstPool.h"

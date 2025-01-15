@@ -10,13 +10,14 @@ namespace JesusVM {
 
 	class Executor {
 	public:
-		Executor(VThread& thread, Stack& stack);
+		Executor(JesusVM& vm, VThread& thread, Stack& stack);
 
-		void executeInstruction();
+		void executeInstruction(bool wide = false);
 
 		void enterFunction(Function* function);
 
 	private:
+        JesusVM& mVM;
 		VThread& mThread;
 		Stack& mStack;
 		Stack::Frame* mFrame;
@@ -76,7 +77,7 @@ namespace JesusVM {
 		void constInsn(i32 value);
 		void lconstInsn(i64 value);
 
-        void callInsn();
+        void callInsn(bool wide);
 
 		void returnInsn();
         void ireturnInsn();

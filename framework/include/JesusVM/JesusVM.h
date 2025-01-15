@@ -13,6 +13,10 @@
 #include <vector>
 
 namespace JesusVM {
+    struct Context {
+
+    };
+
 	class JesusVM {
 	friend class Thread;
 	public:
@@ -22,6 +26,7 @@ namespace JesusVM {
 		void stop();
 
 		TypeSystem& getTypeSystem();
+        VMContext getContext();
 
 		Module* getModule(std::string_view name);
 		VThread* getAvailableThread();
@@ -36,6 +41,8 @@ namespace JesusVM {
 		std::vector<std::unique_ptr<Thread>> mThreads;
 
 		Thread* mMainThread;
+
+        Context mContext;
 	};
 }
 

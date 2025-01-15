@@ -3,6 +3,9 @@
 
 #include "types.h"
 
+#include "JesusVM/heap/Field.h"
+
+#include <memory>
 #include <string_view>
 
 namespace JesusVM {
@@ -18,6 +21,8 @@ namespace JesusVM {
 	private:
 		Module* mModule;
 		std::string_view mName;
+
+        std::unique_ptr<Field[]> mFields;
 	};
 }
 

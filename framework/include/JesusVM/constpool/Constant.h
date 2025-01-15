@@ -16,6 +16,8 @@ namespace JesusVM {
             FUNCTION,
         };
 
+        Type getType() const { return mType; }
+
         virtual void addTo(Stack::Frame* frame) = 0;
 
     protected:

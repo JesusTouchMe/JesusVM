@@ -65,6 +65,8 @@ namespace JesusVM {
 			RETURN,
             IRETURN,
             LRETURN,
+
+            WIDE,
 		};
 	}
 }

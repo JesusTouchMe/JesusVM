@@ -12,7 +12,7 @@ namespace JesusVM {
 	friend class Executor;
 	friend class Thread;
 	public:
-		VThread();
+		explicit VThread(JesusVM& vm);
 
 		void executeFunction(Function* function);
 

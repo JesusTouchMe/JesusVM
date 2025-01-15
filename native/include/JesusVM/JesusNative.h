@@ -7,6 +7,8 @@ extern "C" {
 
 #include "win32/JesusNative_platform.h"
 
+#define EXTRACT_ARG(typeDesc, argName) argName = args[__COUNTER__].typeDesc
+
 typedef unsigned char	Boolean;
 typedef unsigned short	Char;
 typedef short			Short;

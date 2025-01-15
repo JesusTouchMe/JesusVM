@@ -3,8 +3,8 @@
 #include <chrono>
 
 namespace JesusVM {
-	VThread::VThread()
-		: mExecutor(*this, mStack)
+	VThread::VThread(JesusVM& vm)
+		: mExecutor(vm, *this, mStack)
 		, mIsActive(false) {}
 
 	void VThread::executeFunction(Function* function) {
