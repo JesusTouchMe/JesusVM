@@ -1,5 +1,7 @@
 #include "JesusVM/Module.h"
 
+#include <algorithm>
+
 namespace JesusVM {
 	Section::Section(std::string_view name, u32 size, std::unique_ptr<u8[]> buffer)
 		: mName(name)

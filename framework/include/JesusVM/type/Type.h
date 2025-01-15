@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_TYPE_H
+#define JESUSVM_TYPE_H
 
 #include "types.h"
 
@@ -46,3 +47,5 @@ namespace JesusVM {
 		Special mSpecial;
 	};
 }
+
+#endif // JESUSVM_TYPE_H

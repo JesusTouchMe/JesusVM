@@ -31,16 +31,24 @@ namespace JesusVM {
 			(static_cast<u64>(data[index + 7]) << 56);
 	}
 
-	Executor::Executor(VThread& thread, Stack<0>& stack)
+	Executor::Executor(VThread& thread, Stack& stack)
 		: mThread(thread)
 		, mStack(stack)
 		, mFrame(stack.getTopFrame())
 		, mPC(nullptr) {}
 
 	void Executor::executeInstruction() {
+        if (mPC >= mFrame->getCurrentFunction()->getEntry() + mFrame->getCurrentFunction()->getBytecodeSize()) {
+            std::cout << "bad execution!!!\n";
+            std::exit(1);
+        }
+
 		u8 instruction = *mPC++;
 
 		switch (instruction) {
+            case Opcodes::NOP:
+                break;
+
 			case Opcodes::ADD:
 				addInsn();
 				break;
@@ -49,8 +57,188 @@ namespace JesusVM {
 				subInsn();
 				break;
 
+            case Opcodes::MUL:
+                mulInsn();
+                break;
+
+            case Opcodes::DIV:
+                divInsn();
+                break;
+
+            case Opcodes::REM:
+                remInsn();
+                break;
+
+            case Opcodes::LADD:
+                laddInsn();
+                break;
+
+            case Opcodes::LSUB:
+                lsubInsn();
+                break;
+
+            case Opcodes::LMUL:
+                lmulInsn();
+                break;
+
+            case Opcodes::LDIV:
+                ldivInsn();
+                break;
+
+            case Opcodes::LREM:
+                lremInsn();
+                break;
+
+            case Opcodes::AND:
+                andInsn();
+                break;
+
+            case Opcodes::OR:
+                orInsn();
+                break;
+
+            case Opcodes::XOR:
+                xorInsn();
+                break;
+
+            case Opcodes::LAND:
+                landInsn();
+                break;
+
+            case Opcodes::LOR:
+                lorInsn();
+                break;
+
+            case Opcodes::LXOR:
+                lxorInsn();
+                break;
+
+            case Opcodes::NOT:
+                notInsn();
+                break;
+
+            case Opcodes::NEG:
+                negInsn();
+                break;
+
+            case Opcodes::LNOT:
+                lnotInsn();
+                break;
+
+            case Opcodes::LNEG:
+                lnegInsn();
+                break;
+
+            case Opcodes::JMP_ICMPEQ:
+                jmp_icmpeqInsn();
+                break;
+
+            case Opcodes::JMP_ICMPNE:
+                jmp_icmpneInsn();
+                break;
+
+            case Opcodes::JMP_ICMPLT:
+                jmp_icmpltInsn();
+                break;
+
+            case Opcodes::JMP_ICMPGT:
+                jmp_icmpgtInsn();
+                break;
+
+            case Opcodes::JMP_ICMPLE:
+                jmp_icmpleInsn();
+                break;
+
+            case Opcodes::JMP_ICMPGE:
+                jmp_icmpgeInsn();
+                break;
+
+            case Opcodes::JMPEQ:
+                jmpeqInsn();
+                break;
+
+            case Opcodes::JMPNE:
+                jmpneInsn();
+                break;
+
+            case Opcodes::JMPLT:
+                jmpltInsn();
+                break;
+
+            case Opcodes::JMPGT:
+                jmpgtInsn();
+                break;
+
+            case Opcodes::JMPLE:
+                jmpleInsn();
+                break;
+
+            case Opcodes::JMPGE:
+                jmpgeInsn();
+                break;
+
+            case Opcodes::ICMP:
+                icmpInsn();
+                break;
+
+            case Opcodes::LCMP:
+                lcmpInsn();
+                break;
+
+            case Opcodes::BPUSH:
+                bpushInsn();
+                break;
+
+            case Opcodes::SPUSH:
+                spushInsn();
+                break;
+
+            case Opcodes::IPUSH:
+                ipushInsn();
+                break;
+
+            case Opcodes::LPUSH:
+                lpushInsn();
+                break;
+
+            case Opcodes::CONST_M1:
+                constInsn(-1);
+                break;
+
+            case Opcodes::CONST_0:
+                constInsn(0);
+                break;
+
+            case Opcodes::CONST_1:
+                constInsn(1);
+                break;
+
+            case Opcodes::LCONST_0:
+                lconstInsn(0);
+                break;
+
+            case Opcodes::LCONST_1:
+                lconstInsn(1);
+                break;
+
+            case Opcodes::CALL:
+                callInsn();
+                break;
+
+            case Opcodes::RETURN:
+                returnInsn();
+                break;
+
+            case Opcodes::IRETURN:
+                ireturnInsn();
+                break;
+
+            case Opcodes::LRETURN:
+                lreturnInsn();
+                break;
+
 			default:
-				std::cout << "Unknown instruction: " << instruction << ". TODO: proper error stuff\n";
+				std::cout << "Unknown instruction: " << static_cast<i32>(instruction) << ". TODO: proper error stuff\n";
 				std::exit(1);
 		}
 	}
@@ -393,6 +581,10 @@ namespace JesusVM {
 		mFrame->pushLong(value);
 	}
 
+    void Executor::callInsn() {
+
+    }
+
 	void Executor::returnInsn() {
 		mPC = mFrame->getReturnAddress();
 		mFrame = mStack.leaveFrame();
@@ -401,4 +593,30 @@ namespace JesusVM {
 			mThread.mIsActive = false;
 		}
 	}
+
+    void Executor::ireturnInsn() {
+        i32 value = mFrame->pop();
+
+        mPC = mFrame->getReturnAddress();
+        mFrame = mStack.leaveFrame();
+
+        if (mFrame == nullptr) {
+            mThread.mIsActive = false;
+        } else {
+            mFrame->push(value);
+        }
+    }
+
+    void Executor::lreturnInsn() {
+        i64 value = mFrame->popLong();
+
+        mPC = mFrame->getReturnAddress();
+        mFrame = mStack.leaveFrame();
+
+        if (mFrame == nullptr) {
+            mThread.mIsActive = false;
+        } else {
+            mFrame->pushLong(value);
+        }
+    }
 }

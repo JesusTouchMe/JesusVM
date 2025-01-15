@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_THREAD_H
+#define JESUSVM_THREAD_H
 
 #include "JesusVM/executors/VThread.h"
 
@@ -36,3 +37,5 @@ namespace JesusVM {
 		VThread* mMainVThread;
 	};
 }
+
+#endif // JESUSVM_THREAD_H

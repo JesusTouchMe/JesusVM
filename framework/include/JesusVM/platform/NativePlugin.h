@@ -1,3 +1,6 @@
+#ifndef JESUSVM_NATIVEPLUGIN_H
+#define JESUSVM_NATIVEPLUGIN_H
+
 #include "types.h"
 
 #ifdef PLATFORM_WINDOWS
@@ -77,3 +80,5 @@ namespace Platform {
 		return reinterpret_cast<FuncT>(func);
 	}
 }
+
+#endif // JESUSVM_NATIVEPLUGIN_H

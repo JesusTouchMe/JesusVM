@@ -3,12 +3,13 @@
 
 #include "JesusVM/bytecode/Opcodes.h"
 
+#include "JesusVM/constpool/ConstantFunc.h"
+
 u8 mainCode[] = {
-	JesusVM::Opcodes::IPUSH_8, 100,
-	JesusVM::Opcodes::IPUSH_8, 31,
+	JesusVM::Opcodes::BPUSH, 100,
+	JesusVM::Opcodes::BPUSH, 31,
 	JesusVM::Opcodes::SUB,
-	JesusVM::Opcodes::PRINT,
-	JesusVM::Opcodes::EXIT,
+    JesusVM::Opcodes::RETURN,
 };
 
 int main(int argc, char** argv) {
@@ -19,13 +20,16 @@ int main(int argc, char** argv) {
 
 	JesusVM::Function mainFunc(vm.getTypeSystem(), "main()V", JesusVM::Function::NO_MODIFIERS, 0, 2, mainCode, sizeof(mainCode));
 
-	std::unique_ptr<JesusVM::Module> module = std::make_unique<JesusVM::Module>("TestModule", 0, std::vector<JesusVM::Class>(), std::vector<JesusVM::Function>({ mainFunc }), std::vector<JesusVM::Section>());
+	std::unique_ptr<JesusVM::Module> module = std::make_unique<JesusVM::Module>("TestModule", 1, std::vector<JesusVM::Class>(), std::vector<JesusVM::Function>({ mainFunc }), std::vector<JesusVM::Section>());
+
+    JesusVM::Function* mainFuncP = vm.getModule("TestModule")->getFunction("main()V");
+
+    module->getConstPool().set(0, std::make_unique<JesusVM::ConstantFunc>(mainFuncP));
 
 	vm.addThread(std::move(mainThread));
 	vm.addModule(std::move(module));
 
-	JesusVM::Function* func = vm.getModule("TestModule")->getFunction("main()V");
-	vm.start(func);
+	vm.start(mainFuncP);
 
 	return 0;
 }

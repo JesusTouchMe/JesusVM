@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_EXECUTOR_H
+#define JESUSVM_EXECUTOR_H
 
 #include "types.h"
 
@@ -9,7 +10,7 @@ namespace JesusVM {
 
 	class Executor {
 	public:
-		Executor(VThread& thread, Stack<0>& stack);
+		Executor(VThread& thread, Stack& stack);
 
 		void executeInstruction();
 
@@ -17,8 +18,8 @@ namespace JesusVM {
 
 	private:
 		VThread& mThread;
-		Stack<0>& mStack;
-		Stack<0>::Frame* mFrame;
+		Stack& mStack;
+		Stack::Frame* mFrame;
 
 		u8* mPC;
 
@@ -75,6 +76,12 @@ namespace JesusVM {
 		void constInsn(i32 value);
 		void lconstInsn(i64 value);
 
+        void callInsn();
+
 		void returnInsn();
+        void ireturnInsn();
+        void lreturnInsn();
 	};
 }
+
+#endif // JESUSVM_EXECUTOR_H

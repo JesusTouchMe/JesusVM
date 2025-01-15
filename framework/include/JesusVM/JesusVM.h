@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_JESUSVM_H
+#define JESUSVM_JESUSVM_H
 
 #include "types.h"
 
@@ -37,3 +38,5 @@ namespace JesusVM {
 		Thread* mMainThread;
 	};
 }
+
+#endif // JESUSVM_JESUSVM_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_VOIDTYPE_H
+#define JESUSVM_VOIDTYPE_H
 
 #include "JesusVM/type/Type.h"
 
@@ -8,3 +9,5 @@ namespace JesusVM {
 		VoidType();
 	};
 }
+
+#endif // JESUSVM_VOIDTYPE_H

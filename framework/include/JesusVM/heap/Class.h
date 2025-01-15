@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_CLASS_H
+#define JESUSVM_CLASS_H
 
 #include "types.h"
 
@@ -19,3 +20,5 @@ namespace JesusVM {
 		std::string_view mName;
 	};
 }
+
+#endif // JESUSVM_CLASS_H

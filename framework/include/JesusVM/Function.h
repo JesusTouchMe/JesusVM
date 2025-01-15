@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_FUNCTION_H
+#define JESUSVM_FUNCTION_H
 
 #include "types.h"
 
@@ -49,3 +50,5 @@ namespace JesusVM {
 		u32 mBytecodeSize;
 	};
 }
+
+#endif // JESUSVM_FUNCTION_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_TYPESYSTEM_H
+#define JESUSVM_TYPESYSTEM_H
 
 #include "JesusVM/heap/Class.h"
 
@@ -30,3 +31,5 @@ namespace JesusVM {
 		Type* parseFunctionType(std::string_view descriptor);
 	};
 }
+
+#endif // JESUSVM_TYPESYSTEM_H

@@ -7,6 +7,6 @@
 
 typedef signed char		Byte;
 typedef long			Int;
-typedef __int64			Long;
+typedef long long		Long;
 
 #endif // JESUS_VM_NATIVE_PLATFORM_H

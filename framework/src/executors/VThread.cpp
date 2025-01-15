@@ -4,8 +4,7 @@
 
 namespace JesusVM {
 	VThread::VThread()
-		: mStack()
-		, mExecutor(mStack)
+		: mExecutor(*this, mStack)
 		, mIsActive(false) {}
 
 	void VThread::executeFunction(Function* function) {
@@ -16,6 +15,8 @@ namespace JesusVM {
 
 	void VThread::executeCycles(u32 cycles) {
 		for (u32 i = 0; i < cycles; i++) {
+            if (!mIsActive) break;
+
 			mExecutor.executeInstruction();
 		}
 	}

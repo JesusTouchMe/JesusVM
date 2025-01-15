@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_OPCODES_H
+#define JESUSVM_OPCODES_H
 
 #include "types.h"
 
@@ -59,7 +60,13 @@ namespace JesusVM {
 			LCONST_0,
 			LCONST_1,
 
+            CALL,
+
 			RETURN,
+            IRETURN,
+            LRETURN,
 		};
 	}
 }
+
+#endif // JESUSVM_OPCODES_H

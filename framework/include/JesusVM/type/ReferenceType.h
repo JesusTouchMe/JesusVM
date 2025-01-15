@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_REFERENCETYPE_H
+#define JESUSVM_REFERENCETYPE_H
 
 #include "JesusVM/heap/Class.h"
 
@@ -15,3 +16,5 @@ namespace JesusVM {
 		Class* mClass;
 	};
 }
+
+#endif // JESUSVM_REFERENCETYPE_H

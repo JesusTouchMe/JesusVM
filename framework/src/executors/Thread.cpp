@@ -8,7 +8,8 @@ namespace JesusVM {
 	Thread::Thread(JesusVM& vm)
 		: mRunning(false)
 		, mVM(vm)
-		, mIsMainThread(false) {}
+		, mIsMainThread(false)
+        , mMainVThread(nullptr) {}
 
 	u64 Thread::getThreadCount() {
 		return mVThreads.size();

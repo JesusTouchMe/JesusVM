@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_CONSTPOOL_H
+#define JESUSVM_CONSTPOOL_H
 
 #include "JesusVM/constpool/Constant.h"
 
@@ -7,10 +8,9 @@
 namespace JesusVM {
 	class ConstPool {
 	public:
-		ConstPool(u32 size);
+		explicit ConstPool(u32 size);
 
 		Constant* get(u32 index) const;
-		
 		void set(u32 index, ConstantPtr value);
 
 	private:
@@ -18,3 +18,5 @@ namespace JesusVM {
 		std::unique_ptr<ConstantPtr[]> mConstants;
 	};
 }
+
+#endif // JESUSVM_CONSTPOOL_H

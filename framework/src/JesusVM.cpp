@@ -1,6 +1,6 @@
 #include "JesusVM/JesusVM.h"
 
-#include <array>
+#include <algorithm>
 
 namespace JesusVM {
 	JesusVM::JesusVM()
@@ -16,7 +16,7 @@ namespace JesusVM {
 		if (main->getModifiers() & Function::NATIVE) {
 			//TODO: thread system supporting native execution
 
-			NativeFunctionPtr<void> ptr = reinterpret_cast<NativeFunctionPtr<void>>(main->getEntry());
+			auto ptr = reinterpret_cast<NativeFunctionPtr<void>>(main->getEntry());
 			ptr(nullptr, nullptr);
 		} else {
 			VThread* runner = mMainThread->getAvailableThread();

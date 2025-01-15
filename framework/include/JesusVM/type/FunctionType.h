@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_FUNCTIONTYPE_H
+#define JESUSVM_FUNCTIONTYPE_H
 
 #include "JesusVM/type/Type.h"
 
@@ -15,3 +16,5 @@ namespace JesusVM {
 		std::vector<Type*> mArgumentTypes;
 	};
 }
+
+#endif // JESUSVM_FUNCTIONTYPE_H

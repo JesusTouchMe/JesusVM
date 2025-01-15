@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_VTHREAD_H
+#define JESUSVM_VTHREAD_H
 
 #include "JesusVM/Stack.h"
 
@@ -19,9 +20,11 @@ namespace JesusVM {
 		void executeTime(u32 ms);
 
 	private:
-		Stack<0> mStack;
+		Stack mStack;
 		Executor mExecutor;
 
 		bool mIsActive;
 	};
 }
+
+#endif // JESUSVM_VTHREAD_H

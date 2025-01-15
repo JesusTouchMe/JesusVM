@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_MODULE_H
+#define JESUSVM_MODULE_H
 
 #include "types.h"
 
@@ -48,3 +49,5 @@ namespace JesusVM {
 		std::vector<Section> mSections;
 	};
 }
+
+#endif // JESUSVM_MODULE_H

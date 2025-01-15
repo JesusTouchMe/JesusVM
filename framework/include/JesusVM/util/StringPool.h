@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JESUSVM_STRINGPOOL_H
+#define JESUSVM_STRINGPOOL_H
 
 #include "types.h"
 
@@ -37,3 +38,5 @@ namespace JesusVM {
 		static std::mutex mutex;
 	};
 }
+
+#endif // JESUSVM_STRINGPOOL_H
