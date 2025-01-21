@@ -40,7 +40,7 @@ typedef union JValue {
 	Int I;
 	Long L;
 	JObject R;
-};
+} JValue;
 
 struct _Field;
 typedef struct _Field* FieldRef;

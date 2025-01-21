@@ -4,42 +4,85 @@
 #include "moduleweb/error.h"
 #include "moduleweb/types.h"
 
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "moduleweb/platform/files.h"
+
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct moduleweb_stream {
-    char* filename;
-    int fd;
-    struct stat stat;
+#define MODULEWEB_INSTREAM_BUFFER_SIZE (16 * 1024)
 
-    void* memory;
-    u32 memory_i;
-    u32 memory_n;
+typedef enum moduleweb_endianness {
+    MODULEWEB_LITTLE_ENDIAN,
+    MODULEWEB_BIG_ENDIAN,
+} moduleweb_endianness;
+
+typedef struct moduleweb_instream {
+    char* filename;
+    moduleweb_file file;
+
+    u64 file_size;
+    u64 file_pos;
+
+    moduleweb_endianness endianness;
+
+    u8 memory[MODULEWEB_INSTREAM_BUFFER_SIZE];
+    u32 memory_index;
+    u32 memory_size;
 
     moduleweb_errno moduleweb_errno;
     i32 sys_errno;
-} moduleweb_stream;
+} moduleweb_instream;
 
-i32 moduleweb_stream_open(moduleweb_stream* stream, const char* filename);
+int moduleweb_instream_open(moduleweb_instream* stream, const char* filename, moduleweb_endianness endianness);
 
-void moduleweb_stream_close(moduleweb_stream* stream);
+void moduleweb_instream_close(moduleweb_instream* stream);
 
-const char* moduleweb_stream_strerror(moduleweb_stream* stream);
+const char* moduleweb_instream_strerror(moduleweb_instream* stream);
 
-bool moduleweb_stream_iseof(moduleweb_stream* stream);
+bool moduleweb_instream_is_eof(moduleweb_instream* stream);
 
-static inline bool moduleweb_stream_readu8(moduleweb_stream* stream, u8* res) {
-    u8* mem = stream->memory;
-    u32 i = stream->memory_i;
+int moduleweb_instream_readbytes(moduleweb_instream* stream, u8* res, u64 count);
 
-    if (i >= stream->memory_n) {
-        stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF;
+// 1, 2, 4, 8
+static inline int moduleweb_instream_read_number(moduleweb_instream* stream, void* res, u64 size) {
+    if (size > 8) return 1;
+
+    u8 raw[8]; // it should only ever be 8 max
+    if (moduleweb_instream_readbytes(stream, raw, size)) {
+        return 1;
     }
+
+    // big endian
+    u64 result = 0;
+    for (u64 i = 0; i < size; i++) {
+        result |= ((u64) raw[i]) << ((size - 1 - i) * 8);
+    }
+
+    memcpy_s(res, size, &result, sizeof(u64));
+
+    return 0;
 }
+
+static inline int moduleweb_instream_read_u8(moduleweb_instream* stream, u8* res) {
+    return moduleweb_instream_read_number(stream, res, sizeof(u8));
+}
+
+static inline int moduleweb_instream_read_u16(moduleweb_instream* stream, u16* res) {
+    return moduleweb_instream_read_number(stream, res, sizeof(u16));
+}
+
+static inline int moduleweb_instream_read_u32(moduleweb_instream* stream, u32* res) {
+    return moduleweb_instream_read_number(stream, res, sizeof(u32));
+}
+
+static inline int moduleweb_instream_read_u64(moduleweb_instream* stream, u64* res) {
+    return moduleweb_instream_read_number(stream, res, sizeof(u64));
+}
+
+int moduleweb_instream_skip(moduleweb_instream* stream, u64 amount);
 
 #ifdef __cplusplus
 }
