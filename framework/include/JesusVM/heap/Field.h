@@ -10,6 +10,11 @@ namespace JesusVM {
 
     class Field {
     public:
+        Class* getOwner();
+        Type* getType();
+        std::string_view getName() const;
+        u32 getIndex() const;
+        u32 getMemoryOffset() const;
 
     private:
         Class* mClass;

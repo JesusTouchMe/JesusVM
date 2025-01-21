@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.26)
 
 set(SOURCES "src/main.cpp")
 
-set(HEADERS)
+set(HEADERS
+		../moduleweb/include/moduleweb/stream.h)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
 
