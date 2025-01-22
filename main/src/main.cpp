@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	JesusVM::Function mainFunc(vm.getTypeSystem(), "main()V", JesusVM::Function::NO_MODIFIERS, 0, 2, mainCode, sizeof(mainCode));
     JesusVM::Function printFunc(vm.getTypeSystem(), "print(I)V", JesusVM::Function::NATIVE, 0, 0, reinterpret_cast<u8*>(JesusVM_TestModule_print), 0);
 
-	std::unique_ptr<JesusVM::Module> module = std::make_unique<JesusVM::Module>("TestModule", 1, std::vector<JesusVM::Class>(), std::vector<JesusVM::Function>({ mainFunc, printFunc }), std::vector<JesusVM::Section>());
+	std::unique_ptr<JesusVM::Module> module = std::make_unique<JesusVM::Module>("TestModule", 1, std::vector<JesusVM::Class>(), std::vector<JesusVM::Function>({ mainFunc, printFunc }));
 
     JesusVM::Function* mainFuncP = module->getFunction("main()V");
     JesusVM::Function* printFuncP = module->getFunction("print(I)V");

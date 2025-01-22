@@ -11,7 +11,10 @@ set(HEADERS "include/moduleweb/stream.h"
         include/moduleweb/platform/files.h
         include/moduleweb/module_info.h
         include/moduleweb/constant_info.h
-        include/moduleweb/section_info.h
+        include/moduleweb/string_pool_info.h
+        include/moduleweb/class_info.h
+        include/moduleweb/field_info.h
+        include/moduleweb/attribute_info.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
