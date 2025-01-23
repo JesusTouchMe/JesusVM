@@ -14,8 +14,9 @@ typedef enum moduleweb_constant_type : u8 {
     MODULEWEB_CONSTANT_TYPE_FUNCTION = 3
 } moduleweb_constant_type;
 
-typedef struct moduleweb_constant_ascii_info { // with this constant type, the size of all things that require names can be cut in half as they don't have to index into string pool
-    u32 string_pool_index;
+typedef struct moduleweb_constant_ascii_info {
+    u32 length;
+    u8* bytes;
 } moduleweb_constant_ascii_info;
 
 typedef struct moduleweb_constant_name_info {
@@ -45,6 +46,8 @@ typedef struct moduleweb_constant_info {
 int moduleweb_constant_info_init(moduleweb_constant_info* info, moduleweb_instream* stream);
 
 void moduleweb_constant_info_uninit(moduleweb_constant_info* info);
+
+int moduleweb_constant_info_ascii_compare(moduleweb_constant_ascii_info* s1, const char* s2);
 
 #ifdef __cplusplus
 }

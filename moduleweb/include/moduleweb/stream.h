@@ -14,19 +14,12 @@ extern "C" {
 
 #define MODULEWEB_INSTREAM_BUFFER_SIZE (16 * 1024)
 
-typedef enum moduleweb_endianness {
-    MODULEWEB_LITTLE_ENDIAN,
-    MODULEWEB_BIG_ENDIAN,
-} moduleweb_endianness;
-
 typedef struct moduleweb_instream {
     char* filename;
     moduleweb_file file;
 
     u64 file_size;
     u64 file_pos;
-
-    moduleweb_endianness endianness;
 
     u8 memory[MODULEWEB_INSTREAM_BUFFER_SIZE];
     u32 memory_index;
@@ -36,9 +29,13 @@ typedef struct moduleweb_instream {
     i32 sys_errno;
 } moduleweb_instream;
 
-int moduleweb_instream_open(moduleweb_instream* stream, const char* filename, moduleweb_endianness endianness);
+int moduleweb_instream_open(moduleweb_instream* stream, const char* filename);
 
 void moduleweb_instream_close(moduleweb_instream* stream);
+
+int moduleweb_instream_open_buffer(moduleweb_instream* stream, u8* buffer, u64 size);
+
+void moduleweb_instream_close_buffer(moduleweb_instream* stream);
 
 const char* moduleweb_instream_strerror(moduleweb_instream* stream);
 

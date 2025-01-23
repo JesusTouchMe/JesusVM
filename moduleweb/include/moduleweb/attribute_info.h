@@ -9,9 +9,12 @@
 extern "C" {
 #endif
 
+typedef struct moduleweb_module_info moduleweb_module_info;
+
 typedef struct moduleweb_attribute_info {
     u16 name_index;
-    u32 info_index; // in string pool, treated as bytes or string (up to the attribute itself)
+    u32 length;
+    u8* info;
 } moduleweb_attribute_info;
 
 typedef struct moduleweb_attribute_array {
@@ -24,6 +27,8 @@ void moduleweb_attribute_info_uninit(moduleweb_attribute_info* info);
 
 int moduleweb_attribute_array_init(moduleweb_attribute_array* array, moduleweb_instream* stream);
 void moduleweb_attribute_array_uninit(moduleweb_attribute_array* array);
+
+int moduleweb_attribute_array_get(const moduleweb_attribute_array* array, const char* name, const moduleweb_module_info* module, u16* index);
 
 #ifdef __cplusplus
 }

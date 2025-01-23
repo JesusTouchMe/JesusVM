@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-int moduleweb_instream_open(moduleweb_instream* stream, const char* filename, moduleweb_endianness endianness) {
+int moduleweb_instream_open(moduleweb_instream* stream, const char* filename) {
     stream->filename = strdup(filename);
     if (stream->filename == NULL) {
         stream->sys_errno = errno;
@@ -50,6 +50,19 @@ void moduleweb_instream_close(moduleweb_instream* stream) {
     free(stream->filename);
 }
 
+int moduleweb_instream_open_buffer(moduleweb_instream* stream, u8* buffer, u64 size) {
+    if (size > MODULEWEB_INSTREAM_BUFFER_SIZE) return 1;
+
+    memcpy(stream->memory, buffer, size);
+
+    stream->file_size = 0;
+    stream->file_pos = 0;
+    stream->memory_index = 0;
+    stream->memory_size = size;
+}
+
+void moduleweb_instream_close_buffer(moduleweb_instream* stream);
+
 const char* moduleweb_instream_strerror(moduleweb_instream* stream) {
     if (stream->moduleweb_errno == MODULEWEB_ERROR_ERRNO) {
         return strerror(stream->sys_errno);
@@ -62,8 +75,8 @@ bool moduleweb_instream_is_eof(moduleweb_instream* stream) {
     return stream->file_pos == stream->file_size;
 }
 
-int moduleweb_instream_read_bytes(moduleweb_instream* stream, u8* res, u64 count) {
-    if (stream->file_pos + count >= stream->file_size) {
+int moduleweb_instream_readbytes(moduleweb_instream* stream, u8* res, u64 count) {
+    if (stream->file_size > 0 && stream->file_pos + count >= stream->file_size) {
         stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF;
         return 1;
     }
@@ -71,7 +84,7 @@ int moduleweb_instream_read_bytes(moduleweb_instream* stream, u8* res, u64 count
     u64 bytes_read = 0;
 
     while (bytes_read < count) {
-        if (stream->memory_index >= stream->memory_size) {
+        if (stream->memory_index >= stream->memory_size && stream->file_size > 0) {
             u64 byte_count;
             if (moduleweb_file_read(&stream->file, stream->memory, MODULEWEB_INSTREAM_BUFFER_SIZE, &byte_count)) {
                 stream->moduleweb_errno = MODULEWEB_ERROR_FILE_READ_FAIL;
