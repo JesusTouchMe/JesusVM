@@ -1,7 +1,7 @@
 // Copyright 2025 JesusTouchMe
 
-#ifndef JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_CONSTANT_INFO_H
-#define JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_CONSTANT_INFO_H 1
+#ifndef JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_FIELD_INFO_H
+#define JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_FIELD_INFO_H 1
 
 #include "moduleweb/attribute_info.h"
 
@@ -24,8 +24,11 @@ typedef struct moduleweb_field_info {
 int moduleweb_field_info_init(moduleweb_field_info* info, moduleweb_instream* stream);
 void moduleweb_field_info_uninit(moduleweb_field_info* info);
 
+int moduleweb_field_info_emit_bytes(moduleweb_field_info* info, moduleweb_outstream* stream);
+void moduleweb_field_info_print(moduleweb_field_info* info);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif // JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_CONSTANT_INFO_H
+#endif // JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_FIELD_INFO_H

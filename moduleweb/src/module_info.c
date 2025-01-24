@@ -19,7 +19,7 @@ int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* 
     }
 
     if (moduleweb_attribute_array_init(&info->attributes, stream)) {
-        goto error_string_pool;
+        goto error;
     }
 
     if (moduleweb_instream_read_u16(stream, &info->constant_pool_size)) {
@@ -109,9 +109,6 @@ int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* 
     error_attributes:
     moduleweb_attribute_array_uninit(&info->attributes);
 
-    error_string_pool:
-    moduleweb_string_pool_info_uninit(&info->string_pool);
-
     error:
     return 1;
 }
@@ -133,6 +130,56 @@ void moduleweb_module_info_uninit(moduleweb_module_info* info) {
         moduleweb_function_info_uninit(&info->functions[i]);
     }
     free(info->functions);
+}
+
+int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outstream* stream) {
+    if (moduleweb_outstream_write_u32(stream, info->magic)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->bytecode_version)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->name_index)) {
+        return 1;
+    }
+
+    if (moduleweb_attribute_array_emit_bytes(&info->attributes, stream)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->constant_pool_size)) {
+        return 1;
+    }
+
+    for (u16 i = 0; i < info->constant_pool_size; i++) {
+        if (moduleweb_constant_info_emit_bytes(&info->constant_pool[i], stream)) {
+            return 1;
+        }
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->class_count)) {
+        return 1;
+    }
+
+    for (u16 i = 0; i < info->class_count; i++) {
+        if (moduleweb_class_info_emit_bytes(&info->classes[i], stream)) {
+            return 1;
+        }
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->function_count)) {
+        return 1;
+    }
+
+    for (u16 i = 0; i < info->function_count; i++) {
+        if (moduleweb_function_info_emit_bytes(&info->functions[i], stream)) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 static int moduleweb_module_constant_check_bounds(const moduleweb_module_info* module, u16 index) {
@@ -160,4 +207,4 @@ int moduleweb_module_constant_get_##union_member(const moduleweb_module_info* mo
 DEFINE_CONSTANT_GETTER(moduleweb_constant_ascii_info, MODULEWEB_CONSTANT_TYPE_ASCII, ascii)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_name_info, MODULEWEB_CONSTANT_TYPE_NAME, name)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_module_ref_info, MODULEWEB_CONSTANT_TYPE_MODULE_REF, module_ref)
-DEFINE_CONSTANT_GETTER(moduleweb_constant_function_info, MODULEWEB_CONSTANT_TYPE_FUNCTION, function)
+DEFINE_CONSTANT_GETTER(moduleweb_constant_function_ref_info, MODULEWEB_CONSTANT_TYPE_FUNCTION_REF, function_ref)

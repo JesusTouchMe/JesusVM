@@ -25,8 +25,14 @@ typedef struct moduleweb_attribute_array {
 int moduleweb_attribute_info_init(moduleweb_attribute_info* info, moduleweb_instream* stream);
 void moduleweb_attribute_info_uninit(moduleweb_attribute_info* info);
 
+int moduleweb_attribute_info_emit_bytes(moduleweb_attribute_info* info, moduleweb_outstream* stream);
+void moduleweb_attribute_info_print(moduleweb_attribute_info* info, moduleweb_module_info* module);
+
 int moduleweb_attribute_array_init(moduleweb_attribute_array* array, moduleweb_instream* stream);
 void moduleweb_attribute_array_uninit(moduleweb_attribute_array* array);
+
+int moduleweb_attribute_array_emit_bytes(moduleweb_attribute_array* array, moduleweb_outstream* stream);
+void moduleweb_attribute_array_print(moduleweb_attribute_array* array);
 
 int moduleweb_attribute_array_get(const moduleweb_attribute_array* array, const char* name, const moduleweb_module_info* module, u16* index);
 

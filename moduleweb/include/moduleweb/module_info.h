@@ -31,10 +31,13 @@ typedef struct moduleweb_module_info {
 int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* stream);
 void moduleweb_module_info_uninit(moduleweb_module_info* info);
 
+int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outstream* stream);
+void moduleweb_module_info_print(moduleweb_module_info* info);
+
 int moduleweb_module_constant_get_ascii(const moduleweb_module_info* module, u16 i, moduleweb_constant_ascii_info** result);
 int moduleweb_module_constant_get_name(const moduleweb_module_info* module, u16 i, moduleweb_constant_name_info** result);
 int moduleweb_module_constant_get_module_ref(const moduleweb_module_info* module, u16 i, moduleweb_constant_module_ref_info** result);
-int moduleweb_module_constant_get_function(const moduleweb_module_info* module, u16 i, moduleweb_constant_function_info** result);
+int moduleweb_module_constant_get_function_ref(const moduleweb_module_info* module, u16 i, moduleweb_constant_function_ref_info** result);
 
 #ifdef __cplusplus
 }

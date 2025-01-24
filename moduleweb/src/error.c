@@ -10,6 +10,7 @@ const char* moduleweb_error_messages[] = {
         [MODULEWEB_ERROR_EXPECTED_EOF] = "Expected end of file",
         [MODULEWEB_ERROR_UNEXPECTED_EOF] = "Unexpected end of file",
         [MODULEWEB_ERROR_BAD_MAGIC] = "Bad magic number",
+        [MODULEWEB_ERROR_BAD_CONSTANT_TYPE] = "Bad constant type",
 };
 
 const char* moduleweb_strerror(moduleweb_errno error) {

@@ -57,6 +57,36 @@ void moduleweb_class_info_uninit(moduleweb_class_info* info) {
     free(info->fields);
 }
 
+int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstream* stream) {
+    if (moduleweb_outstream_write_u16(stream, info->name_index)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->modifiers)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->super_class)) {
+        return 1;
+    }
+
+    if (moduleweb_attribute_array_emit_bytes(&info->attributes, stream)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->field_count)) {
+        return 1;
+    }
+
+    for (u16 i = 0; i < info->field_count; i++) {
+        if (moduleweb_field_info_emit_bytes(&info->fields[i], stream)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int moduleweb_class_get_field(const moduleweb_class_info* info, const moduleweb_module_info* module, const char* name, const char* descriptor, moduleweb_field_info** result) {
     for (u16 i = 0; i < info->field_count; i++) {
         moduleweb_constant_name_info* field_full_name;

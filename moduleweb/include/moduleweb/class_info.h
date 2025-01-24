@@ -28,6 +28,9 @@ typedef struct moduleweb_class_info {
 int moduleweb_class_info_init(moduleweb_class_info* info, moduleweb_instream* stream);
 void moduleweb_class_info_uninit(moduleweb_class_info* info);
 
+int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstream* stream);
+void moduleweb_class_info_print(moduleweb_class_info* info);
+
 int moduleweb_class_get_field(const moduleweb_class_info* info, const moduleweb_module_info* module, const char* name, const char* descriptor, moduleweb_field_info** result);
 
 #ifdef __cplusplus

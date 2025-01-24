@@ -16,6 +16,7 @@ typedef enum moduleweb_errno {
     MODULEWEB_ERROR_EXPECTED_EOF,
     MODULEWEB_ERROR_UNEXPECTED_EOF,
     MODULEWEB_ERROR_BAD_MAGIC,
+    MODULEWEB_ERROR_BAD_CONSTANT_TYPE,
 } moduleweb_errno;
 
 const char* moduleweb_strerror(moduleweb_errno error);
