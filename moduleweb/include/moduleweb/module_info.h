@@ -32,12 +32,16 @@ int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* 
 void moduleweb_module_info_uninit(moduleweb_module_info* info);
 
 int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outstream* stream);
-void moduleweb_module_info_print(moduleweb_module_info* info);
+void moduleweb_module_info_print(moduleweb_module_info* info, u32 indent);
 
 int moduleweb_module_constant_get_ascii(const moduleweb_module_info* module, u16 i, moduleweb_constant_ascii_info** result);
 int moduleweb_module_constant_get_name(const moduleweb_module_info* module, u16 i, moduleweb_constant_name_info** result);
 int moduleweb_module_constant_get_module_ref(const moduleweb_module_info* module, u16 i, moduleweb_constant_module_ref_info** result);
 int moduleweb_module_constant_get_function_ref(const moduleweb_module_info* module, u16 i, moduleweb_constant_function_ref_info** result);
+int moduleweb_module_constant_get_class_ref(const moduleweb_module_info* module, u16 i, moduleweb_constant_class_ref_info** result);
+int moduleweb_module_constant_get_field_ref(const moduleweb_module_info* module, u16 i, moduleweb_constant_field_ref_info** result);
+
+char* moduleweb_module_constant_to_string(const moduleweb_module_info* module, u16 i, u64* length);
 
 #ifdef __cplusplus
 }

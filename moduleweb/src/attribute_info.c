@@ -43,7 +43,7 @@ int moduleweb_attribute_info_emit_bytes(moduleweb_attribute_info* info, modulewe
     return 0;
 }
 
-void moduleweb_attribute_info_print(moduleweb_attribute_info* info, moduleweb_module_info* module) {
+void moduleweb_attribute_info_print(moduleweb_attribute_info* info, const moduleweb_module_info* module, u32 indent) {
     bool printValue = true;
 
     for (u32 i = 0; i < info->length; i++) {
@@ -54,35 +54,29 @@ void moduleweb_attribute_info_print(moduleweb_attribute_info* info, moduleweb_mo
     }
 
     char* value;
-    int value_length;
+    u64 value_length;
 
     if (printValue) {
         value = (char*) info->info;
-        value_length = (int) info->length;
+        value_length = info->length;
     } else {
-        static char staticValue[32];
-        sprintf(staticValue, "(unintelligible[%u])", info->length);
+        static char static_value[32];
+        sprintf(static_value, "(unintelligible[%u])", info->length);
 
-        value = staticValue;
-        value_length = (int) strlen(staticValue);
+        value = static_value;
+        value_length = strlen(static_value);
     }
 
-    char* name;
-    int name_length;
+    u64 name_length;
+    char* name = moduleweb_module_constant_to_string(module, info->name_index, &name_length);
 
-    moduleweb_constant_ascii_info* ascii;
-    if (moduleweb_module_constant_get_ascii(module, info->name_index, &ascii)) {
-        static char staticName[16];
-        sprintf(staticName, "#%u", info->name_index);
+    moduleweb_print_indents(indent);
 
-        name = staticName;
-        name_length = (int) strlen(staticName);
-    } else {
-        name = (char*) ascii->bytes;
-        name_length = (int) ascii->length;
-    }
+    fwrite(name, 1, name_length, stdout);
+    moduleweb_print(": ");
+    fwrite(value, 1, value_length, stdout);
 
-    printf("%.*s: %.*s", name_length, name, value_length, value);
+    free(name);
 }
 
 int moduleweb_attribute_array_init(moduleweb_attribute_array* array, moduleweb_instream* stream) {
@@ -126,6 +120,21 @@ int moduleweb_attribute_array_emit_bytes(moduleweb_attribute_array* array, modul
     }
 
     return 0;
+}
+
+void moduleweb_attribute_array_print(moduleweb_attribute_array* array, const moduleweb_module_info* module, u32 indent) {
+    moduleweb_print_indents(indent);
+
+    moduleweb_print("Attributes {\n");
+
+    u32 element_indent = indent + 1;
+    for (u16 i = 0; i < array->size; i++) {
+        moduleweb_attribute_info_print(&array->array[i], module, element_indent);
+        moduleweb_print("\n");
+    }
+
+    moduleweb_print_indents(indent);
+    moduleweb_print("}");
 }
 
 int moduleweb_attribute_array_get(const moduleweb_attribute_array* array, const char* name, const moduleweb_module_info* module, u16* index) {

@@ -25,7 +25,7 @@ int moduleweb_field_info_init(moduleweb_field_info* info, moduleweb_instream* st
 void moduleweb_field_info_uninit(moduleweb_field_info* info);
 
 int moduleweb_field_info_emit_bytes(moduleweb_field_info* info, moduleweb_outstream* stream);
-void moduleweb_field_info_print(moduleweb_field_info* info);
+void moduleweb_field_info_print(moduleweb_field_info* info, const moduleweb_module_info* module, u32 indent);
 
 #ifdef __cplusplus
 }

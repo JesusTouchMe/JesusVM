@@ -30,3 +30,4 @@ endif()
 
 target_compile_features(jesusvm-framework-jesusvm-framework PUBLIC cxx_std_20)
 target_link_libraries(jesusvm-framework-jesusvm-framework JesusVM::native)
+target_link_libraries(jesusvm-framework-jesusvm-framework JesusVM::moduleweb)

@@ -87,6 +87,44 @@ int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstr
     return 0;
 }
 
+void moduleweb_class_info_print(moduleweb_class_info* info, const moduleweb_module_info* module, u32 indent) {
+    u64 name_length;
+    char* name = moduleweb_module_constant_to_string(module, info->name_index, &name_length);
+
+    moduleweb_print_indents(indent);
+
+    if (info->modifiers & MODULEWEB_CLASS_MODIFIER_PUBLIC) moduleweb_print("public ");
+    if (info->modifiers & MODULEWEB_CLASS_MODIFIER_PRIVATE) moduleweb_print("private ");
+    if (info->modifiers & MODULEWEB_CLASS_MODIFIER_FINAL) moduleweb_print("final ");
+
+    moduleweb_print("class ");
+    fwrite(name, 1, name_length, stdout);
+
+    free(name);
+
+    if (info->super_class != 0) {
+        name = moduleweb_module_constant_to_string(module, info->super_class, &name_length);
+
+        moduleweb_print(" extends ");
+        fwrite(name, 1, name_length, stdout);
+
+        free(name);
+    }
+
+    moduleweb_print(" {\n");
+
+    u32 element_indent = indent + 1;
+    moduleweb_attribute_array_print(&info->attributes, module, element_indent);
+
+    for (u16 i = 0; i < info->field_count; i++) {
+        moduleweb_field_info_print(&info->fields[i], module, element_indent);
+        moduleweb_print("\n");
+    }
+
+    moduleweb_print_indents(indent);
+    moduleweb_print("}");
+}
+
 int moduleweb_class_get_field(const moduleweb_class_info* info, const moduleweb_module_info* module, const char* name, const char* descriptor, moduleweb_field_info** result) {
     for (u16 i = 0; i < info->field_count; i++) {
         moduleweb_constant_name_info* field_full_name;
