@@ -166,7 +166,7 @@ int moduleweb_file_lock(moduleweb_file file) {
     }
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
     if (flock(file, LOCK_EX) < 0) {
-        return 1
+        return 1;
     }
 #endif
 
@@ -185,7 +185,7 @@ int moduleweb_file_unlock(moduleweb_file file) {
     }
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
     if (flock(file, LOCK_UN) < 0) {
-        return 1
+        return 1;
     }
 #endif
 
@@ -235,7 +235,7 @@ int moduleweb_file_is_readable(moduleweb_file file, bool* res) {
     *res = file->is_readable;
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
     int access = fcntl(file, F_GETFL);
-    *res = (access & O_RDONLY) || (access & O_RDWR)
+    *res = (access & O_RDONLY) || (access & O_RDWR);
 #endif
 
     return 0;
@@ -246,7 +246,7 @@ int moduleweb_file_is_writeable(moduleweb_file file, bool* res) {
     *res = file->is_writeable;
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
     int access = fcntl(file, F_GETFL);
-    *res = (access & O_WRONLY) || (access & O_RDWR)
+    *res = (access & O_WRONLY) || (access & O_RDWR);
 #endif
 
     return 0;

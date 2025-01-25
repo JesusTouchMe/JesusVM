@@ -23,7 +23,7 @@ int moduleweb_function_info_init(moduleweb_function_info* info, moduleweb_instre
 void moduleweb_function_info_uninit(moduleweb_function_info* info);
 
 int moduleweb_function_info_emit_bytes(moduleweb_function_info* info, moduleweb_outstream* stream);
-void moduleweb_function_info_print(moduleweb_function_info* info, , const moduleweb_module_info* module, u32 indent);
+void moduleweb_function_info_print(moduleweb_function_info* info, const moduleweb_module_info* module, u32 indent);
 
 #ifdef __cplusplus
 }
