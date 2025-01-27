@@ -1,6 +1,7 @@
 #include "moduleweb/stream.h"
 
 #include <stdio.h>
+#include <errno.h>
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
