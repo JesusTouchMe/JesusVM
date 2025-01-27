@@ -340,6 +340,11 @@ void moduleweb_constant_info_print(moduleweb_constant_info* info, const modulewe
 
     printf("[%u] = ", index);
 
+    if (index == 0) {
+        moduleweb_print("null constant");
+        return;
+    }
+
     switch (info->type) {
         case MODULEWEB_CONSTANT_TYPE_ASCII:
             moduleweb_constant_ascii_info_print(&info->ascii_info, module, indent);

@@ -203,6 +203,7 @@ void moduleweb_module_info_print(moduleweb_module_info* info, u32 indent) {
 
     moduleweb_attribute_array_print(&info->attributes, info, indent);
 
+    moduleweb_print("\n\n");
     moduleweb_print_indents(indent);
     moduleweb_print("const_pool {\n");
 

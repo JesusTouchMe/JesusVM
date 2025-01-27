@@ -21,11 +21,11 @@ target_include_directories(jesusvm-framework-jesusvm-framework
 )
 
 if(WIN32)
-    target_compile_definitions(jesusvm-framework-jesusvm-framework PRIVATE PLATFORM_WINDOWS)
+    target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC PLATFORM_WINDOWS)
 elseif(APPLE)
-    target_compile_definitions(jesusvm-framework-jesusvm-framework PRIVATE PLATFORM_MACOS)
+    target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC PLATFORM_MACOS)
 elseif(UNIX AND NOT APPLE)
-    target_compile_definitions(jesusvm-framework-jesusvm-framework PRIVATE PLATFORM_LINUX)
+    target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC PLATFORM_LINUX)
 endif()
 
 target_compile_features(jesusvm-framework-jesusvm-framework PUBLIC cxx_std_20)

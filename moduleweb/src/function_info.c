@@ -53,7 +53,10 @@ void moduleweb_function_info_print(moduleweb_function_info* info, const modulewe
     free(name);
 
     moduleweb_print(" {\n");
+
     moduleweb_attribute_array_print(&info->attributes, module, indent + 1);
+
+    moduleweb_print("\n");
     moduleweb_print_indents(indent);
     moduleweb_print("}");
 }

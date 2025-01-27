@@ -115,6 +115,7 @@ void moduleweb_class_info_print(moduleweb_class_info* info, const moduleweb_modu
 
     u32 element_indent = indent + 1;
     moduleweb_attribute_array_print(&info->attributes, module, element_indent);
+    moduleweb_print("\n");
 
     for (u16 i = 0; i < info->field_count; i++) {
         moduleweb_field_info_print(&info->fields[i], module, element_indent);

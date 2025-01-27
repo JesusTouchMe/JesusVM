@@ -95,15 +95,18 @@ void TestModuleWeb() {
     module.classes = static_cast<moduleweb_class_info*>(std::malloc(sizeof(moduleweb_class_info) * module.class_count));
 
     AddClass(module, AddConstantAscii(module, "SomeClass", 4), MODULEWEB_CLASS_MODIFIER_PUBLIC, 0,
-             { { AddConstantAscii(module, "HeyThere", 5), 5, reinterpret_cast<u8*>(const_cast<char*>("hello")) } },
+             { { AddConstantAscii(module, "HeyThere", 5), 5, reinterpret_cast<u8*>(const_cast<char*>(strdup("hello"))) } },
              { { MODULEWEB_FIELD_MODIFIER_PUBLIC, AddConstantName(module, AddConstantAscii(module, "x", 6), AddConstantAscii(module, "I", 7), 8), { 0, static_cast<moduleweb_attribute_info*>(std::malloc(0)) } } }, 0);
 
     module.function_count = 1;
     module.functions = static_cast<moduleweb_function_info*>(std::malloc(sizeof(moduleweb_function_info) * module.function_count));
 
+    u8* mainCode2 = static_cast<u8*>(malloc(sizeof(mainCode)));
+    memcpy(mainCode2, mainCode, sizeof(mainCode));
+
     AddFunction(module, MODULEWEB_FUNCTION_MODIFIER_PUBLIC,
                 AddConstantName(module, AddConstantAscii(module, "add", 9), AddConstantAscii(module, "(II)I", 10), 11),
-                { {AddConstantAscii(module, "Code", 12), sizeof(mainCode), mainCode } }, 0);
+                { {AddConstantAscii(module, "Code", 12), sizeof(mainCode), mainCode2 } }, 0);
 
     moduleweb_module_info_print(&module, 0);
 
