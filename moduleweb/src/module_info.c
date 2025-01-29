@@ -1,6 +1,6 @@
 #include "moduleweb/module_info.h"
 
-int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* stream) {
+int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, moduleweb_instream* stream) {
     if (moduleweb_instream_read_u32(stream, &info->magic)) {
         goto error;
     }
@@ -14,12 +14,13 @@ int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* 
         goto error;
     }
 
-    if (moduleweb_instream_read_u16(stream, &info->name_index)) {
+    info->name = strdup(name);
+    if (info->name == NULL) {
         goto error;
     }
 
     if (moduleweb_attribute_array_init(&info->attributes, stream)) {
-        goto error;
+        goto error_name;
     }
 
     if (moduleweb_instream_read_u16(stream, &info->constant_pool_size)) {
@@ -109,11 +110,16 @@ int moduleweb_module_info_init(moduleweb_module_info* info, moduleweb_instream* 
     error_attributes:
     moduleweb_attribute_array_uninit(&info->attributes);
 
+    error_name:
+    free(info->name);
+
     error:
     return 1;
 }
 
 void moduleweb_module_info_uninit(moduleweb_module_info* info) {
+    free(info->name);
+
     moduleweb_attribute_array_uninit(&info->attributes);
 
     for (u16 i = 1; i < info->constant_pool_size; i++) {
@@ -138,10 +144,6 @@ int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outs
     }
 
     if (moduleweb_outstream_write_u16(stream, info->bytecode_version)) {
-        return 1;
-    }
-
-    if (moduleweb_outstream_write_u16(stream, info->name_index)) {
         return 1;
     }
 
@@ -185,15 +187,9 @@ int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outs
 void moduleweb_module_info_print(moduleweb_module_info* info, u32 indent) {
     moduleweb_print_indents(indent);
 
-    u64 name_length;
-    char* name = moduleweb_module_constant_to_string(info, info->name_index, &name_length);
 
-    moduleweb_print("module ");
-    fwrite(name, 1, name_length, stdout);
+    printf("module %s {\n", info->name);
 
-    free(name);
-
-    moduleweb_print(" {\n");
     indent++;
 
     moduleweb_print_indents(indent);
