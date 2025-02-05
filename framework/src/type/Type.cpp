@@ -4,9 +4,20 @@
 
 #include "JesusVM/type/Type.h"
 
+#undef VOID
+
 namespace JesusVM {
     static bool ParseClassType(std::string_view descriptor, u32* index) {
+        do {
+            if (*index >= descriptor.length()) {
+                return true;
+            }
 
+            (*index)++;
+        } while (descriptor[*index] != ';');
+
+        (*index)++;
+        return false;
     }
 
     static bool ParseArrayBaseType(std::string_view descriptor, u32* index) {

@@ -25,9 +25,9 @@ namespace JesusVM {
 
 		explicit Class(Module* module);
 
-        void link(moduleweb_class_info* info);
-        void linkPrimitive(std::string_view name);
-        void linkArray(Class* base, std::string_view name);
+        bool link(moduleweb_class_info* info);
+        bool linkPrimitive(std::string_view name);
+        bool linkArray(Class* base, std::string_view name);
 
         moduleweb_class_info* getInfo() const;
 		Module* getModule() const;
@@ -43,10 +43,13 @@ namespace JesusVM {
 
 		std::string_view mName;
 
+        Class* mSuperClass;
+
         u64 mMemorySize;
 
-        u32 mFieldCount;
-        std::unique_ptr<Field[]> mFields;
+        std::vector<Field> mFields;
+
+        bool linkCommon();
 
         union {
             TypeInfo mRepresentedPrimitive; // for primitive classes, this will hold a pointer to the underlying type

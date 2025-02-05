@@ -6,13 +6,14 @@
 namespace JesusVM {
 	Module::Module(JesusVM& vm, moduleweb_module_info* info)
 		: mModulewebInfo(info)
+        , mVM(vm)
         , mName(info->name)
 		, mConstPool(info->constant_pool_size, info->constant_pool) {
         mClasses.reserve(info->class_count);
         mFunctions.reserve(info->function_count);
 
         for (u16 i = 0; i < info->class_count; i++) {
-            mClasses.emplace_back(&info->classes[i]);
+            mClasses.emplace_back(this);
         }
 
         for (u16 i = 0; i < info->function_count; i++) {
@@ -26,6 +27,10 @@ namespace JesusVM {
 
     const moduleweb_module_info* Module::getInfo() {
         return mModulewebInfo;
+    }
+
+    JesusVM& Module::getVM() const {
+        return mVM;
     }
 
 	std::string_view Module::getName() const {

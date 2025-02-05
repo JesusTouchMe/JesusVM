@@ -16,12 +16,16 @@
 #include <string_view>
 
 namespace JesusVM {
+    class JesusVM;
+
 	class Module {
 	public:
 		Module(JesusVM& vm, moduleweb_module_info* info);
         ~Module();
 
         const moduleweb_module_info* getInfo();
+
+        JesusVM& getVM() const;
 
 		std::string_view getName() const;
 		ConstPool& getConstPool();
@@ -32,6 +36,8 @@ namespace JesusVM {
 
 	private:
         moduleweb_module_info* mModulewebInfo;
+
+        JesusVM& mVM;
 
 		std::string_view mName;
 

@@ -25,7 +25,6 @@ namespace JesusVM {
 		void start(Function* main); // should be called from the main thread
 		void stop();
 
-		TypeSystem& getTypeSystem();
         VMContext getContext();
 
 		Module* getModule(std::string_view name);
@@ -41,6 +40,8 @@ namespace JesusVM {
 		Thread* mMainThread;
 
         Context mContext;
+
+        bool mPreloadFinished; //TODO: implement
 	};
 }
 

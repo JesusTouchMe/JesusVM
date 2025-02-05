@@ -10,10 +10,10 @@ namespace JesusVM {
 	public:
 		ConstPool(JesusVM& vm, u32 size, moduleweb_constant_info* constants);
 
-		Constant* getGeneric(u32 index) const;
+		Constant* getGeneric(u32 index);
 
         template<typename T, Constant::Type Type = T::type>
-        T* get(u32 index) const {
+        T* get(u32 index) {
             Constant* constant = getGeneric(index);
 
             if (constant == nullptr) {

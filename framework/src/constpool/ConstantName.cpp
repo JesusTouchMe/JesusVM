@@ -1,3 +1,5 @@
+#include "JesusVM/JesusVM.h"
+
 #include "JesusVM/constpool/ConstantAscii.h"
 #include "JesusVM/constpool/ConstantName.h"
 #include "JesusVM/constpool/ConstPool.h"

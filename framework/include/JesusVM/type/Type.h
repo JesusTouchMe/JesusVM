@@ -22,6 +22,8 @@ namespace JesusVM {
         FLOAT,
         DOUBLE,
         BOOL,
+
+        TYPE_COUNT
     };
 
 #ifdef JESUSVM_CONFIG_32BIT

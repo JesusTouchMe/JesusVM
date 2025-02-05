@@ -7,15 +7,15 @@ namespace JesusVM {
         , mModulewebConstants(constants)
 		, mConstants(std::make_unique<ConstantPtr[]>(size)) { }
 
-	Constant* ConstPool::getGeneric(u32 index) const {
-		if (index >= mSize) {
+	Constant* ConstPool::getGeneric(u32 index) {
+		if (index == 0 || index >= mSize) {
 			return nullptr;
 		}
 
 		auto& constant = mConstants[index];
 
         if (constant == nullptr) {
-            constant = Constant::Create(mVM, &mModulewebConstants[index]);
+            constant = Constant::Create(mVM, *this, &mModulewebConstants[index]);
         }
 
         return constant.get();
