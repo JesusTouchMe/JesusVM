@@ -5,7 +5,10 @@
 
 #include "JesusVM/Stack.h"
 
+#include "moduleweb/constant_info.h"
+
 #include <memory>
+
 
 namespace JesusVM {
 	class Constant {
@@ -13,8 +16,13 @@ namespace JesusVM {
         virtual ~Constant() = default;
 
         enum class Type {
+            ASCII,
+            NAME,
+            MODULE,
             FUNCTION,
         };
+
+        static std::unique_ptr<Constant> Create(JesusVM& vm, ConstPool& container, moduleweb_constant_info* info);
 
         Type getType() const { return mType; }
 

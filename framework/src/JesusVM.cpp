@@ -4,8 +4,7 @@
 
 namespace JesusVM {
 	JesusVM::JesusVM()
-		: mTypeSystem(*this)
-		, mMainThread(nullptr) {}
+		: mMainThread(nullptr) {}
 
 	void JesusVM::start(Function* main) {
 		if (mMainThread == nullptr) {
@@ -13,7 +12,7 @@ namespace JesusVM {
 			std::exit(1);
 		}
 
-		if (main->getModifiers() & Function::NATIVE) {
+		if (main->isNative()) {
 			//TODO: thread system supporting native execution
 
 			auto ptr = reinterpret_cast<NativeFunctionPtr<void>>(main->getEntry());

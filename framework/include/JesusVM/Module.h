@@ -5,9 +5,12 @@
 
 #include "JesusVM/Function.h"
 
+#include "JesusVM/constpool/ConstantName.h"
 #include "JesusVM/constpool/ConstPool.h"
 
 #include "JesusVM/heap/Class.h"
+
+#include "moduleweb/module_info.h"
 
 #include <memory>
 #include <string_view>
@@ -15,15 +18,21 @@
 namespace JesusVM {
 	class Module {
 	public:
-		Module(std::string_view name, u32 constCount, std::vector<Class> classes, std::vector<Function> functions);
+		Module(JesusVM& vm, moduleweb_module_info* info);
+        ~Module();
+
+        const moduleweb_module_info* getInfo();
 
 		std::string_view getName() const;
 		ConstPool& getConstPool();
 
 		Class* getClass(std::string_view name);
-		Function* getFunction(std::string_view descriptor);
+		Function* getFunction(std::string_view name, std::string_view descriptor);
+        Function* getFunction(ConstantName* name);
 
 	private:
+        moduleweb_module_info* mModulewebInfo;
+
 		std::string_view mName;
 
 		ConstPool mConstPool;

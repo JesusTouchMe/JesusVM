@@ -3,16 +3,23 @@
 
 #include "JesusVM/type/Type.h"
 
+#include "moduleweb/field_info.h"
+
 #include <string_view>
 
 namespace JesusVM {
     class Class;
 
     class Field {
+    friend class Class;
+    friend bool ParseFieldType(Field*);
     public:
-        Class* getOwner();
-        Type* getType();
+        Field(Class* clas, u32 index);
+
+        moduleweb_field_info* getInfo() const;
+        const TypeInfo& getType() const;
         std::string_view getName() const;
+        std::string_view getDescriptor() const;
         u32 getIndex() const;
         u32 getMemoryOffset() const;
 
@@ -21,8 +28,9 @@ namespace JesusVM {
         u32 mIndex;
         u32 mMemoryOffset;
 
-        Type* mType;
+        TypeInfo mType;
         std::string_view mName;
+        std::string_view mDescriptor;
     };
 }
 

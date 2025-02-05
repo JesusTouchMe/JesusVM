@@ -35,8 +35,6 @@ namespace JesusVM {
 		void addThread(std::unique_ptr<Thread> thread);
 
 	private:
-		TypeSystem mTypeSystem;
-
 		std::vector<std::unique_ptr<Module>> mModules;
 		std::vector<std::unique_ptr<Thread>> mThreads;
 

@@ -1,33 +1,71 @@
 #include "JesusVM/Function.h"
+#include "JesusVM/Module.h"
+
+#include "JesusVM/constpool/ConstantAscii.h"
+#include "JesusVM/constpool/ConstantName.h"
+
+#include "moduleweb/module_info.h"
 
 namespace JesusVM {
-	Function::Function(TypeSystem& typeSystem, std::string_view descriptor, Modifiers modifiers, u16 localCount, u16 stackSize, u8* entry, u32 bytecodeSize)
-		: mModule(nullptr)
-		, mDescriptor(descriptor)
-		, mModifiers(modifiers)
-		, mLocalCount(localCount)
-		, mStackSize(stackSize)
-		, mEntry(entry)
-		, mBytecodeSize(bytecodeSize) {
-		u64 index = mDescriptor.find('(');
+	Function::Function(Module* module, moduleweb_function_info* info)
+		: mInfo(info)
+        , mModule(module)
+		, mModifiers(info->modifiers) {
+        auto name = module->getConstPool().get<ConstantName>(info->name_index);
 
-		if (index != std::string_view::npos) {
-			std::string_view typeDesc = mDescriptor.substr(index);
+        mName = name->getName();
+        mDescriptor = name->getDescriptor();
 
-			Type* type = typeSystem.getType(typeDesc);
+        if (ParseFunctionType(this)) {
+            std::cout << "Bad function descriptor\n";
+            std::exit(1);
+        }
 
-			mType = dynamic_cast<FunctionType*>(type);
-			mName = descriptor.substr(0, index);
-		}
+        mArgumentTypes.shrink_to_fit();
+
+        if (isNative()) {
+            mLocalCount = mArgumentTypes.size();
+            mStackSize = 0;
+            mEntry = nullptr;
+            return;
+        }
+
+        u16 codeIndex = 0;
+
+        if (moduleweb_attribute_array_get(&info->attributes, "Entry", module->getInfo(), &codeIndex)) {
+            //TODO: error proper
+            std::cout << "Bad function data. No 'Entry' attribute defined\n";
+            std::exit(1);
+        }
+
+        u16 codeIndex2 = codeIndex + 1;
+
+        if (!moduleweb_attribute_array_get(&info->attributes, "Entry", module->getInfo(), &codeIndex2)) {
+            std::cout << "Bad function data: More than one 'Entry' attribute defined\n";
+            std::exit(1);
+        }
+
+        moduleweb_attribute_info* entry = &info->attributes.array[codeIndex];
+
+        mEntry = entry->info;
+        mBytecodeSize = entry->length;
 	}
+
+    moduleweb_function_info* Function::getInfo() const {
+        return mInfo;
+    }
 
 	Module* Function::getModule() const {
 		return mModule;
 	}
 
-	FunctionType* Function::getType() const {
-		return mType;
+	const TypeInfo& Function::getReturnType() const {
+        return mReturnType;
 	}
+
+    const std::vector<TypeInfo>& Function::getArgumentTypes() {
+        return mArgumentTypes;
+    }
 
 	std::string_view Function::getName() const {
 		return mName;
@@ -56,4 +94,24 @@ namespace JesusVM {
 	u32 Function::getBytecodeSize() const {
 		return mBytecodeSize;
 	}
+
+    bool Function::isPublic() const {
+        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PUBLIC) != 0;
+    }
+
+    bool Function::isPrivate() const {
+        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PRIVATE) != 0;
+    }
+
+    bool Function::isPure() const {
+        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PURE) != 0;
+    }
+
+    bool Function::isAsync() const {
+        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_ASYNC) != 0;
+    }
+
+    bool Function::isNative() const {
+        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_NATIVE) != 0;
+    }
 }

@@ -1,6 +1,6 @@
 #include "moduleweb/module_info.h"
 
-int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, moduleweb_instream* stream) {
+int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, u64 name_length, moduleweb_instream* stream) {
     if (moduleweb_instream_read_u32(stream, &info->magic)) {
         goto error;
     }
@@ -14,10 +14,13 @@ int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, mo
         goto error;
     }
 
-    info->name = strdup(name);
+    info->name = malloc(name_length + 1);
     if (info->name == NULL) {
         goto error;
     }
+
+    memcpy(info->name, name, name_length);
+    info->name[name_length] = 0;
 
     if (moduleweb_attribute_array_init(&info->attributes, stream)) {
         goto error_name;

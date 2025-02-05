@@ -9,11 +9,12 @@ extern "C" {
 
 #define EXTRACT_ARG(typeDesc, argName) argName = args[__COUNTER__].typeDesc
 
-typedef unsigned char	Boolean;
-typedef unsigned short	Char;
+typedef unsigned char	Bool;
+typedef char        	Char;
 typedef short			Short;
 typedef float			Float;
 typedef double			Double;
+typedef void*           Handle;
 
 #ifdef __cplusplus
 
@@ -34,12 +35,16 @@ typedef struct _Class* JClass;
 #endif
 
 typedef union JValue {
-	Boolean Z;
+	Bool Z;
 	Byte B;
 	Short S;
 	Int I;
 	Long L;
+    Char C;
+    Float F;
+    Double D;
 	JObject R;
+    Handle* H;
 } JValue;
 
 struct _Field;

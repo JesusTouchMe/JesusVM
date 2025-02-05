@@ -5,8 +5,9 @@
 
 #include "JesusVM/JesusNative.h"
 
-#include "JesusVM/type/FunctionType.h"
-#include "JesusVM/type/TypeSystem.h"
+#include "JesusVM/type/Type.h"
+
+#include "moduleweb/function_info.h"
 
 namespace JesusVM {
 	template <typename ReturnType>
@@ -17,16 +18,16 @@ namespace JesusVM {
 
 	class Function {
 	friend class Module;
+    friend bool ParseFunctionType(Function*);
 	public:
 		using Modifiers = u16;
 
-		static constexpr Modifiers NO_MODIFIERS = 0;
-		static constexpr Modifiers NATIVE = 0x0001;
+		Function(Module* module, moduleweb_function_info* info);
 
-		Function(TypeSystem& typeSystem, std::string_view descriptor, Modifiers modifiers, u16 localCount, u16 stackSize, u8* entry, u32 bytecodeSize);
-
+        moduleweb_function_info* getInfo() const;
 		Module* getModule() const;
-		FunctionType* getType() const;
+		const TypeInfo& getReturnType() const;
+        const std::vector<TypeInfo>& getArgumentTypes();
 		std::string_view getName() const;
 		std::string_view getDescriptor() const;
 		Modifiers getModifiers() const;
@@ -35,10 +36,19 @@ namespace JesusVM {
 		u8* getEntry() const;
 		u32 getBytecodeSize() const;
 
+        bool isPublic() const;
+        bool isPrivate() const;
+        bool isPure() const;
+        bool isAsync() const;
+        bool isNative() const;
+
 	private:
+        moduleweb_function_info* mInfo;
+
 		Module* mModule;
 		
-		FunctionType* mType;
+		TypeInfo mReturnType;
+        std::vector<TypeInfo> mArgumentTypes;
 		std::string_view mName;
 		std::string_view mDescriptor;
 		Modifiers mModifiers;

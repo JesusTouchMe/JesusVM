@@ -7,45 +7,103 @@
 #include <vector>
 
 namespace JesusVM {
-	class JesusVM;
+    class Function;
+    class Field;
 
-	class Type {
-	public:
-		enum Special {
-			VOID,
-			PRIMITIVE_8,
-			PRIMITIVE_16,
-			PRIMITIVE_32,
-			PRIMITIVE_64,
-			REFERENCE,
-			FUNCTION,
-		};
+    enum class Type {
+        VOID,
+        REFERENCE,
+        HANDLE,
+        BYTE,
+        SHORT,
+        INT,
+        LONG,
+        CHAR,
+        FLOAT,
+        DOUBLE,
+        BOOL,
+    };
 
-		virtual ~Type() { }
-		
-		std::string_view getName() const { return mName; }
-		std::string_view getDescriptor() const { return mDescriptor; }
+#ifdef JESUSVM_CONFIG_32BIT
+    constexpr u32 REFERENCE_SIZE = 4;
+    constexpr u32 HANDLE_SIZE = 4;
+#else
+    constexpr u32 REFERENCE_SIZE = 8;
+    constexpr u32 HANDLE_SIZE = 8;
+#endif
 
-		bool isVoid() const { return mSpecial == VOID; }
-		bool isPrimitive8() const { return mSpecial == PRIMITIVE_8; }
-		bool isPrimitive16() const { return mSpecial == PRIMITIVE_16; }
-		bool isPrimitive32() const { return mSpecial == PRIMITIVE_32; }
-		bool isPrimitive64() const { return mSpecial == PRIMITIVE_64; }
-		bool isPrimitive() const { return mSpecial >= PRIMITIVE_8 && mSpecial <= PRIMITIVE_64; }
-		bool isReference() const { return mSpecial == REFERENCE; }
-		bool isFunction() const { return mSpecial == FUNCTION; }
+	class TypeInfo {
+    public:
+        Type getInternalType() const { return mType; }
+        std::string_view getClassName() const { return mClassName; }
 
-	protected:
-		Type(std::string_view name, std::string_view descriptor, Special special)
-			: mName(name)
-			, mDescriptor(descriptor)
-			, mSpecial(special)
-		{ }
+        bool parse(std::string_view descriptor, u32* index);
 
-		std::string_view mName;
-		std::string_view mDescriptor;
-		Special mSpecial;
+        bool is64Bit() const {
+#ifdef JESUSVM_CONFIG_32BIT
+            return mType == Type::LONG || mType == Type::DOUBLE;
+#else
+            return mType == Type::LONG || mType == Type::REFERENCE || mType == Type::DOUBLE || mType == Type::HANDLE;
+#endif
+        }
+
+        bool isFloat() const { return mType == Type::FLOAT || mType == Type::DOUBLE; }
+
+        u32 getSlotCount() const { // stack slot count. each slot is 4 bytes
+            if (is64Bit())
+                return 2;
+            return 1;
+        }
+
+        u32 getByteSize() const {
+            switch (mType) {
+                case Type::VOID:
+                    return 0;
+                case Type::REFERENCE:
+                    return REFERENCE_SIZE;
+                case Type::HANDLE:
+                    return HANDLE_SIZE;
+                case Type::BYTE:
+                case Type::CHAR:
+                case Type::BOOL:
+                    return 1;
+                case Type::SHORT:
+                    return 2;
+                case Type::INT:
+                case Type::FLOAT:
+                    return 4;
+                case Type::LONG:
+                case Type::DOUBLE:
+                    return 8;
+            }
+        }
+
+        bool isPrimitiveArrayType() const {
+            u32 index = 0;
+            if (mClassName[index] != '[') {
+                return false;
+            }
+
+            while (mClassName[index] == '[') {
+                index++;
+            }
+
+            return mClassName[index] != 'R';
+        }
+
+        bool isArray() {
+            return mClassName[0] == '[';
+        }
+
+    private:
+        Type mType;
+        std::string_view mClassName; // descriptor, but also allows searching up the class name in the vm.
 	};
+
+    Type StringToType(std::string_view descriptor);
+
+    bool ParseFunctionType(Function* function);
+    bool ParseFieldType(Field* field);
 }
 
 #endif // JESUSVM_TYPE_H

@@ -29,7 +29,7 @@ typedef struct moduleweb_module_info {
     moduleweb_function_info* functions;
 } moduleweb_module_info;
 
-int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, moduleweb_instream* stream);
+int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, u64 name_length, moduleweb_instream* stream);
 void moduleweb_module_info_uninit(moduleweb_module_info* info);
 
 int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outstream* stream);

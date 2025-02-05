@@ -1,23 +1,23 @@
 #include "JesusVM/constpool/ConstPool.h"
 
 namespace JesusVM {
-	ConstPool::ConstPool(u32 size)
-		: mSize(size)
+	ConstPool::ConstPool(JesusVM& vm, u32 size, moduleweb_constant_info* constants)
+		: mVM(vm)
+        , mSize(size)
+        , mModulewebConstants(constants)
 		, mConstants(std::make_unique<ConstantPtr[]>(size)) { }
 
-	Constant* ConstPool::get(u32 index) const {
+	Constant* ConstPool::getGeneric(u32 index) const {
 		if (index >= mSize) {
 			return nullptr;
 		}
 
-		return mConstants[index].get();
-	}
+		auto& constant = mConstants[index];
 
-	void ConstPool::set(u32 index, ConstantPtr value) {
-		if (index >= mSize) {
-			return;
-		}
+        if (constant == nullptr) {
+            constant = Constant::Create(mVM, &mModulewebConstants[index]);
+        }
 
-		mConstants[index] = std::move(value);
+        return constant.get();
 	}
 }

@@ -8,13 +8,29 @@
 namespace JesusVM {
 	class ConstPool {
 	public:
-		explicit ConstPool(u32 size);
+		ConstPool(JesusVM& vm, u32 size, moduleweb_constant_info* constants);
 
-		Constant* get(u32 index) const;
-		void set(u32 index, ConstantPtr value);
+		Constant* getGeneric(u32 index) const;
+
+        template<typename T, Constant::Type Type = T::type>
+        T* get(u32 index) const {
+            Constant* constant = getGeneric(index);
+
+            if (constant == nullptr) {
+                return nullptr;
+            }
+
+            if (constant->getType() == Type) {
+                return static_cast<T*>(constant);
+            } else {
+                return nullptr;
+            }
+        }
 
 	private:
+        JesusVM& mVM;
 		u32 mSize;
+        moduleweb_constant_info* mModulewebConstants;
 		std::unique_ptr<ConstantPtr[]> mConstants;
 	};
 }

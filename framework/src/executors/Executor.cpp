@@ -607,7 +607,7 @@ namespace JesusVM {
 
         Function* func = reinterpret_cast<ConstantFunc*>(constant)->getFunction();
 
-        if (func->getModifiers() & Function::NATIVE) {
+        if (func->isNative()) {
             std::unique_ptr<JValue[]> nativeArgs = std::make_unique<JValue[]>(func->getType()->getArgumentTypes().size());
 
             u64 i = 0;
