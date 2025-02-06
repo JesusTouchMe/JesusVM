@@ -20,7 +20,7 @@ namespace JesusVM {
 
 	class Module {
 	public:
-		Module(JesusVM& vm, moduleweb_module_info* info);
+		Module(JesusVM& vm, Object* linker, moduleweb_module_info* info);
         ~Module();
 
         const moduleweb_module_info* getInfo();
@@ -38,6 +38,7 @@ namespace JesusVM {
         moduleweb_module_info* mModulewebInfo;
 
         JesusVM& mVM;
+        Object* mLinker;
 
 		std::string_view mName;
 

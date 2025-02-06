@@ -4,11 +4,12 @@
 #include <algorithm>
 
 namespace JesusVM {
-	Module::Module(JesusVM& vm, moduleweb_module_info* info)
+	Module::Module(JesusVM& vm, Object* linker, moduleweb_module_info* info)
 		: mModulewebInfo(info)
         , mVM(vm)
+        , mLinker(linker)
         , mName(info->name)
-		, mConstPool(info->constant_pool_size, info->constant_pool) {
+		, mConstPool(vm, info->constant_pool_size, info->constant_pool) {
         mClasses.reserve(info->class_count);
         mFunctions.reserve(info->function_count);
 
@@ -17,7 +18,7 @@ namespace JesusVM {
         }
 
         for (u16 i = 0; i < info->function_count; i++) {
-            mFunctions.emplace_back(vm.getTypeSystem(), this, &info->functions[i]);
+            mFunctions.emplace_back(this, &info->functions[i]);
         }
 
 		for (auto& function : mFunctions) {

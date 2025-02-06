@@ -13,6 +13,7 @@
 
 namespace JesusVM {
 	class Module;
+    class Object;
 
     enum class ClassKind {
         REGULAR,
@@ -57,6 +58,7 @@ namespace JesusVM {
         Modifiers mModifiers;
 
 		Module* mModule;
+        Object* mLinker; // nullptr means bootstrap linker which does not have any virtual representation
 
 		std::string_view mName;
 
