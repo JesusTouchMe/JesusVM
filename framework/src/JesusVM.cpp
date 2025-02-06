@@ -42,17 +42,6 @@ namespace JesusVM {
         return reinterpret_cast<VMContext>(&mContext);
     }
 
-	TypeSystem& JesusVM::getTypeSystem() {
-		return mTypeSystem;
-	}
-
-	Module* JesusVM::getModule(std::string_view name) {
-		auto it = std::find_if(mModules.rbegin(), mModules.rend(), [name](auto& module) { return module->getName() == name; });
-		if (it != mModules.rend()) return (*it).get();
-
-		return nullptr;
-	}
-
 	VThread* JesusVM::getAvailableThread() {
 		if (mThreads.empty()) return nullptr;
 
@@ -74,12 +63,6 @@ namespace JesusVM {
 		least->addVThread(std::move(vThread));
 
 		return result;
-	}
-
-	void JesusVM::addModule(std::unique_ptr<Module> module) {
-		if (module != nullptr) {
-			mModules.push_back(std::move(module));
-		}
 	}
 
 	void JesusVM::addThread(std::unique_ptr<Thread> thread) {

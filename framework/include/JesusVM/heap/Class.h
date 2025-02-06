@@ -7,6 +7,7 @@
 
 #include "moduleweb/class_info.h"
 
+#include <array>
 #include <memory>
 #include <string_view>
 
@@ -17,6 +18,12 @@ namespace JesusVM {
         REGULAR,
         ARRAY, // artificial
         PRIMITIVE // artificial
+    };
+
+    enum class ClassState {
+        ERRORED,
+        LINKED,
+        INITIALIZED,
     };
 
 	class Class {
@@ -33,10 +40,20 @@ namespace JesusVM {
 		Module* getModule() const;
 		std::string_view getName() const;
 
+        bool isPublic() const;
+        bool isPrivate() const;
+        bool isAbstract() const;
+        bool isFinal() const;
+
 	private:
+        struct FieldBucket {
+            std::vector<Field*> fields;
+        };
+
         moduleweb_class_info* mInfo;
 
         ClassKind mKind;
+        ClassState mState;
         Modifiers mModifiers;
 
 		Module* mModule;
@@ -50,6 +67,9 @@ namespace JesusVM {
         std::vector<Field> mFields;
 
         bool linkCommon();
+
+        void orderFieldBuckets(std::array<FieldBucket, static_cast<u64>(Type::TYPE_COUNT)>& buckets);
+        static void orderFieldBucket(FieldBucket* bucket, u32 size, u64& offset);
 
         union {
             TypeInfo mRepresentedPrimitive; // for primitive classes, this will hold a pointer to the underlying type

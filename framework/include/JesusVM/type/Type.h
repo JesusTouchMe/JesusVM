@@ -36,6 +36,8 @@ namespace JesusVM {
 
 	class TypeInfo {
     public:
+        TypeInfo(std::string_view name) : mType(Type::REFERENCE), mClassName(name) {}
+
         Type getInternalType() const { return mType; }
         std::string_view getClassName() const { return mClassName; }
 
@@ -77,6 +79,10 @@ namespace JesusVM {
                 case Type::LONG:
                 case Type::DOUBLE:
                     return 8;
+
+                default:
+                    //TODO: error?
+                    return 0;
             }
         }
 

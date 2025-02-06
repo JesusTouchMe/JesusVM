@@ -39,14 +39,14 @@ namespace JesusVM {
         template <typename T>
         constexpr T* getArrayElements();
 
-        Boolean getBoolean(Field* field) const;
+        Bool getBoolean(Field* field) const;
         Byte getByte(Field* field) const;
         Short getShort(Field* field) const;
         Int getInt(Field* field) const;
         Long getLong(Field* field) const;
         Object* getObject(Field* field) const;
 
-        void setBoolean(Field* field, Boolean value);
+        void setBoolean(Field* field, Bool value);
         void setByte(Field* field, Byte value);
         void setShort(Field* field, Short value);
         void setInt(Field* field, Int value);

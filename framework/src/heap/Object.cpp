@@ -1,7 +1,5 @@
 #include "JesusVM/heap/Object.h"
 
-#include <cstdlib>
-
 namespace JesusVM {
     u8* Object::getFieldsBuffer() {
         return reinterpret_cast<u8*>(std::launder(this + 1));

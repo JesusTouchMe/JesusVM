@@ -3,14 +3,17 @@
 
 #include "types.h"
 
+#include "JesusVM/Linker.h"
 #include "JesusVM/Module.h"
 
 #include "JesusVM/executors/Thread.h"
 
-#include "JesusVM/type/TypeSystem.h"
+#include "JesusVM/heap/Object.h"
 
 #include <memory>
 #include <vector>
+
+#define ALIGN(x,a) (((x)+(a)-1)&~((a)-1))
 
 namespace JesusVM {
     struct Context {
@@ -27,14 +30,11 @@ namespace JesusVM {
 
         VMContext getContext();
 
-		Module* getModule(std::string_view name);
 		VThread* getAvailableThread();
 
-		void addModule(std::unique_ptr<Module> module);
 		void addThread(std::unique_ptr<Thread> thread);
 
 	private:
-		std::vector<std::unique_ptr<Module>> mModules;
 		std::vector<std::unique_ptr<Thread>> mThreads;
 
 		Thread* mMainThread;
