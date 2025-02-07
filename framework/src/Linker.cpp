@@ -1,15 +1,64 @@
 #include "JesusVM/Linker.h"
 
+#include "JesusVM/executors/Thread.h"
+
 #include "JesusVM/util/StringPool.h"
 
+#include "moduleweb/module_info.h"
+#include "moduleweb/stream.h"
+
+#include <condition_variable>
 #include <filesystem>
 #include <mutex>
 #include <unordered_map>
+#include <cassert>
+
+#undef BOOL
+#undef VOID
 
 namespace fs = std::filesystem;
 
+namespace ModuleWeb {
+    class InStream {
+    public:
+        InStream()
+            : mInit(false) {
+        }
+
+        ~InStream() {
+            if (mInit) close();
+        }
+
+        int open(const std::string& name) {
+            if (mInit) close();
+
+            int res = moduleweb_instream_open(&mStream, name.c_str());
+            if (!res) mInit = true;
+
+            return res;
+        }
+
+        void close() {
+            moduleweb_instream_close(&mStream);
+            mInit = false;
+        }
+
+        moduleweb_instream* get() {
+            return &mStream;
+        }
+
+    private:
+        moduleweb_instream mStream;
+        bool mInit;
+    };
+}
+
 namespace JesusVM::Linker {
     struct ModuleKey {
+        ModuleKey(std::string_view name, Object* linker)
+            : name(name)
+            , linker(linker) { }
+
         std::string_view name;
         Object* linker;
 
@@ -37,8 +86,18 @@ namespace JesusVM::Linker {
             NOT_FOUND,
         };
 
+        LinkerModule(Status status, std::unique_ptr<Module> module, u32 threadsWaiting, Thread* loadingThread, Object* linker)
+            : status(status)
+            , module(std::move(module))
+            , threadsWaiting(threadsWaiting)
+            , loadingThread(loadingThread)
+            , linker(linker) { }
+
         Status status;
         std::unique_ptr<Module> module;
+
+        u32 threadsWaiting;
+        Thread* loadingThread;
 
         Object* linker;
     };
@@ -49,7 +108,9 @@ namespace JesusVM::Linker {
     std::condition_variable condition;
 
     std::vector<std::string_view> modulePath;
-    std::unordered_map<ModuleKey, LinkerModule, ModuleKey::Hash, ModuleKey::Equals> modules;
+    std::unordered_map<ModuleKey, std::unique_ptr<LinkerModule>, ModuleKey::Hash, ModuleKey::Equals> modules;
+
+    static std::array<Class*, static_cast<u64>(Type::TYPE_COUNT)> primitiveCache;
 
     void Init(JesusVM& vm) {
         globalVM = &vm; // TODO: better solution. the framework is meant to be usable multiple times in the same runtime
@@ -85,12 +146,95 @@ namespace JesusVM::Linker {
         }
     }
 
-    static Module* FindModule(Object* linker, std::string_view name) {
+    static inline void RemoveModule(ModuleKey& key) {
+        modules.erase(key);
+    }
 
+    static LinkerModule* FindModule(std::unique_lock<std::mutex>& lock, Object* linker, std::string_view name) {
+        ModuleKey key(name, linker);
+        auto it = modules.find(key);
+        LinkerModule* module = nullptr;
+
+        if (it != modules.end()) {
+            module = it->second.get();
+
+            if (module->status == LinkerModule::Status::LOADING &&
+                module->loadingThread == Thread::GetCurrentThread()) {
+                return nullptr;
+            }
+
+            module->threadsWaiting++;
+            condition.wait(lock, [module] {
+                return module->status != LinkerModule::Status::LOADING;
+            });
+            module->threadsWaiting--;
+
+            if (module->status == LinkerModule::Status::NOT_FOUND && module->threadsWaiting == 0) {
+                RemoveModule(key);
+                module = nullptr;
+            }
+        }
+
+        return module;
     }
 
     static Module* LoadModuleWithLinker(Object* linker, std::string_view name) {
+        /*
+         TODO:
+         Object* rtName = AllocString(name.replace('/', '.'); // std/Primitives:String
+         Object* reflectionModule = linker.callMethod(Runtime::std::Reflection::Linker::loadModule, rtName); // std/Reflection:Linker.loadModule(Rstd/Primitives:String;)Rstd/Reflection:Module;
 
+         if (reflectionModule == nullptr) {
+            rtName.removeReference(); // our reference from allocating it
+            return nullptr;
+         }
+
+         return GetModuleFromReflection(reflectionModule);
+        */
+
+        return nullptr;
+    }
+
+    static Module* LoadModuleFromFile(std::string& fileName, std::string_view name) {
+        ModuleWeb::InStream stream;
+
+        if (stream.open(fileName)) {
+            return nullptr;
+        }
+
+        auto moduleInfo = std::make_unique<moduleweb_module_info>();
+        if (moduleweb_module_info_init(moduleInfo.get(), name.data(), name.length(), stream.get())) {
+            return nullptr;
+        }
+
+        auto result = new Module(*globalVM, nullptr, moduleInfo.get());
+        return result;
+    }
+
+    static Module* LoadModuleFromPath(std::string_view path, std::string_view name) {
+        std::string fileName(name);
+        fileName += ".jmod";
+
+        std::string fullName(path);
+        fullName += "/";
+        fullName += fileName;
+
+        return LoadModuleFromFile(fullName, name);
+    }
+
+    static Module* LoadModuleWithBootstrap(std::string_view name) {
+        Module* result = nullptr;
+
+        for (std::string_view& path : modulePath) {
+            result = LoadModuleFromPath(path, name);
+            if (result != nullptr) break;
+        }
+
+        if (result != nullptr) {
+            result->mLinker = nullptr;
+        }
+
+        return result;
     }
 
     Module* LoadModule(Object* linker, std::string_view name) {
@@ -100,18 +244,307 @@ namespace JesusVM::Linker {
             return LoadModuleWithLinker(linker, name);
         }
 
-        std::lock_guard<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
 
-        Module* module = FindModule(linker, name);
+        LinkerModule* module = FindModule(lock, linker, name);
         if (module != nullptr) {
-            return module;
+            if (module->status == LinkerModule::Status::LOADED) {
+                return module->module.get();
+            }
+
+            return nullptr; // TODO: ?
         }
 
+        auto [it, success] = modules.emplace(
+                ModuleKey(name, linker),
+                std::make_unique<LinkerModule>(
+                        LinkerModule(LinkerModule::Status::LOADING, nullptr, 0, Thread::GetCurrentThread(), linker)));
+
+        if (!success) {
+            return nullptr;
+        }
+
+        module = it->second.get();
+
+        lock.unlock();
+
+        Module* vmModule = LoadModuleWithBootstrap(name);
+
+        lock.lock();
+
+        if (vmModule == nullptr) {
+            if (module->threadsWaiting == 0) {
+                RemoveModule(linker, name);
+                delete vmModule;
+            } else {
+                module->status = LinkerModule::Status::NOT_FOUND;
+            }
+        } else {
+            module->module = std::unique_ptr<Module>(vmModule);
+            module->status = LinkerModule::Status::LOADED;
+        }
+
+        condition.notify_all();
+
+        return vmModule;
     }
 
-    Class* LoadClass(Object* linker, Module* module, std::string_view name);
+    static Module* LoadSystemModule() {
+        static Module* cache = nullptr;
 
-    Class* LoadClass(Object* linker, std::string_view qualifiedName);
+        if (cache == nullptr) {
+            cache = LoadModule(nullptr, "vm/System");
+        }
 
-    Class* LoadPrimitive(std::string_view name);
+        return cache;
+    }
+
+    void RemoveModule(Object* linker, std::string_view name) {
+        ModuleKey key(name, linker);
+        RemoveModule(key);
+    }
+
+    static Class* FindClass(std::unique_lock<std::mutex>& lock, Module* module, std::string_view name) {
+        Class* clas = module->findClass(name);
+
+        if (clas->getState() == ClassState::LINKING
+            && clas->mLoadingThread == Thread::GetCurrentThread()) {
+            return nullptr;
+        }
+
+        clas->mWaitingThreads++;
+
+        condition.wait(lock, [clas] {
+            return clas->getState() != ClassState::LINKING;
+        });
+
+        clas->mWaitingThreads--;
+
+        if (clas->getState() == ClassState::ERRORED && clas->mWaitingThreads != 0) {
+            module->mClasses.erase(name);
+            clas = nullptr;
+        }
+
+        return clas;
+    }
+
+    static Class* LoadClassWithLinker(Object* linker, Module* module, std::string_view name) {
+        /*
+         TODO:
+
+         Object* rtName = AllocString(name.replace('/', '.'); // std/Primitives:String
+         Object* reflectionModule = GetModuleObject(module);
+         Object* reflectionClass = linker.callMethod(Runtime::std::Reflection::Linker::loadClass, reflectionModule, rtName); // std/Reflection:Linker.loadClass(Rstd/Reflection:Module;Rstd/Primitives:String;)Rstd/Reflection:Class;
+
+         if (reflectionClass == nullptr) {
+            rtName.removeReference(); // our reference from allocating it
+            return nullptr;
+         }
+
+         return GetClassFromReflection(reflectionClass);
+         */
+
+        return nullptr;
+    }
+
+    static Class* LoadClassWithBootstrap(Module* module, std::string_view name) {
+        Class* clas = module->findClass(name);
+
+        if (clas->link()) {
+            return nullptr;
+        }
+
+        return clas;
+    }
+
+    static std::string_view GetArrayBaseName(std::string_view name) {
+        auto index = name.find('[');
+
+        if (index == std::string_view::npos) {
+            return {}; // closest possible to null :pray:
+        }
+
+        if (name[index + 1] == 'R') {
+            return name.substr(index + 2, name.length() - index - 3); // skip R and ;
+        }
+
+        return name.substr(index + 1);
+    }
+
+    static Class* LoadArrayBaseClass(Module* module, std::string_view name) {
+        while (name.size() > 1 && name[1] == '[') {
+            name.remove_prefix(1);
+        }
+
+        std::string_view baseName = GetArrayBaseName(name);
+
+        Class* result;
+        Type type = StringToType(baseName);
+
+        if (type != Type::REFERENCE) {
+            result = primitiveCache[static_cast<u64>(type)];
+        } else {
+            result = LoadClass(module, baseName);
+        }
+
+        return result;
+    }
+
+    static Class* LoadArrayClass(Module* module, std::string_view name) {
+        assert(name[0] == '[');
+
+        Class* arrayClass = new Class(module, nullptr);
+        Class* baseClass;
+        std::string_view baseClassName = GetArrayBaseName(name);
+
+        if (baseClassName.empty()) {
+            return nullptr;
+        }
+
+        Type type = StringToType(name.substr(1));
+
+        if (type != Type::REFERENCE) {
+            baseClass = primitiveCache[static_cast<u64>(type)];
+        } else {
+            baseClass = LoadClass(module, baseClassName);
+        }
+
+        if (baseClass == nullptr) {
+            delete arrayClass;
+            return nullptr;
+        }
+
+        if (arrayClass->linkArray(baseClass, name)) {
+            // TODO: error mayhaps
+            return nullptr;
+        }
+
+        return arrayClass;
+    }
+
+    Class* LoadClass(Module* module, std::string_view name) {
+        TypeInfo basicType(name);
+
+        bool systemModule = false;
+
+        if (module == nullptr) {
+            module = LoadSystemModule();
+            systemModule = true;
+        }
+
+        if (module->mLinker != nullptr) {
+            if (basicType.isPrimitiveArrayType()) {
+                if (!systemModule) {
+                    module = LoadSystemModule();
+                    systemModule = true;
+                }
+            }
+
+            if (!basicType.isArray()) {
+                return LoadClassWithLinker(module->mLinker, module, name);
+            }
+
+            Class* base = LoadArrayBaseClass(module, name);
+            if (base == nullptr) {
+                return nullptr;
+            }
+        }
+
+        std::unique_lock<std::mutex> lock(mutex);
+
+        Class* clas = FindClass(lock, module, name);
+        if (clas != nullptr) {
+            link_check:
+            if (clas->getState() == ClassState::LINKED) {
+                return clas;
+            } else if (clas->getState() == ClassState::INITIALIZED) {
+                if (!basicType.isArray()) {
+                    if (clas->link()) {
+                        return nullptr;
+                    }
+                }
+
+                goto link_check;
+            }
+
+            return nullptr;
+        }
+
+        lock.unlock();
+
+        if (basicType.isArray()) {
+            clas = LoadArrayClass(module, name);
+        } else {
+            return nullptr; // class doesn't exist and can't be made as an artificial class
+        }
+
+        lock.lock();
+
+        if (clas->mState == ClassState::ERRORED) {
+            if (clas->mWaitingThreads == 0) {
+                module->mClasses.erase(name);
+            }
+
+            return nullptr;
+        }
+
+        module->mClasses.emplace(name, clas);
+
+        condition.notify_all();
+
+        return clas;
+    }
+
+    Class* LoadClass(std::string_view qualifiedName, Object* linker) {
+        auto index = qualifiedName.find(':');
+        if (index == std::string_view::npos) {
+            return LoadClass(nullptr, qualifiedName);
+        }
+
+        std::string_view moduleName = qualifiedName.substr(0, index);
+        std::string_view className = qualifiedName.substr(index + 1);
+
+        Module* module = LoadModule(linker, moduleName);
+        return LoadClass(module, className);
+    }
+
+    static Type TypeFromPrimitiveName(std::string_view name) {
+        if (name == "void")     return Type::VOID;
+        if (name == "bool")     return Type::BOOL;
+        if (name == "byte")     return Type::BYTE;
+        if (name == "short")    return Type::SHORT;
+        if (name == "int")      return Type::INT;
+        if (name == "long")     return Type::LONG;
+        if (name == "char")     return Type::CHAR;
+        if (name == "float")    return Type::FLOAT;
+        if (name == "double")   return Type::DOUBLE;
+        if (name == "handle")   return Type::HANDLE;
+
+        return Type::TYPE_COUNT;
+    }
+
+    Class* LoadPrimitive(std::string_view name) {
+        Type type = TypeFromPrimitiveName(name);
+        if (type == Type::TYPE_COUNT) {
+            std::cout << "error: invalid primitive class name: " << name << std::endl;
+            std::exit(1);
+        }
+
+        if (primitiveCache[static_cast<u64>(type)] != nullptr) {
+            return primitiveCache[static_cast<u64>(type)];
+        }
+
+        Module* system = LoadSystemModule();
+        Class* clas = new Class(system, nullptr);
+
+        clas->mRepresentedPrimitive = type;
+
+        if (clas->linkPrimitive(name)) {
+            return nullptr;
+        }
+
+        primitiveCache[static_cast<u64>(type)] = clas;
+
+        return clas;
+    }
 }

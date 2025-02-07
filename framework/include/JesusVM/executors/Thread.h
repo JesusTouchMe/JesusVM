@@ -25,6 +25,8 @@ namespace JesusVM {
 
 		void addVThread(std::unique_ptr<VThread> thread);
 
+        static Thread* GetCurrentThread();
+
 	private:
 		std::vector<std::unique_ptr<VThread>> mVThreads;
 		std::mutex mMutex;

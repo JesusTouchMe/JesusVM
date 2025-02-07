@@ -1,6 +1,8 @@
 #include "JesusVM/JesusVM.h"
 #include "JesusVM/Module.h"
 
+#include "JesusVM/constpool/ConstantAscii.h"
+
 #include <algorithm>
 
 namespace JesusVM {
@@ -14,7 +16,8 @@ namespace JesusVM {
         mFunctions.reserve(info->function_count);
 
         for (u16 i = 0; i < info->class_count; i++) {
-            mClasses.emplace_back(this);
+            mClasses[mConstPool.get<ConstantAscii>(info->classes[i].name_index)->getValue()] =
+                    std::make_unique<Class>(this, &info->classes[i]);
         }
 
         for (u16 i = 0; i < info->function_count; i++) {
@@ -42,11 +45,15 @@ namespace JesusVM {
 		return mConstPool;
 	}
 
+    Class* Module::findClass(std::string_view name) {
+        auto it = mClasses.find(name);
+        if (it == mClasses.end()) return nullptr;
+
+        return it->second.get();
+    }
+
 	Class* Module::getClass(std::string_view name) {
-		auto it = std::find_if(mClasses.begin(), mClasses.end(), [name](Class& clas) { return clas.getName() == name; });
-		if (it != mClasses.end()) return &*it;
-		
-		return nullptr;
+        return Linker::LoadClass(mLinker, this, name);
 	}
 
 	Function* Module::getFunction(std::string_view name, std::string_view descriptor) {

@@ -14,11 +14,24 @@
 
 #include <memory>
 #include <string_view>
+#include <unordered_map>
 
 namespace JesusVM {
     class JesusVM;
 
+    // for friends. import Linker.h and do NOT use these
+    namespace Linker {
+        static Module* LoadModuleWithBootstrap(std::string_view);
+        static Class* FindClass(std::unique_lock<std::mutex>&, Module* module, std::string_view name);
+        Class* LoadClass(Module* module, std::string_view name);
+        Class* LoadClass(std::string_view qualifiedName, Object* linker);
+    }
+
 	class Module {
+    friend Module* Linker::LoadModuleWithBootstrap(std::string_view name);
+    friend Class* Linker::FindClass(std::unique_lock<std::mutex>&, Module* module, std::string_view name);
+    friend Class* Linker::LoadClass(Module* module, std::string_view name);
+    friend Class* Linker::LoadClass(std::string_view qualifiedName, Object* linker);
 	public:
 		Module(JesusVM& vm, Object* linker, moduleweb_module_info* info);
         ~Module();
@@ -30,6 +43,7 @@ namespace JesusVM {
 		std::string_view getName() const;
 		ConstPool& getConstPool();
 
+        Class* findClass(std::string_view name);
 		Class* getClass(std::string_view name);
 		Function* getFunction(std::string_view name, std::string_view descriptor);
         Function* getFunction(ConstantName* name);
@@ -44,7 +58,7 @@ namespace JesusVM {
 
 		ConstPool mConstPool;
 		
-		std::vector<Class> mClasses;
+		std::unordered_map<std::string_view, std::unique_ptr<Class>> mClasses;
 		std::vector<Function> mFunctions;
 	};
 }

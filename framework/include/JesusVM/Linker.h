@@ -12,9 +12,10 @@ namespace JesusVM::Linker {
     void AddPath(std::string_view path);
 
     Module* LoadModule(Object* linker, std::string_view name);
+    void RemoveModule(Object* linker, std::string_view name);
 
-    Class* LoadClass(Object* linker, Module* module, std::string_view name);
-    Class* LoadClass(Object* linker, std::string_view qualifiedName);
+    Class* LoadClass(Module* module, std::string_view name);
+    Class* LoadClass(std::string_view qualifiedName, Object* linker);
     Class* LoadPrimitive(std::string_view name);
 }
 

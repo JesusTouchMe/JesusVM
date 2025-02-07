@@ -4,6 +4,7 @@
 
 #include "JesusVM/type/Type.h"
 
+#undef BOOL
 #undef VOID
 
 namespace JesusVM {

@@ -6,30 +6,30 @@
 #include "JesusVM/heap/Class.h"
 
 namespace JesusVM {
-    Class::Class(Module* module)
-        : mModule(module)
+    Class::Class(Module* module, moduleweb_class_info* info)
+        : mInfo(info)
+        , mModule(module)
         , mState(ClassState::INITIALIZED) { }
 
-    bool Class::link(moduleweb_class_info* info) {
+    bool Class::link() {
         if (linkCommon()) {
             return true;
         }
 
-        mInfo = info;
         mKind = ClassKind::REGULAR;
-        mModifiers = info->modifiers;
+        mModifiers = mInfo->modifiers;
 
-        mName = mModule->getConstPool().get<ConstantAscii>(info->name_index)->getValue();
+        mName = mModule->getConstPool().get<ConstantAscii>(mInfo->name_index)->getValue();
 
-        if (info->super_class != 0) {
-            mSuperClass = mModule->getConstPool().get<ConstantClass>(info->super_class)->getClass();
+        if (mInfo->super_class != 0) {
+            mSuperClass = mModule->getConstPool().get<ConstantClass>(mInfo->super_class)->getClass();
         } else {
             mSuperClass = nullptr;
         }
 
-        mFields.reserve(info->field_count);
+        mFields.reserve(mInfo->field_count);
 
-        for (u16 i = 0; i < info->field_count; i++) {
+        for (u16 i = 0; i < mInfo->field_count; i++) {
             mFields.emplace_back(this, i);
         }
 
@@ -97,6 +97,14 @@ namespace JesusVM {
 	Module* Class::getModule() const {
 		return mModule;
 	}
+
+    ClassKind Class::getKind() const {
+        return mKind;
+    }
+
+    ClassState Class::getState() const {
+        return mState;
+    }
 
 	std::string_view Class::getName() const {
 		return mName;

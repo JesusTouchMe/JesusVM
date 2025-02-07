@@ -36,6 +36,7 @@ namespace JesusVM {
 
 	class TypeInfo {
     public:
+        TypeInfo() {}
         TypeInfo(std::string_view name) : mType(Type::REFERENCE), mClassName(name) {}
 
         Type getInternalType() const { return mType; }
