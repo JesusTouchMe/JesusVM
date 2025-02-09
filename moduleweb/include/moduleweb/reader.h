@@ -8,14 +8,14 @@ extern "C" {
 #endif
 
 typedef struct moduleweb_reader {
-    moduleweb_instream* stream;
+    UNOWNED_OBJECT moduleweb_instream* stream;
     bool is_accepted;
 } moduleweb_reader;
 
-int moduleweb_reader_init(moduleweb_reader* reader, moduleweb_instream* stream);
+int moduleweb_reader_init(moduleweb_reader* reader, PARAM_REFERENCED moduleweb_instream* stream);
 void moduleweb_reader_uninit(moduleweb_reader* reader);
 
-int moduleweb_reader_accept(moduleweb_reader* reader, moduleweb_module_info* module);
+int moduleweb_reader_accept(moduleweb_reader* reader, PARAM_MUTATED moduleweb_module_info* module);
 
 #ifdef __cplusplus
 }

@@ -32,16 +32,16 @@ namespace JesusVM {
 
         u16 codeIndex = 0;
 
-        if (moduleweb_attribute_array_get(&info->attributes, "Entry", module->getInfo(), &codeIndex)) {
+        if (moduleweb_attribute_array_get(&info->attributes, "Code", module->getInfo(), &codeIndex)) {
             //TODO: error proper
-            std::cout << "Bad function data. No 'Entry' attribute defined\n";
+            std::cout << "Bad function data. No 'Code' attribute defined\n";
             std::exit(1);
         }
 
         u16 codeIndex2 = codeIndex + 1;
 
-        if (!moduleweb_attribute_array_get(&info->attributes, "Entry", module->getInfo(), &codeIndex2)) {
-            std::cout << "Bad function data: More than one 'Entry' attribute defined\n";
+        if (!moduleweb_attribute_array_get(&info->attributes, "Code", module->getInfo(), &codeIndex2)) {
+            std::cout << "Bad function data: More than one 'Code' attribute defined\n";
             std::exit(1);
         }
 

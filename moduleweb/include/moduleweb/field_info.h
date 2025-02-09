@@ -21,10 +21,10 @@ typedef struct moduleweb_field_info {
     moduleweb_attribute_array attributes;
 } moduleweb_field_info;
 
-int moduleweb_field_info_init(moduleweb_field_info* info, moduleweb_instream* stream);
+int moduleweb_field_info_init(moduleweb_field_info* info, PARAM_MUTATED moduleweb_instream* stream);
 void moduleweb_field_info_uninit(moduleweb_field_info* info);
 
-int moduleweb_field_info_emit_bytes(moduleweb_field_info* info, moduleweb_outstream* stream);
+int moduleweb_field_info_emit_bytes(moduleweb_field_info* info, PARAM_MUTATED moduleweb_outstream* stream);
 void moduleweb_field_info_print(moduleweb_field_info* info, const moduleweb_module_info* module, u32 indent);
 
 #ifdef __cplusplus

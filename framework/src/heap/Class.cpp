@@ -12,6 +12,8 @@ namespace JesusVM {
         , mState(ClassState::INITIALIZED) { }
 
     bool Class::link() {
+        mState = ClassState::LINKING;
+
         if (linkCommon()) {
             return true;
         }
@@ -53,6 +55,8 @@ namespace JesusVM {
     }
 
     bool Class::linkPrimitive(std::string_view name) {
+        mState = ClassState::LINKING;
+
         if (linkCommon()) {
             return true;
         }
@@ -64,13 +68,14 @@ namespace JesusVM {
         mName = name;
         mSuperClass = nullptr;
         mMemorySize = 0;
-
         mState = ClassState::LINKED;
 
         return false;
     }
 
     bool Class::linkArray(Class* base, std::string_view name) {
+        mState = ClassState::LINKING;
+
         if (linkCommon()) {
             return true;
         }

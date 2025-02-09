@@ -8,14 +8,14 @@ extern "C" {
 #endif
 
 typedef struct moduleweb_writer {
-    moduleweb_outstream* stream;
+    UNOWNED_OBJECT moduleweb_outstream* stream;
     bool is_accepted;
 } moduleweb_writer;
 
-int moduleweb_writer_init(moduleweb_writer* writer, moduleweb_outstream* stream);
+int moduleweb_writer_init(moduleweb_writer* writer, PARAM_REFERENCED moduleweb_outstream* stream);
 void moduleweb_writer_uninit(moduleweb_writer* writer);
 
-int moduleweb_writer_accept(moduleweb_writer* writer, moduleweb_module_info* module);
+int moduleweb_writer_accept(moduleweb_writer* writer, PARAM_MUTATED moduleweb_module_info* module);
 
 #ifdef __cplusplus
 }

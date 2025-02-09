@@ -11,6 +11,8 @@ set(SOURCES "src/stream.c"
         src/reader.c
         src/writer.c
         src/function_info.c
+    src/builder/attribute_builder.c
+    src/builder/class_builder.c
 )
 
 set(HEADERS "include/moduleweb/stream.h"
@@ -25,6 +27,11 @@ set(HEADERS "include/moduleweb/stream.h"
         include/moduleweb/function_info.h
         include/moduleweb/reader.h
         include/moduleweb/writer.h
+    include/moduleweb/builder/module_builder.h
+    include/moduleweb/builder/class_builder.h
+    include/moduleweb/builder/attribute_builder.h
+    include/moduleweb/builder/field_builder.h
+    include/moduleweb/builder/function_builder.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

@@ -8,17 +8,19 @@ extern "C" {
 #endif
 
 typedef enum moduleweb_constant_type : u8 {
-    MODULEWEB_CONSTANT_TYPE_ASCII = 0,
-    MODULEWEB_CONSTANT_TYPE_NAME = 1,
-    MODULEWEB_CONSTANT_TYPE_MODULE_REF = 2,
-    MODULEWEB_CONSTANT_TYPE_FUNCTION_REF = 3,
-    MODULEWEB_CONSTANT_TYPE_CLASS_REF = 4,
-    MODULEWEB_CONSTANT_TYPE_FIELD_REF = 5,
+    MODULEWEB_CONSTANT_TYPE_ASCII,
+    MODULEWEB_CONSTANT_TYPE_NAME,
+    MODULEWEB_CONSTANT_TYPE_MODULE_REF,
+    MODULEWEB_CONSTANT_TYPE_FUNCTION_REF,
+    MODULEWEB_CONSTANT_TYPE_CLASS_REF,
+    MODULEWEB_CONSTANT_TYPE_FIELD_REF,
+
+    MODULEWEB_CONSTANT_TYPE_AMOUNT // amount of unique constant pool types. used in builder for fast search
 } moduleweb_constant_type;
 
 typedef struct moduleweb_constant_ascii_info {
     u32 length;
-    u8* bytes;
+    OWNED_OBJECT u8* bytes;
 } moduleweb_constant_ascii_info;
 
 typedef struct moduleweb_constant_name_info {
@@ -57,10 +59,10 @@ typedef struct moduleweb_constant_info {
     };
 } moduleweb_constant_info;
 
-int moduleweb_constant_info_init(moduleweb_constant_info* info, moduleweb_instream* stream);
+int moduleweb_constant_info_init(moduleweb_constant_info* info, PARAM_MUTATED moduleweb_instream* stream);
 void moduleweb_constant_info_uninit(moduleweb_constant_info* info);
 
-int moduleweb_constant_info_emit_bytes(moduleweb_constant_info* info, moduleweb_outstream* stream);
+int moduleweb_constant_info_emit_bytes(moduleweb_constant_info* info, PARAM_MUTATED moduleweb_outstream* stream);
 void moduleweb_constant_info_print(moduleweb_constant_info* info, const moduleweb_module_info* module, u32 indent, u16 index);
 
 int moduleweb_constant_info_ascii_compare(moduleweb_constant_ascii_info* s1, const char* s2);

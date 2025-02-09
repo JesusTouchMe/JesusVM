@@ -23,16 +23,16 @@ typedef struct moduleweb_class_info {
     moduleweb_attribute_array attributes;
 
     u16 field_count;
-    moduleweb_field_info* fields; // [field_count]
+    OWNED_OBJECT moduleweb_field_info* fields; // [field_count]
 } moduleweb_class_info;
 
-int moduleweb_class_info_init(moduleweb_class_info* info, moduleweb_instream* stream);
+int moduleweb_class_info_init(moduleweb_class_info* info, PARAM_MUTATED moduleweb_instream* stream);
 void moduleweb_class_info_uninit(moduleweb_class_info* info);
 
-int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstream* stream);
+int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, PARAM_MUTATED moduleweb_outstream* stream);
 void moduleweb_class_info_print(moduleweb_class_info* info, const moduleweb_module_info* module, u32 indent);
 
-int moduleweb_class_get_field(const moduleweb_class_info* info, const moduleweb_module_info* module, const char* name, const char* descriptor, moduleweb_field_info** result);
+int moduleweb_class_get_field(const moduleweb_class_info* info, const moduleweb_module_info* module, const char* name, const char* descriptor, PARAM_MUTATED moduleweb_field_info** result);
 
 #ifdef __cplusplus
 }

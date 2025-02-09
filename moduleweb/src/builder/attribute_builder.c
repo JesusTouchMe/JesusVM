@@ -1,0 +1,72 @@
+// Copyright 2025 JesusTouchMe
+
+#include "moduleweb/builder/attribute_builder.h"
+
+void moduleweb_attribute_delete(moduleweb_attribute* attribute) {
+    if (attribute->name != NULL) {
+        free(attribute->name);
+        attribute->name = NULL;
+    }
+
+    attribute->length = 0;
+
+    if (attribute->info != NULL) {
+        free(attribute->info);
+        attribute->info = NULL;
+    }
+}
+
+void moduleweb_attribute_vector_add(moduleweb_attribute_vector* vector, PARAM_COPIED moduleweb_attribute* attribute) {
+    VECTOR_ADD(vector->size, vector->capacity, vector->data, *attribute, moduleweb_attribute);
+}
+
+void moduleweb_attribute_vector_delete(moduleweb_attribute_vector* vector) {
+    if (vector->data != NULL) {
+        for (u32 i = 0; i < vector->size; i++) {
+            moduleweb_attribute_delete(&vector->data[i]);
+        }
+
+        free(vector->data);
+        vector->data = NULL;
+    }
+
+    vector->size = 0;
+    vector->capacity = 0;
+}
+
+void moduleweb_attribute_builder_delete(moduleweb_attribute_builder* builder) {
+    if (builder->name != NULL) {
+        free(builder->name);
+        builder->name = NULL;
+    }
+
+    builder->length = 0;
+
+    if (builder->info != NULL) {
+        free(builder->info);
+        builder->info = NULL;
+    }
+}
+
+void moduleweb_attribute_builder_name(moduleweb_attribute_builder* builder, PARAM_COPIED const char* name) {
+    builder->name = strdup(name);
+}
+
+void moduleweb_attribute_builder_info(moduleweb_attribute_builder* builder, PARAM_COPIED const void* info, u32 length) {
+    builder->info = malloc(length);
+
+    if (builder->info == NULL) return;
+
+    builder->length = length;
+    memcpy(builder->info, info, length);
+}
+
+moduleweb_attribute* moduleweb_attribute_builder_build(moduleweb_attribute_builder* builder) {
+    static moduleweb_attribute result = {0}; //TODO: better solution than this lol
+
+    MOVE(result.name, builder->name);
+    MOVE(result.length, builder->length);
+    MOVE(result.info, builder->info);
+
+    return &result;
+}

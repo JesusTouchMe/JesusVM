@@ -15,7 +15,7 @@ int moduleweb_reader_accept(moduleweb_reader* reader, moduleweb_module_info* mod
         return -1;
     }
 
-    if (moduleweb_module_info_init(module, reader->stream)) {
+    if (moduleweb_module_info_init(module, reader->stream)) { //TODO: fix args
         fprintf(stderr, "error: %s\n", moduleweb_instream_strerror(reader->stream));
         return 1;
     }
