@@ -17,23 +17,27 @@ typedef struct moduleweb_constant {
     moduleweb_constant_info info;
 } moduleweb_constant;
 
+typedef struct moduleweb_constant_vector {
+    u16 size;
+    u16 capacity;
+    OWNED_OBJECT moduleweb_constant* pool;
+} moduleweb_constant_vector;
+
 typedef struct moduleweb_module_builder {
     u16 bytecode_version;
     OWNED_OBJECT char* name;
 
-    moduleweb_attribute_array attributes;
+    moduleweb_attribute_vector attributes;
 
     // keep a separate pool for each constant type so we can search super duper fast !
-    u16 constant_pool_size[MODULEWEB_CONSTANT_TYPE_AMOUNT];
-    u16 constant_pool_capacity[MODULEWEB_CONSTANT_TYPE_AMOUNT];
     u16 constant_pool_index;
-    OWNED_OBJECT moduleweb_constant* constant_pool[MODULEWEB_CONSTANT_TYPE_AMOUNT];
+    moduleweb_constant_vector constant_pool[MODULEWEB_CONSTANT_TYPE_AMOUNT];
 
-    u16 class_size;
+    u16 class_count;
     u16 class_capacity;
     OWNED_OBJECT moduleweb_class* classes;
 
-    u16 function_size;
+    u16 function_count;
     u16 function_capacity;
     OWNED_OBJECT moduleweb_function* functions;
 } moduleweb_module_builder;
@@ -51,7 +55,7 @@ void moduleweb_module_builder_add_attribute(moduleweb_module_builder* builder, P
 
 void moduleweb_module_builder_add_class(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_class* clas);
 
-void moduleweb_module_builder_add_function(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_class* clas);
+void moduleweb_module_builder_add_function(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_function* function);
 
 void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUTATED moduleweb_module_info* info);
 

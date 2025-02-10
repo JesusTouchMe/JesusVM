@@ -87,6 +87,7 @@ void moduleweb_class_builder_add_attribute(moduleweb_class_builder* builder, PAR
 
 void moduleweb_class_builder_add_field(moduleweb_class_builder* builder, PARAM_MOVED moduleweb_field* field) {
     VECTOR_ADD(builder->field_count, builder->field_capacity, builder->fields, *field, moduleweb_field);
+    memset(field, 0, sizeof(moduleweb_field));
 }
 
 moduleweb_class* moduleweb_class_builder_build(moduleweb_class_builder* builder) {

@@ -31,6 +31,8 @@ typedef struct moduleweb_function_builder {
     moduleweb_attribute_vector attributes;
 } moduleweb_function_builder;
 
+void moduleweb_function_delete(moduleweb_function* function);
+
 /**
  * Will free all objects owned by the builder (in case it hasn't built)
  */

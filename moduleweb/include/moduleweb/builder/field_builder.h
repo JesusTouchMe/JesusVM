@@ -34,7 +34,7 @@ typedef struct moduleweb_field_builder {
 void moduleweb_field_delete(moduleweb_field* field);
 
 /**
- * Will free all objects owned by the builder (in case it hasn't built)
+ * Will delete all objects owned by the builder (in case it hasn't built)
  */
 void moduleweb_field_builder_delete(moduleweb_field_builder* builder);
 
