@@ -207,7 +207,7 @@ namespace JesusVM::Linker {
             return nullptr;
         }
 
-        auto result = new Module(*globalVM, nullptr, moduleInfo.get());
+        auto result = new Module(*globalVM, nullptr, moduleInfo.release()); // the module has ownership of its own info
         return result;
     }
 
