@@ -2,6 +2,8 @@
 
 #include "JesusVM/executors/Thread.h"
 
+#include "JesusVM/platform/NativePlugin.h"
+
 #include "JesusVM/util/StringPool.h"
 
 #include "moduleweb/module_info.h"
@@ -105,10 +107,14 @@ namespace JesusVM::Linker {
     JesusVM* globalVM;
 
     std::mutex mutex;
+    std::mutex pluginMutex;
     std::condition_variable condition;
 
     std::vector<std::string_view> modulePath;
     std::unordered_map<ModuleKey, std::unique_ptr<LinkerModule>, ModuleKey::Hash, ModuleKey::Equals> modules;
+
+    std::vector<std::string_view> pluginPath;
+    std::vector<Platform::NativePlugin> plugins;
 
     static std::array<Class*, static_cast<u64>(Type::TYPE_COUNT)> primitiveCache;
 
@@ -121,7 +127,7 @@ namespace JesusVM::Linker {
         modules.clear();
     }
 
-    void AddPath(std::string_view path) {
+    static void ParsePaths(std::vector<std::string_view>& paths, std::string_view path) {
         while (!path.empty()) {
             auto pos = path.find(':');
 
@@ -132,7 +138,7 @@ namespace JesusVM::Linker {
 
             if (!err && fs::exists(stat)) {
                 if (fs::is_directory(stat)) {
-                    modulePath.push_back(StringPool::Intern(currentPath));
+                    paths.push_back(StringPool::Intern(currentPath));
                 } else {
                     std::cout << "warning: '" << currentPath << "' is not a directory\n";
                 }
@@ -152,6 +158,65 @@ namespace JesusVM::Linker {
         }
     }
 
+    void AddPath(std::string_view path) {
+        ParsePaths(modulePath, path);
+    }
+
+    void AddPluginPath(std::string_view path) {
+        ParsePaths(pluginPath, path);
+    }
+
+    static Platform::NativePlugin* FindPlugin(std::string_view name) {
+
+    }
+
+    static Platform::NativePlugin* LoadPluginFromFile(std::string_view fileName, std::string_view name) {
+        if (!fs::exists(fileName)) {
+            return nullptr;
+        }
+
+        plugins.emplace_back(name, fileName);
+
+        return &plugins.back();
+    }
+
+    static Platform::NativePlugin* LoadPluginFromPath(std::string_view path, std::string_view name) {
+        std::string fullName(path);
+        fullName += "/";
+        fullName += name;
+        fullName += Platform::NativePlugin::extension;
+
+        return LoadPluginFromFile(fullName, name);
+    }
+
+    void LoadPlugin(std::string_view name) {
+        std::lock_guard<std::mutex> lock(pluginMutex);
+
+        Platform::NativePlugin* plugin = FindPlugin(name);
+
+        if (plugin == nullptr) {
+            for (std::string_view& path: pluginPath) {
+                plugin = LoadPluginFromPath(path, name);
+                if (plugin != nullptr) break;
+            }
+        }
+
+        if (plugin != nullptr) {
+            if (!plugin->load()) {
+                std::cout << "warning: failed to load plugin '" << name << "'\n";
+            }
+            return; // already loaded
+        }
+    }
+
+    static std::string GetNativeFunctionName(Function* function) {
+
+    }
+
+    void LinkNativeFunction(Function* function) {
+
+    }
+
     static inline void RemoveModule(ModuleKey& key) {
         modules.erase(key);
     }
@@ -165,7 +230,7 @@ namespace JesusVM::Linker {
             module = it->second.get();
 
             if (module->status == LinkerModule::Status::LOADING &&
-                module->loadingThread == Thread::GetCurrentThread()) {
+                module->loadingThread == Threading::CurrentThread()) {
                 return nullptr;
             }
 
@@ -265,7 +330,7 @@ namespace JesusVM::Linker {
         auto [it, success] = modules.emplace(
                 ModuleKey(name, linker),
                 std::make_unique<LinkerModule>(
-                        LinkerModule(LinkerModule::Status::LOADING, nullptr, 0, Thread::GetCurrentThread(), linker)));
+                        LinkerModule(LinkerModule::Status::LOADING, nullptr, 0, Threading::CurrentThread(), linker)));
 
         if (!success) {
             return nullptr;
@@ -314,8 +379,12 @@ namespace JesusVM::Linker {
     static Class* FindClass(std::unique_lock<std::mutex>& lock, Module* module, std::string_view name) {
         Class* clas = module->findClass(name);
 
+        if (clas == nullptr) {
+            return nullptr;
+        }
+
         if (clas->getState() == ClassState::LINKING
-            && clas->mLoadingThread == Thread::GetCurrentThread()) {
+            && clas->mLoadingThread == Threading::CurrentThread()) {
             return nullptr;
         }
 
@@ -481,6 +550,10 @@ namespace JesusVM::Linker {
 
         if (basicType.isArray()) {
             clas = LoadArrayClass(module, name);
+
+            if (clas == nullptr) {
+                return nullptr;
+            }
         } else {
             return nullptr; // class doesn't exist and can't be made as an artificial class
         }

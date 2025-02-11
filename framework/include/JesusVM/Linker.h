@@ -10,6 +10,10 @@ namespace JesusVM::Linker {
     void Destroy();
 
     void AddPath(std::string_view path);
+    void AddPluginPath(std::string_view path);
+
+    void LoadPlugin(std::string_view name);
+    void LinkNativeFunction(Function* function);
 
     Module* LoadModule(Object* linker, std::string_view name);
     void RemoveModule(Object* linker, std::string_view name);

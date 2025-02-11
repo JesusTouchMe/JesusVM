@@ -16,6 +16,8 @@ namespace JesusVM {
 
 		void executeFunction(Function* function);
 
+        void run(); // run until return
+
 		void executeCycles(u32 cycles);
 		void executeTime(u32 ms);
 

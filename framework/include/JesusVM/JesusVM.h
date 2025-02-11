@@ -30,13 +30,7 @@ namespace JesusVM {
 
         VMContext getContext();
 
-		VThread* getAvailableThread();
-
-		void addThread(std::unique_ptr<Thread> thread);
-
 	private:
-		std::vector<std::unique_ptr<Thread>> mThreads;
-
 		Thread* mMainThread;
 
         Context mContext;

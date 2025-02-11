@@ -1,53 +1,75 @@
 #ifndef JESUSVM_THREAD_H
 #define JESUSVM_THREAD_H
 
+#include "JesusVM/Function.h"
+
 #include "JesusVM/executors/Threading.h"
 #include "JesusVM/executors/VThread.h"
 
 #include <mutex>
+#include <optional>
+#include <variant>
 #include <vector>
 
 namespace JesusVM {
 	class JesusVM;
 
-    enum class ThreadState {
-        NEW,
-        RUNNABLE,
-        TERMINATED,
+    struct SingleExecutor {
+        VThread executor; // to avoid useless rewriting of it
     };
+
+    struct VThreadExecutor {
+        std::vector<std::unique_ptr<VThread>> vThreads;
+    };
+
+    struct NativeExecutor {
+        Function* function;
+    };
+
+    using ThreadMode = std::variant<std::monostate, SingleExecutor, VThreadExecutor, NativeExecutor>;
 
 	class Thread {
 	friend class JesusVM;
-    friend Thread* Threading::LaunchThread();
+    friend void Threading::LaunchThread(Function*);
 	public:
-        struct Env {
-            Thread* thread;
+        enum class State {
+            NEW,
+            RUNNABLE,
+            TERMINATED,
+            IDLE,
+        };
+
+        enum class Mode {
+            SINGLE_EXECUTOR, // runs a single thing of bytecode
+            VTHREAD_EXECUTOR, // runs a list of vthreads and stays idle if there are none
+            NATIVE_EXECUTOR, // runs native functions. potentially in a queue
         };
 
 		explicit Thread(JesusVM& mVM);
 
-		u64 getThreadCount();
+        Mode getMode() const;
+        std::thread::id getId() const;
 
-		VThread* getAvailableThread();
-        VThread* addVThread();
+        void setState(State state);
+        void setMode(Mode mode);
+
+        void setFunction(Function* function);
 
 		void run();
 		void stop();
 
 	private:
-		std::vector<std::unique_ptr<VThread>> mVThreads;
 		std::mutex mMutex;
 
-        std::atomic<ThreadState> mState;
-		bool mRunning;
-        std::thread::id mId;
+        Mode mMode;
+        ThreadMode mThreadMode;
 
-        std::unique_ptr<Env> mEnv;
+        std::atomic<State> mState;
+		bool mRunning;
+
+        std::thread::id mId; //
 
 		JesusVM& mVM;
-		bool mIsMainThread;
-
-		VThread* mMainVThread;
 	};
 }
 

@@ -24,14 +24,12 @@ namespace JesusVM {
         static Module* LoadModuleWithBootstrap(std::string_view);
         static Class* FindClass(std::unique_lock<std::mutex>&, Module* module, std::string_view name);
         Class* LoadClass(Module* module, std::string_view name);
-        Class* LoadClass(std::string_view qualifiedName, Object* linker);
     }
 
 	class Module {
     friend Module* Linker::LoadModuleWithBootstrap(std::string_view name);
     friend Class* Linker::FindClass(std::unique_lock<std::mutex>&, Module* module, std::string_view name);
     friend Class* Linker::LoadClass(Module* module, std::string_view name);
-    friend Class* Linker::LoadClass(std::string_view qualifiedName, Object* linker);
 	public:
 		Module(JesusVM& vm, Object* linker, moduleweb_module_info* info);
         ~Module();

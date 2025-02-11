@@ -1,4 +1,4 @@
-#include "JesusVM/JesusVM.h"
+ #include "JesusVM/JesusVM.h"
 
 #include "JesusVM/bytecode/Opcodes.h"
 
@@ -603,7 +603,12 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        Function* func = reinterpret_cast<ConstantFunc*>(constant)->getFunction();
+        Function* func = constant->getFunction();
+
+        if (func->isAsync()) {
+            Threading::LaunchThread(func);
+            return;
+        }
 
         if (func->isNative()) {
             std::unique_ptr<JValue[]> nativeArgs = std::make_unique<JValue[]>(func->getArgumentTypes().size());

@@ -39,6 +39,14 @@ namespace Platform {
 
 	class NativePlugin {
 	public:
+#ifdef PLATFORM_WINDOWS
+        static constexpr std::string_view extension = ".dll";
+#elif PLATFORM_LINUX
+        static constexpr std::string_view extension = ".so";
+#elif PLATFORM_MACOS
+        static constexpr std::string_view extension = ".dylib";
+#endif
+
 		NativePlugin(std::string_view name, std::string_view libPath);
 
 		~NativePlugin();
@@ -51,14 +59,22 @@ namespace Platform {
 		template <typename FuncT>
 		FuncT getFunction(std::string_view name);
 
+        template <typename FuncT>
+        FuncT getFunction(const std::string& name);
+
 	private:
 		std::string_view mName;
 		std::string_view mLibPath;
 		NativeLibType mHandle;
 	};
 
+    template <typename FuncT>
+    FuncT NativePlugin::getFunction(std::string_view name) {
+        return getFunction<FuncT>(std::string(name));
+    }
+
 	template <typename FuncT>
-	FuncT NativePlugin::getFunction(std::string_view name) {
+	FuncT NativePlugin::getFunction(const std::string& name) {
 		if (mHandle == LIBTYPE_NULL) {
 			bool loaded = load();
 			if (!loaded) {
@@ -68,7 +84,7 @@ namespace Platform {
 		}
 
 #ifdef PLATFORM_WINDOWS
-		NativeFuncType func = GetProcAddress(mHandle, std::string(name).c_str());
+		NativeFuncType func = GetProcAddress(mHandle, name.c_str());
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
 		NativeFuncType func = dlsym(mHandle, std::string(name).c_str());
 #endif
