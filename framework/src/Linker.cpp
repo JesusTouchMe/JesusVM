@@ -212,12 +212,10 @@ namespace JesusVM::Linker {
     }
 
     static Module* LoadModuleFromPath(std::string_view path, std::string_view name) {
-        std::string fileName(name);
-        fileName += ".jmod";
-
         std::string fullName(path);
         fullName += "/";
-        fullName += fileName;
+        fullName += name;
+        fullName += ".jmod";
 
         return LoadModuleFromFile(fullName, name);
     }
