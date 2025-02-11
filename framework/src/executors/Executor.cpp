@@ -8,6 +8,9 @@
 #include "JesusVM/executors/Executor.h"
 #include "JesusVM/executors/VThread.h"
 
+#undef VOID
+#undef BOOL
+
 namespace JesusVM {
 	constexpr u8 ReadU8(const u8* data, u32 index) {
 		return data[index];
@@ -593,26 +596,21 @@ namespace JesusVM {
 
     void Executor::callInsn(bool wide) {
         u32 index = wide ? getInt() : getShort();
-        Constant* constant = mFrame->getConstPool().get(index);
+        ConstantFunc* constant = mFrame->getConstPool().get<ConstantFunc>(index);
 
         if (constant == nullptr) {
             std::cout << "constant index out of bounds. todo: better errors\n";
             std::exit(1);
         }
 
-        if (constant->getType() != Constant::Type::FUNCTION) {
-            std::cout << "calling non-function constant. todo: better errors\n";
-            std::exit(1);
-        }
-
         Function* func = reinterpret_cast<ConstantFunc*>(constant)->getFunction();
 
         if (func->isNative()) {
-            std::unique_ptr<JValue[]> nativeArgs = std::make_unique<JValue[]>(func->getType()->getArgumentTypes().size());
+            std::unique_ptr<JValue[]> nativeArgs = std::make_unique<JValue[]>(func->getArgumentTypes().size());
 
             u64 i = 0;
-            for (auto& paramType : func->getType()->getArgumentTypes()) {
-                if (paramType->isPrimitive64() || paramType->isReference()) {
+            for (auto& paramType : func->getArgumentTypes()) {
+                if (paramType.is64Bit()) {
                     i64 value = mFrame->popLong();
                     nativeArgs[i++].L = value;
                 } else {
@@ -621,40 +619,40 @@ namespace JesusVM {
                 }
             }
 
-            if (func->getType()->getReturnType()->isVoid()) {
+            if (func->getReturnType().getInternalType() == Type::VOID) {
                 auto ptr = reinterpret_cast<NativeFunctionPtr<void>>(func->getEntry());
                 ptr(mVM.getContext(), nativeArgs.get());
 
                 return;
             } else {
-                if (func->getType()->isPrimitive8()) {
-                    auto ptr = reinterpret_cast<NativeFunctionPtr<Byte>>(func->getEntry());
-                    auto value = ptr(mVM.getContext(), nativeArgs.get());
-
-                    mFrame->push(value);
-                } else if (func->getType()->isPrimitive16()) {
-                    auto ptr = reinterpret_cast<NativeFunctionPtr<Short>>(func->getEntry());
-                    auto value = ptr(mVM.getContext(), nativeArgs.get());
-
-                    mFrame->push(value);
-                } else if (func->getType()->isPrimitive32()) {
-                    auto ptr = reinterpret_cast<NativeFunctionPtr<Int>>(func->getEntry());
-                    auto value = ptr(mVM.getContext(), nativeArgs.get());
-
-                    mFrame->push(value);
-                } else if (func->getType()->isPrimitive64()) {
-                    auto ptr = reinterpret_cast<NativeFunctionPtr<Long>>(func->getEntry());
-                    auto value = ptr(mVM.getContext(), nativeArgs.get());
-
-                    mFrame->pushLong(value);
-                } else if (func->getType()->isReference()) {
-                    auto ptr = reinterpret_cast<NativeFunctionPtr<JObject>>(func->getEntry());
-                    auto value = ptr(mVM.getContext(), nativeArgs.get());
-
-                    mFrame->pushLong(reinterpret_cast<i64>(value));
-                } else {
-                    std::cout << "native call error\n";
-                    std::exit(1);
+                switch (func->getReturnType().getByteSize()) {
+                    case 1: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Byte>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->push(value);
+                        break;
+                    }
+                    case 2: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Short>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->push(value);
+                        break;
+                    }
+                    case 4: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Int>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->push(value);
+                        break;
+                    }
+                    case 8: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Long>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->pushLong(value);
+                        break;
+                    }
+                    default:
+                        std::cout << "native call error\n";
+                        std::exit(1);
                 }
 
                 return;
@@ -662,10 +660,10 @@ namespace JesusVM {
         }
 
         std::vector<i32> args;
-        args.reserve(func->getType()->getArgumentTypes().size());
+        args.reserve(func->getArgumentTypes().size());
 
-        for (auto& paramType : func->getType()->getArgumentTypes()) {
-            if (paramType->isPrimitive64() || paramType->isReference()) {
+        for (auto& paramType : func->getArgumentTypes()) {
+            if (paramType.is64Bit()) {
                 i64 value = mFrame->popLong();
                 args.push_back(static_cast<i32>(value >> 32));
                 args.push_back(static_cast<i32>(value & 0xFFFFFFFF));

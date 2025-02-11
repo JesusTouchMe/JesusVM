@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-typedef enum moduleweb_constant_type : u8 {
+enum moduleweb_constant_type_e {
     MODULEWEB_CONSTANT_TYPE_ASCII,
     MODULEWEB_CONSTANT_TYPE_NAME,
     MODULEWEB_CONSTANT_TYPE_MODULE_REF,
@@ -16,7 +16,9 @@ typedef enum moduleweb_constant_type : u8 {
     MODULEWEB_CONSTANT_TYPE_FIELD_REF,
 
     MODULEWEB_CONSTANT_TYPE_AMOUNT // amount of unique constant pool types. used in builder for fast search
-} moduleweb_constant_type;
+};
+
+typedef u8 moduleweb_constant_type;
 
 typedef struct moduleweb_constant_ascii_info {
     u32 length;

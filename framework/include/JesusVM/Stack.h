@@ -34,7 +34,7 @@ namespace JesusVM {
             void setLocalInt(u16 index, i32 value);
             void setLocalLong(u16 index, i64 value);
 
-            const ConstPool& getConstPool() const;
+            ConstPool& getConstPool() const;
             Module* getCurrentModule() const;
             Function* getCurrentFunction() const;
             u8* getReturnAddress() const;

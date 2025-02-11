@@ -5,6 +5,8 @@
 
 #include "moduleweb/module_info.h"
 
+#include "moduleweb/builder/insn_builder.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,6 +47,8 @@ void moduleweb_attribute_builder_delete(moduleweb_attribute_builder* builder);
 void moduleweb_attribute_builder_name(moduleweb_attribute_builder* builder, PARAM_COPIED const char* name);
 
 void moduleweb_attribute_builder_info(moduleweb_attribute_builder* builder, PARAM_COPIED const void* info, u32 length);
+
+void moduleweb_attribute_builder_code(moduleweb_attribute_builder* builder, PARAM_MOVED moduleweb_insn_list* list);
 
 moduleweb_attribute* moduleweb_attribute_builder_build(moduleweb_attribute_builder* builder);
 

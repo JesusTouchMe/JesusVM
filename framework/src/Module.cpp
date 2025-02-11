@@ -53,7 +53,7 @@ namespace JesusVM {
     }
 
 	Class* Module::getClass(std::string_view name) {
-        return Linker::LoadClass(mLinker, this, name);
+        return Linker::LoadClass(this, name);
 	}
 
 	Function* Module::getFunction(std::string_view name, std::string_view descriptor) {

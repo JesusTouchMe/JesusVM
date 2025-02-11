@@ -85,6 +85,15 @@ int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, u6
 
     if (!moduleweb_instream_is_eof(stream)) {
         stream->moduleweb_errno = MODULEWEB_ERROR_EXPECTED_EOF;
+
+        u64 pos;
+        u64 size;
+
+        moduleweb_file_get_position(stream->file.file, &pos);
+        moduleweb_file_get_size(stream->file.file, &size);
+
+        printf("%llu < %llu\n", pos, size);
+
         goto error_functions_init;
     }
 
@@ -158,7 +167,7 @@ int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outs
         return 1;
     }
 
-    for (u16 i = 0; i < info->constant_pool_size; i++) {
+    for (u16 i = 1; i < info->constant_pool_size; i++) {
         if (moduleweb_constant_info_emit_bytes(&info->constant_pool[i], stream)) {
             return 1;
         }
@@ -198,7 +207,7 @@ void moduleweb_module_info_print(moduleweb_module_info* info, u32 indent) {
     moduleweb_print_indents(indent);
     printf("magic: %x\n", info->magic);
     moduleweb_print_indents(indent);
-    printf("version: %u\n", info->bytecode_version);
+    printf("version: %u\n\n", info->bytecode_version);
 
     moduleweb_attribute_array_print(&info->attributes, info, indent);
 

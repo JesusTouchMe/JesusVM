@@ -118,7 +118,7 @@ namespace JesusVM {
         mLocals[index + 1] = static_cast<i32>(value >> 32);
     }
 
-    const ConstPool& Stack::Frame::getConstPool() const {
+    ConstPool& Stack::Frame::getConstPool() const {
         return mConstPool;
     }
 

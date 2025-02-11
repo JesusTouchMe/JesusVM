@@ -142,7 +142,7 @@ int moduleweb_file_close(moduleweb_file* file) {
     if (file == NULL) return 1;
 
 #ifdef PLATFORM_WINDOWS
-    moduleweb_file_info* info = (moduleweb_file_info*) *file;
+    moduleweb_file_info* info = *file;
     CloseHandle(info->handle);
     free(info);
     *file = NULL;
@@ -195,7 +195,7 @@ int moduleweb_file_unlock(moduleweb_file file) {
 int moduleweb_file_get_size(moduleweb_file file, u64* res) {
 #ifdef PLATFORM_WINDOWS
     LARGE_INTEGER size;
-    if (!GetFileSizeEx(file, &size)) {
+    if (!GetFileSizeEx(file->handle, &size)) {
         return 1;
     }
 
@@ -217,7 +217,7 @@ int moduleweb_file_get_position(moduleweb_file file, u64* res) {
     LARGE_INTEGER zero = {0};
     LARGE_INTEGER position = {0};
 
-    if (!SetFilePointerEx(file, zero, &position, FILE_CURRENT)) {
+    if (!SetFilePointerEx(file->handle, zero, &position, FILE_CURRENT)) {
         return 1;
     }
 

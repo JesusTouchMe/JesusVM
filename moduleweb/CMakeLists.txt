@@ -16,6 +16,7 @@ set(SOURCES "src/stream.c"
         src/builder/field_builder.c
         src/builder/function_builder.c
         src/builder/module_builder.c
+        src/builder/insn_builder.c
 )
 
 set(HEADERS "include/moduleweb/stream.h"

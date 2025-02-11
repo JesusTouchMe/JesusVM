@@ -171,6 +171,33 @@ u16 moduleweb_module_builder_resolve_module_ref(moduleweb_module_builder* builde
     return module->index;
 }
 
+u16 moduleweb_module_builder_resolve_function_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor) {
+    moduleweb_constant_vector* pool = GET_CONST_POOL(builder, MODULEWEB_CONSTANT_TYPE_FUNCTION_REF);
+
+    u16 module_index = moduleweb_module_builder_resolve_module_ref(builder, module_name);
+    u16 name_index = moduleweb_module_builder_resolve_name(builder, name, descriptor);
+
+    if (pool->pool != NULL) {
+        for (u16 i = 0; i < pool->size; i++) {
+            if (pool->pool[i].info.function_ref_info.module_index == module_index
+                && pool->pool[i].info.function_ref_info.name_info_index == name_index) {
+                return pool->pool[i].index;
+            }
+        }
+    }
+
+    ensure_const_pool_capacity(pool);
+
+    moduleweb_constant* function = &pool->pool[pool->size++];
+    function->index = builder->constant_pool_index++;
+
+    function->info.type = MODULEWEB_CONSTANT_TYPE_FUNCTION_REF;
+    function->info.function_ref_info.module_index = module_index;
+    function->info.function_ref_info.name_info_index = name_index;
+
+    return function->index;
+}
+
 u16 moduleweb_module_builder_resolve_class_ref(moduleweb_module_builder* builder, const char* module_name, const char* name) {
     moduleweb_constant_vector* pool = GET_CONST_POOL(builder, MODULEWEB_CONSTANT_TYPE_CLASS_REF);
 
@@ -215,40 +242,14 @@ static void moduleweb_module_builder_transfer_attributes(moduleweb_module_builde
 }
 
 void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUTATED moduleweb_module_info* info) {
+    builder->constant_pool_index = 1;
+
     info->magic = MODULEWEB_MAGIC_NUMBER;
 
     MOVE(info->bytecode_version, builder->bytecode_version);
     MOVE(info->name, builder->name);
 
     moduleweb_module_builder_transfer_attributes(builder, &builder->attributes, &info->attributes);
-
-    u32 total_constant_pool_size = 0;
-    for (u8 i = 0; i < MODULEWEB_CONSTANT_TYPE_AMOUNT; i++) {
-        total_constant_pool_size += builder->constant_pool[i].size;
-    }
-
-    if (total_constant_pool_size > (u16) 0xFFFF) {
-        printf("warning: constant pool size of module '%s' is bigger than the maximum possible size (%u > %u)",
-               info->name, total_constant_pool_size, (u16) 0xFFFF);
-
-        return;
-    }
-
-    info->constant_pool_size = total_constant_pool_size;
-    info->constant_pool = malloc(info->constant_pool_size * sizeof(moduleweb_constant_info));
-
-    for (moduleweb_constant_type i = 0; i < MODULEWEB_CONSTANT_TYPE_AMOUNT; i++) {
-        for (u16 j = 0; j < builder->constant_pool[i].size; j++) {
-            moduleweb_constant* src = &builder->constant_pool[i].pool[j];
-
-            info->constant_pool[src->index] = src->info;
-            info->constant_pool[src->index].type = i;
-
-            *src = (moduleweb_constant) {0};
-
-            moduleweb_constant_delete(src);
-        }
-    }
 
     info->class_count = builder->class_count;
     info->classes = malloc(info->class_count * sizeof(moduleweb_class_info));
@@ -259,7 +260,11 @@ void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUT
 
         dest->name_index = moduleweb_module_builder_resolve_string(builder, src->name);
         dest->modifiers = src->modifiers;
-        dest->super_class = moduleweb_module_builder_resolve_class_ref(builder, src->super_class_module_name, src->super_class_name);
+        if (src->super_class_module_name != NULL && src->super_class_name != NULL) {
+            dest->super_class = moduleweb_module_builder_resolve_class_ref(builder, src->super_class_module_name,src->super_class_name);
+        } else {
+            dest->super_class = 0;
+        }
 
         moduleweb_module_builder_transfer_attributes(builder, &src->attributes, &dest->attributes);
 
@@ -292,6 +297,34 @@ void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUT
         moduleweb_module_builder_transfer_attributes(builder, &src->attributes, &dest->attributes);
 
         moduleweb_function_delete(src);
+    }
+
+    u32 total_constant_pool_size = 1;
+    for (u8 i = 0; i < (u8) MODULEWEB_CONSTANT_TYPE_AMOUNT; i++) {
+        total_constant_pool_size += builder->constant_pool[i].size;
+    }
+
+    if (total_constant_pool_size > (u16) 0xFFFF) {
+        printf("warning: constant pool size of module '%s' is bigger than the maximum possible size (%u > %u)",
+               info->name, total_constant_pool_size, (u16) 0xFFFF);
+
+        return;
+    }
+
+    info->constant_pool_size = total_constant_pool_size;
+    info->constant_pool = malloc(info->constant_pool_size * sizeof(moduleweb_constant_info));
+
+    for (moduleweb_constant_type i = 0; i < (u8) MODULEWEB_CONSTANT_TYPE_AMOUNT; i++) {
+        for (u16 j = 0; j < builder->constant_pool[i].size; j++) {
+            moduleweb_constant* src = &builder->constant_pool[i].pool[j];
+
+            info->constant_pool[src->index] = src->info;
+            info->constant_pool[src->index].type = i;
+
+            *src = (moduleweb_constant) {0};
+
+            moduleweb_constant_delete(src);
+        }
     }
 
     moduleweb_module_builder_delete(builder);

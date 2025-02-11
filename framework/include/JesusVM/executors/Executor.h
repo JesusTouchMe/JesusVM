@@ -6,6 +6,7 @@
 #include "JesusVM/Stack.h"
 
 namespace JesusVM {
+    class JesusVM;
 	class VThread;
 
 	class Executor {

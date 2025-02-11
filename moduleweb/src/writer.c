@@ -3,6 +3,8 @@
 int moduleweb_writer_init(moduleweb_writer* writer, moduleweb_outstream* stream) {
     writer->stream = stream;
     writer->is_accepted = false;
+
+    return 0;
 }
 
 void moduleweb_writer_uninit(moduleweb_writer* writer) {

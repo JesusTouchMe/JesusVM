@@ -93,11 +93,6 @@ bool moduleweb_instream_is_eof(moduleweb_instream* stream) {
 
 int moduleweb_instream_read_bytes(moduleweb_instream* stream, u8* res, u64 count) {
     if (stream->streaming_mode == MODULEWEB_STREAMING_FILE) {
-        if (stream->file.size > 0 && stream->file.pos + count >= stream->file.size) {
-            stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF;
-            return 1;
-        }
-
         u64 bytes_read = 0;
 
         while (bytes_read < count) {
@@ -238,6 +233,13 @@ void moduleweb_outstream_uninit(moduleweb_outstream* stream) {
 int moduleweb_outstream_init_buffer(moduleweb_outstream* stream, u8* buffer, u64 size) {
     stream->streaming_mode = MODULEWEB_STREAMING_MEMORY;
     stream->memory.ptr = buffer;
+    stream->memory.size = size;
+
+    return 0;
+}
+
+int moduleweb_outstream_reopen_buffer(moduleweb_outstream* stream, PARAM_MUTATED u8* new_buffer, u64 size) {
+    stream->memory.ptr = new_buffer;
     stream->memory.size = size;
 
     return 0;

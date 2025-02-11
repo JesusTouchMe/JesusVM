@@ -61,6 +61,17 @@ void moduleweb_attribute_builder_info(moduleweb_attribute_builder* builder, PARA
     memcpy(builder->info, info, length);
 }
 
+void moduleweb_attribute_builder_code(moduleweb_attribute_builder* builder, PARAM_MOVED moduleweb_insn_list* list) {
+    builder->name = strdup("Code");
+
+    moduleweb_insn_list_patch_labels(list);
+
+    MOVE(builder->length, list->writer_stream.memory.pos);
+    MOVE(builder->info, list->buffer);
+
+    moduleweb_insn_list_uninit(list);
+}
+
 moduleweb_attribute* moduleweb_attribute_builder_build(moduleweb_attribute_builder* builder) {
     static moduleweb_attribute result = {0}; //TODO: better solution than this lol
 

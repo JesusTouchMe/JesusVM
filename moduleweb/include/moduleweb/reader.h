@@ -15,7 +15,7 @@ typedef struct moduleweb_reader {
 int moduleweb_reader_init(moduleweb_reader* reader, PARAM_REFERENCED moduleweb_instream* stream);
 void moduleweb_reader_uninit(moduleweb_reader* reader);
 
-int moduleweb_reader_accept(moduleweb_reader* reader, PARAM_MUTATED moduleweb_module_info* module);
+int moduleweb_reader_accept(moduleweb_reader* reader, PARAM_MUTATED moduleweb_module_info* module, const char* name);
 
 #ifdef __cplusplus
 }

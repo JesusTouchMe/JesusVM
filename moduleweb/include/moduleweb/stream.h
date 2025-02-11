@@ -92,7 +92,7 @@ int moduleweb_instream_read_bytes(moduleweb_instream* stream, PARAM_MUTATED u8* 
 static inline int moduleweb_instream_read_number(moduleweb_instream* stream, PARAM_MUTATED void* res, u64 size) {
     if (size > 8) return 1;
 
-    u8 raw[8]; // it should only ever be 8 max
+    u8 raw[8] = {0}; // it should only ever be 8 max
     if (moduleweb_instream_read_bytes(stream, raw, size)) {
         return 1;
     }
@@ -103,7 +103,7 @@ static inline int moduleweb_instream_read_number(moduleweb_instream* stream, PAR
         result |= ((u64) raw[i]) << ((size - 1 - i) * 8);
     }
 
-    memcpy_s(res, size, &result, sizeof(u64));
+    memcpy_s(res, size, &result, size);
 
     return 0;
 }
@@ -135,6 +135,8 @@ int moduleweb_outstream_init(moduleweb_outstream* stream, PARAM_COPIED const cha
 void moduleweb_outstream_uninit(moduleweb_outstream* stream);
 
 int moduleweb_outstream_init_buffer(moduleweb_outstream* stream, PARAM_MUTATED u8* buffer, u64 size);
+
+int moduleweb_outstream_reopen_buffer(moduleweb_outstream* stream, PARAM_MUTATED u8* new_buffer, u64 size);
 
 void moduleweb_outstream_uninit_buffer(moduleweb_outstream* stream);
 
