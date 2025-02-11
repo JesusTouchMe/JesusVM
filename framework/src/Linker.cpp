@@ -202,12 +202,12 @@ namespace JesusVM::Linker {
             return nullptr;
         }
 
-        auto moduleInfo = std::make_unique<moduleweb_module_info>();
-        if (moduleweb_module_info_init(moduleInfo.get(), name.data(), name.length(), stream.get())) {
+        auto moduleInfo = static_cast<moduleweb_module_info*>(std::malloc(sizeof(moduleweb_module_info))); // c struct. using new and make_unique is apparently bad
+        if (moduleweb_module_info_init(moduleInfo, name.data(), name.length(), stream.get())) {
             return nullptr;
         }
 
-        auto result = new Module(*globalVM, nullptr, moduleInfo.release()); // the module has ownership of its own info
+        auto result = new Module(*globalVM, nullptr, moduleInfo);
         return result;
     }
 

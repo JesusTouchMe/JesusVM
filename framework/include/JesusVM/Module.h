@@ -49,7 +49,7 @@ namespace JesusVM {
         Function* getFunction(ConstantName* name);
 
 	private:
-        moduleweb_module_info* mModulewebInfo;
+        moduleweb_module_info* mInfo;
 
         JesusVM& mVM;
         Object* mLinker;

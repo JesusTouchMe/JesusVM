@@ -7,7 +7,7 @@
 
 namespace JesusVM {
 	Module::Module(JesusVM& vm, Object* linker, moduleweb_module_info* info)
-		: mModulewebInfo(info)
+		: mInfo(info)
         , mVM(vm)
         , mLinker(linker)
         , mName(info->name)
@@ -29,8 +29,12 @@ namespace JesusVM {
 		}
 	}
 
+    Module::~Module() {
+        std::free(mInfo);
+    }
+
     const moduleweb_module_info* Module::getInfo() {
-        return mModulewebInfo;
+        return mInfo;
     }
 
     JesusVM& Module::getVM() const {
