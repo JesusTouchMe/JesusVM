@@ -7,6 +7,7 @@
 namespace JesusVM {
 	Thread::Thread(JesusVM& vm)
 		: mRunning(false)
+        , mState(ThreadState::NEW)
 		, mVM(vm)
 		, mIsMainThread(false)
         , mMainVThread(nullptr) {}
@@ -24,12 +25,14 @@ namespace JesusVM {
 		return nullptr;
 	}
 
-	void Thread::setMainThread() {
-		if (mVM.mMainThread == nullptr) {
-			mIsMainThread = true;
-			mVM.mMainThread = this;
-		}
-	}
+    VThread* Thread::addVThread() {
+        auto thread = std::make_unique<VThread>(mVM);
+        auto res = thread.get();
+
+        mVThreads.push_back(std::move(thread));
+
+        return res;
+    }
 
 	void Thread::run() {
 		mRunning = true;
@@ -50,21 +53,10 @@ namespace JesusVM {
 			if (currentThread != nullptr && currentThread->mIsActive) {
 				currentThread->executeCycles(5);
 			}
-
-			if (mIsMainThread && mMainVThread != nullptr) {
-				if (!mMainVThread->mIsActive) {
-					mVM.stop();
-				}
-			}
 		}
 	}
 
 	void Thread::stop() {
 		mRunning = false;
-	}
-
-	void Thread::addVThread(std::unique_ptr<VThread> thread) {
-		std::lock_guard<std::mutex> lock(mMutex);
-		mVThreads.push_back(std::move(thread));
 	}
 }

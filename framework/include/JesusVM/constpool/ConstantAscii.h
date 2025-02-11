@@ -8,7 +8,7 @@ namespace JesusVM {
     public:
         static constexpr Type type = Type::ASCII;
 
-        explicit ConstantAscii(moduleweb_constant_ascii_info* info);
+        ConstantAscii(JesusVM&, ConstPool&, moduleweb_constant_ascii_info* info);
 
         std::string_view getValue() const;
 

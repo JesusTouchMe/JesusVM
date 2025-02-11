@@ -1,6 +1,7 @@
 #ifndef JESUSVM_THREAD_H
 #define JESUSVM_THREAD_H
 
+#include "JesusVM/executors/Threading.h"
 #include "JesusVM/executors/VThread.h"
 
 #include <mutex>
@@ -9,29 +10,39 @@
 namespace JesusVM {
 	class JesusVM;
 
+    enum class ThreadState {
+        NEW,
+        RUNNABLE,
+        TERMINATED,
+    };
+
 	class Thread {
 	friend class JesusVM;
+    friend Thread* Threading::LaunchThread();
 	public:
-		Thread(JesusVM& mVM);
+        struct Env {
+            Thread* thread;
+        };
+
+		explicit Thread(JesusVM& mVM);
 
 		u64 getThreadCount();
 
 		VThread* getAvailableThread();
-
-		void setMainThread();
+        VThread* addVThread();
 
 		void run();
 		void stop();
-
-		void addVThread(std::unique_ptr<VThread> thread);
-
-        static Thread* GetCurrentThread();
 
 	private:
 		std::vector<std::unique_ptr<VThread>> mVThreads;
 		std::mutex mMutex;
 
+        std::atomic<ThreadState> mState;
 		bool mRunning;
+        std::thread::id mId;
+
+        std::unique_ptr<Env> mEnv;
 
 		JesusVM& mVM;
 		bool mIsMainThread;

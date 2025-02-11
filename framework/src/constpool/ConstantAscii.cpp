@@ -1,7 +1,7 @@
 #include "JesusVM/constpool/ConstantAscii.h"
 
 namespace JesusVM {
-    ConstantAscii::ConstantAscii(moduleweb_constant_ascii_info* info)
+    ConstantAscii::ConstantAscii(JesusVM&, ConstPool&, moduleweb_constant_ascii_info* info)
     : Constant(type)
     , mValue(reinterpret_cast<const char*>(info->bytes), info->length) { }
 

@@ -5,6 +5,8 @@
 
 #include "JesusVM/constpool/ConstantFunc.h"
 
+#include "JesusVM/executors/Threading.h"
+
 #include "moduleweb/reader.h"
 #include "moduleweb/writer.h"
 
@@ -12,21 +14,14 @@
 #include "moduleweb/builder/module_builder.h"
 
 int main(int argc, char** argv) {
-    moduleweb_instream in;
-    if (moduleweb_instream_open(&in, "Main.jmod")) {
-        return 1;
-    }
+    JesusVM::JesusVM vm;
 
-    moduleweb_reader reader;
-    moduleweb_reader_init(&reader, &in);
+    JesusVM::Threading::Init(vm);
 
-    moduleweb_module_info info;
+    JesusVM::Linker::Init(vm);
+    JesusVM::Linker::AddPath("."); // cwd i think
 
-    if (moduleweb_reader_accept(&reader, &info, "Main")) {
-        return 1;
-    }
-
-    moduleweb_module_info_print(&info, 0);
+    JesusVM::Module* mainModule = JesusVM::Linker::LoadModule(nullptr, "Main");
 
     return 0;
 }

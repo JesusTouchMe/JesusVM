@@ -52,7 +52,7 @@ namespace JesusVM {
     bool TypeInfo::parse(std::string_view descriptor, u32* index) {
         u32 nameStart;
 
-        switch (descriptor[0]) {
+        switch (descriptor[*index]) {
             case '[':
                 nameStart = (*index)++;
                 if (ParseArrayBaseType(descriptor, index)) {
@@ -132,7 +132,7 @@ namespace JesusVM {
         if (descriptor[index++] != '(')
             return true;
 
-        while (descriptor[index] != ')') {
+        while (index < descriptor.length() && descriptor[index] != ')') {
             function->mArgumentTypes.emplace_back();
             TypeInfo& arg = function->mArgumentTypes.back();
 
@@ -141,7 +141,9 @@ namespace JesusVM {
             }
         }
 
-        index++;
+        if (index >= descriptor.length() || descriptor[index++] != ')') {
+            return true;
+        }
 
         if (function->mReturnType.parse(descriptor, &index)) {
             return true;
@@ -151,7 +153,7 @@ namespace JesusVM {
             return true;
         }
 
-        return false;
+        return index != descriptor.length();
     }
 
     bool ParseFieldType(Field* field) {

@@ -143,6 +143,12 @@ namespace JesusVM::Linker {
                     std::cout << "warning: failed to get file status for '" << currentPath << "'\nerror message: " << err.message() << "\n";
                 }
             }
+
+            if (pos != std::string_view::npos) {
+                path.remove_prefix(pos + 1);
+            } else {
+                break;
+            }
         }
     }
 
@@ -206,6 +212,9 @@ namespace JesusVM::Linker {
         if (moduleweb_module_info_init(moduleInfo, name.data(), name.length(), stream.get())) {
             return nullptr;
         }
+
+        std::cout << "info: loaded new module: " << name << "\n"; // TODO: either debug print system or just remove this lol
+        moduleweb_module_info_print(moduleInfo, 0);
 
         auto result = new Module(*globalVM, nullptr, moduleInfo);
         return result;
