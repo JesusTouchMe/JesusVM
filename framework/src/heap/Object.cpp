@@ -17,7 +17,7 @@ namespace JesusVM {
 
     Object* AllocArray(Class* clas, Int size) {
         u64 totalSize = sizeof(Array) + sizeof(Object*) * size;
-#ifdef _MSC_VER
+#ifdef PLATFORM_WINDOWS
         u8* memory = static_cast<u8*>(_aligned_malloc(totalSize, alignof(Array)));
 #else
         u8* memory = static_cast<u8*>(std::aligned_alloc(alignof(Array), totalSize));

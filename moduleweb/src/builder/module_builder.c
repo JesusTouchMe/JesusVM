@@ -242,8 +242,6 @@ static void moduleweb_module_builder_transfer_attributes(moduleweb_module_builde
 }
 
 void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUTATED moduleweb_module_info* info) {
-    builder->constant_pool_index = 1;
-
     info->magic = MODULEWEB_MAGIC_NUMBER;
 
     MOVE(info->bytecode_version, builder->bytecode_version);

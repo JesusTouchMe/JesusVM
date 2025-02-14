@@ -22,7 +22,6 @@ namespace JesusVM {
 		void executeTime(u32 ms);
 
 	private:
-		Stack mStack;
 		Executor mExecutor;
 
 		bool mIsActive;

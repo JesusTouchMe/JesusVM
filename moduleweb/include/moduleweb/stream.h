@@ -124,6 +124,8 @@ static inline int moduleweb_instream_read_u64(moduleweb_instream* stream, PARAM_
     return moduleweb_instream_read_number(stream, res, sizeof(u64));
 }
 
+u8* moduleweb_instream_pointer(moduleweb_instream* stream);
+
 int moduleweb_instream_skip(moduleweb_instream* stream, u64 amount);
 
 //

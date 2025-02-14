@@ -6,6 +6,7 @@
 #include "types.h"
 
 namespace JesusVM {
+    class Function;
     class JesusVM;
     class Thread;
 }

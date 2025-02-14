@@ -1,13 +1,14 @@
 #ifndef JESUSVM_THREAD_H
 #define JESUSVM_THREAD_H
 
-#include "JesusVM/Function.h"
-
 #include "JesusVM/executors/Threading.h"
 #include "JesusVM/executors/VThread.h"
 
+#include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <optional>
+#include <thread>
 #include <variant>
 #include <vector>
 
@@ -15,7 +16,7 @@ namespace JesusVM {
 	class JesusVM;
 
     struct SingleExecutor {
-        VThread executor; // to avoid useless rewriting of it
+        Executor executor;
     };
 
     struct VThreadExecutor {
@@ -30,6 +31,7 @@ namespace JesusVM {
 
 	class Thread {
 	friend class JesusVM;
+    friend void Threading::Init(JesusVM&);
     friend void Threading::LaunchThread(Function*);
 	public:
         enum class State {
@@ -45,8 +47,9 @@ namespace JesusVM {
             NATIVE_EXECUTOR, // runs native functions. potentially in a queue
         };
 
-		explicit Thread(JesusVM& mVM);
+		Thread(JesusVM& mVM, Mode mode);
 
+        State getState() const;
         Mode getMode() const;
         std::thread::id getId() const;
 
@@ -55,21 +58,24 @@ namespace JesusVM {
 
         void setFunction(Function* function);
 
-		void run();
+		void start();
 		void stop();
 
 	private:
 		std::mutex mMutex;
+        std::condition_variable mCondition;
 
         Mode mMode;
         ThreadMode mThreadMode;
 
         std::atomic<State> mState;
-		bool mRunning;
+		bool mInterrupted;
 
-        std::thread::id mId; //
+        std::thread::id mId;
 
 		JesusVM& mVM;
+
+        bool mMainThread;
 	};
 }
 

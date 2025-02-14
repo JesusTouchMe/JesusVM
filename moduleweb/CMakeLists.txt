@@ -17,6 +17,7 @@ set(SOURCES "src/stream.c"
         src/builder/function_builder.c
         src/builder/module_builder.c
         src/builder/insn_builder.c
+    src/code_attribute.c
 )
 
 set(HEADERS "include/moduleweb/stream.h"
@@ -37,6 +38,8 @@ set(HEADERS "include/moduleweb/stream.h"
     include/moduleweb/builder/field_builder.h
     include/moduleweb/builder/function_builder.h
         include/moduleweb/builder/insn_builder.h
+    include/moduleweb/code_attribute.h
+    include/moduleweb/builder/opcodes.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

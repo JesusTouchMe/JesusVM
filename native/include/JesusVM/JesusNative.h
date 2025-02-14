@@ -2,7 +2,7 @@
 #define JESUS_VM_NATIVE_H
 
 #ifdef __cplusplus
-extern "C" {
+#include <cstddef>
 #endif
 
 #include "win32/JesusNative_platform.h"
@@ -44,7 +44,37 @@ typedef union JValue {
     Float F;
     Double D;
 	JObject R;
-    Handle* H;
+    Handle H;
+
+#ifdef __cplusplus
+    constexpr JValue() : L(0) {}
+    constexpr JValue(std::nullptr_t) : H(nullptr) {}
+
+    template<typename T>
+    constexpr JValue(T val) {
+        if constexpr (std::is_same_v<T, Bool>) {
+            Z = val;
+        } else if constexpr (std::is_same_v<T, Byte>) {
+            B = val;
+        } else if constexpr (std::is_same_v<T, Short>) {
+            S = val;
+        } else if constexpr (std::is_same_v<T, Int>) {
+            I = val;
+        } else if constexpr (std::is_same_v<T, Long>) {
+            L = val;
+        } else if constexpr (std::is_same_v<T, Char>) {
+            C = val;
+        } else if constexpr (std::is_same_v<T, Float>) {
+            F = val;
+        } else if constexpr (std::is_same_v<T, Double>) {
+            D = val;
+        } else if constexpr (std::is_same_v<T, JObject>) {
+            R = val;
+        } else if constexpr (std::is_same_v<T, Handle>) {
+            H = val;
+        }
+    }
+#endif
 } JValue;
 
 struct _Field;
@@ -55,6 +85,10 @@ typedef struct _Method* MethodRef;
 
 struct _Context;
 typedef struct _Context* VMContext;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifdef __cplusplus
 }

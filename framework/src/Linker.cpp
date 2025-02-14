@@ -1,4 +1,5 @@
 #include "JesusVM/Linker.h"
+#include "JesusVM/Preload.h"
 
 #include "JesusVM/executors/Thread.h"
 
@@ -9,6 +10,7 @@
 #include "moduleweb/module_info.h"
 #include "moduleweb/stream.h"
 
+#include <algorithm>
 #include <condition_variable>
 #include <filesystem>
 #include <mutex>
@@ -167,7 +169,13 @@ namespace JesusVM::Linker {
     }
 
     static Platform::NativePlugin* FindPlugin(std::string_view name) {
+        for (auto& plugin : plugins) {
+            if (plugin.getName() == name) {
+                return &plugin;
+            }
+        }
 
+        return nullptr;
     }
 
     static Platform::NativePlugin* LoadPluginFromFile(std::string_view fileName, std::string_view name) {
@@ -175,7 +183,7 @@ namespace JesusVM::Linker {
             return nullptr;
         }
 
-        plugins.emplace_back(name, fileName);
+        plugins.emplace_back(StringPool::Intern(name), StringPool::Intern(fileName));
 
         return &plugins.back();
     }
@@ -210,11 +218,39 @@ namespace JesusVM::Linker {
     }
 
     static std::string GetNativeFunctionName(Function* function) {
+        std::string name = "JesusVM_";
+        name += function->getModule()->getName();
+        name += '_';
+        name += function->getName();
 
+        if (!function->getArgumentTypes().empty()) {
+            name += "__";
+
+            for (auto& arg: function->getArgumentTypes()) {
+                name += arg.getClassName();
+            }
+        }
+
+        std::replace(name.begin(), name.end(), '/', '_');
+
+        return std::move(name);
     }
 
     void LinkNativeFunction(Function* function) {
+        std::string name = GetNativeFunctionName(function);
 
+        for (auto& plugin : plugins) {
+            auto func = plugin.getFunction<u8*>(name); // type doesn't matter for us here
+            if (func == nullptr) continue;
+
+            function->mCodeAttribute.code = func;
+            return;
+        }
+
+        if (Preload::finished) { // only error if preloading has failed since preload could override the function entry
+            std::cout << "error: unable to link native function " << function->getName() << function->getDescriptor() << "\n";
+            std::exit(1);
+        }
     }
 
     static inline void RemoveModule(ModuleKey& key) {
@@ -277,9 +313,6 @@ namespace JesusVM::Linker {
         if (moduleweb_module_info_init(moduleInfo, name.data(), name.length(), stream.get())) {
             return nullptr;
         }
-
-        std::cout << "info: loaded new module: " << name << "\n"; // TODO: either debug print system or just remove this lol
-        moduleweb_module_info_print(moduleInfo, 0);
 
         auto result = new Module(*globalVM, nullptr, moduleInfo);
         return result;

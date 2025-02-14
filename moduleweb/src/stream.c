@@ -67,6 +67,7 @@ int moduleweb_instream_open_buffer(moduleweb_instream* stream, u8* buffer, u64 s
     stream->streaming_mode = MODULEWEB_STREAMING_MEMORY;
     stream->memory.ptr = buffer;
     stream->memory.size = size;
+    stream->memory.pos = 0;
 
     stream->buffer = own_buffer ? buffer : NULL;
 
@@ -125,7 +126,7 @@ int moduleweb_instream_read_bytes(moduleweb_instream* stream, u8* res, u64 count
 
         return 0;
     } else if (stream->streaming_mode == MODULEWEB_STREAMING_MEMORY) {
-        if (stream->memory.pos + count >= stream->memory.size) {
+        if (stream->memory.pos + count > stream->memory.size) {
             stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF;
             return 1;
         }
@@ -141,37 +142,54 @@ int moduleweb_instream_read_bytes(moduleweb_instream* stream, u8* res, u64 count
 }
 
 int moduleweb_instream_skip(moduleweb_instream* stream, u64 amount) {
-    if (stream->file.pos + amount > stream->file.size) {
-        stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF;
-        return 1;
-    }
-
-    u64 buffer_remaining = stream->buffer_size - stream->buffer_index;
-    if (amount <= buffer_remaining) {
-        stream->buffer_index += amount;
-        stream->file.pos += amount;
-
-        if (moduleweb_file_seek(&stream->file, stream->file.pos)) {
-            stream->moduleweb_errno = MODULEWEB_ERROR_FILE_READ_FAIL;
+    if (stream->streaming_mode == MODULEWEB_STREAMING_FILE) {
+        if (stream->file.pos + amount > stream->file.size) {
+            stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF;
             return 1;
         }
 
+        u64 buffer_remaining = stream->buffer_size - stream->buffer_index;
+        if (amount <= buffer_remaining) {
+            stream->buffer_index += amount;
+            stream->file.pos += amount;
+
+            if (moduleweb_file_seek(&stream->file, stream->file.pos)) {
+                stream->moduleweb_errno = MODULEWEB_ERROR_FILE_READ_FAIL;
+                return 1;
+            }
+
+            return 0;
+        }
+
+        amount -= buffer_remaining;
+        stream->file.pos += buffer_remaining;
+        stream->buffer_index = stream->buffer_size;
+
+        if (moduleweb_file_seek(&stream->file, stream->file.pos + amount)) {
+            stream->moduleweb_errno = MODULEWEB_ERROR_FILE_SEEK_FAIL;
+            return 1;
+        }
+
+        stream->file.pos += amount;
+        stream->buffer_index = stream->buffer_size = 0; // reset buffer
+
+        return 0;
+    } else if (stream->streaming_mode == MODULEWEB_STREAMING_MEMORY) {
+        stream->memory.pos += amount;
         return 0;
     }
 
-    amount -= buffer_remaining;
-    stream->file.pos += buffer_remaining;
-    stream->buffer_index = stream->buffer_size;
+    return 1;
+}
 
-    if (moduleweb_file_seek(&stream->file, stream->file.pos + amount)) {
-        stream->moduleweb_errno = MODULEWEB_ERROR_FILE_SEEK_FAIL;
-        return 1;
+u8* moduleweb_instream_pointer(moduleweb_instream* stream) {
+    if (stream->streaming_mode == MODULEWEB_STREAMING_FILE) {
+        return &stream->buffer[stream->buffer_index];
+    } else if (stream->streaming_mode == MODULEWEB_STREAMING_MEMORY) {
+        return &stream->memory.ptr[stream->memory.pos];
     }
 
-    stream->file.pos += amount;
-    stream->buffer_index = stream->buffer_size = 0; // reset buffer
-
-    return 0;
+    return NULL;
 }
 
 //
@@ -207,6 +225,9 @@ int moduleweb_outstream_init(moduleweb_outstream* stream, const char* filename) 
     fail_filename:
     free(stream->file.name);
 
+    stream->sys_errno = errno;
+    stream->moduleweb_errno = MODULEWEB_ERROR_ERRNO;
+
     fail:
     return 1;
 }
@@ -234,6 +255,7 @@ int moduleweb_outstream_init_buffer(moduleweb_outstream* stream, u8* buffer, u64
     stream->streaming_mode = MODULEWEB_STREAMING_MEMORY;
     stream->memory.ptr = buffer;
     stream->memory.size = size;
+    stream->memory.pos = 0;
 
     return 0;
 }
@@ -283,7 +305,7 @@ int moduleweb_outstream_write_bytes(moduleweb_outstream* stream, const u8* data,
 
         return 0;
     } else if (stream->streaming_mode == MODULEWEB_STREAMING_MEMORY) {
-        if (stream->memory.pos + size >= stream->memory.size) {
+        if (stream->memory.pos + size > stream->memory.size) {
             stream->moduleweb_errno = MODULEWEB_ERROR_UNEXPECTED_EOF; // most appropriate error for reaching end of the "file" buffer
             return 1;
         }

@@ -12,42 +12,57 @@
 #undef BOOL
 
 namespace JesusVM {
-	constexpr u8 ReadU8(const u8* data, u32 index) {
-		return data[index];
-	}
+    constexpr u8 ReadU8(const u8* data, size_t index) {
+        return data[index];
+    }
 
-	constexpr u16 ReadU16(const u8* data, size_t index) {
-		return (static_cast<u16>(data[index]) << 0) |
-			(static_cast<u16>(data[index + 1]) << 8);
-	}
+    constexpr u16 ReadU16(const u8* data, size_t index) {
+        return (static_cast<u16>(data[index]) << 8) |
+               (static_cast<u16>(data[index + 1]) << 0);
+    }
 
-	constexpr u32 ReadU32(const u8* data, size_t index) {
-		return (static_cast<u32>(data[index]) << 0) |
-			(static_cast<u32>(data[index + 1]) << 8) |
-			(static_cast<u32>(data[index + 2]) << 16) |
-			(static_cast<u32>(data[index + 3]) << 24);
-	}
+    constexpr u32 ReadU32(const u8* data, size_t index) {
+        return (static_cast<u32>(data[index]) << 24) |
+               (static_cast<u32>(data[index + 1]) << 16) |
+               (static_cast<u32>(data[index + 2]) << 8) |
+               (static_cast<u32>(data[index + 3]) << 0);
+    }
 
-	constexpr u64 ReadU64(const u8* data, size_t index) {
-		return (static_cast<u64>(data[index]) << 0) |
-			(static_cast<u64>(data[index + 1]) << 8) |
-			(static_cast<u64>(data[index + 2]) << 16) |
-			(static_cast<u64>(data[index + 3]) << 24) |
-			(static_cast<u64>(data[index + 4]) << 32) |
-			(static_cast<u64>(data[index + 5]) << 40) |
-			(static_cast<u64>(data[index + 6]) << 48) |
-			(static_cast<u64>(data[index + 7]) << 56);
-	}
+    constexpr u64 ReadU64(const u8* data, size_t index) {
+        return (static_cast<u64>(data[index]) << 56) |
+               (static_cast<u64>(data[index + 1]) << 48) |
+               (static_cast<u64>(data[index + 2]) << 40) |
+               (static_cast<u64>(data[index + 3]) << 32) |
+               (static_cast<u64>(data[index + 4]) << 24) |
+               (static_cast<u64>(data[index + 5]) << 16) |
+               (static_cast<u64>(data[index + 6]) << 8) |
+               (static_cast<u64>(data[index + 7]) << 0);
+    }
 
-	Executor::Executor(JesusVM& vm, VThread& thread, Stack& stack)
+	Executor::Executor(JesusVM& vm)
         : mVM(vm)
-		, mThread(thread)
-		, mStack(stack)
-		, mFrame(stack.getTopFrame())
+		, mFrame(mStack.getTopFrame())
+        , mReturned(false)
+        , mReturnValue(0)
 		, mPC(nullptr) {}
 
+    JValue Executor::getReturnValue() const {
+        if (!mReturned) {
+            std::cout << "error: illegal state at " << mFrame->getCurrentFunction()->getName() << ": get return value before return"; // illegal state
+            std::exit(1);
+        }
+
+        return mReturnValue;
+    }
+
+    void Executor::run() {
+        while (!mReturned) {
+            executeInstruction();
+        }
+    }
+
 	void Executor::executeInstruction(bool wide) {
-        if (mPC >= mFrame->getCurrentFunction()->getEntry() + mFrame->getCurrentFunction()->getBytecodeSize()) {
+        if (mReturned || mPC >= mFrame->getCurrentFunction()->getEntry() + mFrame->getCurrentFunction()->getBytecodeSize()) {
             std::cout << "bad execution!!!\n";
             std::exit(1);
         }
@@ -611,6 +626,10 @@ namespace JesusVM {
         }
 
         if (func->isNative()) {
+            if (func->getEntry() == nullptr) {
+                Linker::LinkNativeFunction(func);
+            }
+
             std::unique_ptr<JValue[]> nativeArgs = std::make_unique<JValue[]>(func->getArgumentTypes().size());
 
             u64 i = 0;
@@ -690,7 +709,7 @@ namespace JesusVM {
 		mFrame = mStack.leaveFrame();
 
 		if (mFrame == nullptr) {
-			mThread.mIsActive = false;
+			mReturned = true;
 		}
 	}
 
@@ -701,7 +720,8 @@ namespace JesusVM {
         mFrame = mStack.leaveFrame();
 
         if (mFrame == nullptr) {
-            mThread.mIsActive = false;
+            mReturned = true;
+            mReturnValue.I = value;
         } else {
             mFrame->push(value);
         }
@@ -714,7 +734,8 @@ namespace JesusVM {
         mFrame = mStack.leaveFrame();
 
         if (mFrame == nullptr) {
-            mThread.mIsActive = false;
+            mReturned = true;
+            mReturnValue.L = value;
         } else {
             mFrame->pushLong(value);
         }

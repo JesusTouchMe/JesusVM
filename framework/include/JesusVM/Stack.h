@@ -3,19 +3,19 @@
 
 #include "types.h"
 
-#include "JesusVM/Function.h"
-
 #include <concepts>
 #include <iostream>
+#include <memory>
 
 namespace JesusVM {
     class ConstPool;
+    class Function;
     class Module;
 
     class Stack {
     public:
         class Frame {
-            friend class Stack;
+        friend class Stack;
         public:
             Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnAddress);
 

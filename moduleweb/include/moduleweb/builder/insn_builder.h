@@ -36,6 +36,10 @@ typedef struct moduleweb_insn_list {
     u64 forward_label_capacity;
     OWNED_OBJECT moduleweb_forward_label* forward_labels;
 
+    u16 local_count;
+    i32 stack_depth; // i32 so it can go negative and still fit a full u16
+    u16 max_stack_depth;
+
     u64 size;
     OWNED_OBJECT u8* buffer;
 
@@ -45,6 +49,8 @@ typedef struct moduleweb_insn_list {
 int moduleweb_insn_list_init(moduleweb_insn_list* list);
 
 void moduleweb_insn_list_uninit(moduleweb_insn_list* list);
+
+int moduleweb_insn_list_verify(moduleweb_insn_list* list);
 
 void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list);
 

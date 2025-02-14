@@ -4,8 +4,12 @@
 
 namespace JesusVM {
 	VThread::VThread(JesusVM& vm)
-		: mExecutor(vm, *this, mStack)
+		: mExecutor(vm)
 		, mIsActive(false) {}
+
+    void VThread::run() {
+        mExecutor.run();
+    }
 
 	void VThread::executeFunction(Function* function) {
 		mExecutor.enterFunction(function);

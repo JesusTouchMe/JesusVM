@@ -66,8 +66,51 @@ void moduleweb_attribute_builder_code(moduleweb_attribute_builder* builder, PARA
 
     moduleweb_insn_list_patch_labels(list);
 
-    MOVE(builder->length, list->writer_stream.memory.pos);
-    MOVE(builder->info, list->buffer);
+    if (moduleweb_insn_list_verify(list)) {
+        printf("error: verification failed for instruction list\n");
+        exit(1);
+    }
+
+    builder->length = list->writer_stream.memory.pos + 8;
+
+    builder->info = malloc(builder->length);
+    if (builder->info == NULL) {
+        printf("error: memory alloc fail\n");
+        return;
+    }
+
+    moduleweb_outstream stream;
+    if (moduleweb_outstream_init_buffer(&stream, builder->info, builder->length)) {
+        free(builder->info);
+        printf("error: %s\n", moduleweb_outstream_strerror(&stream));
+        return;
+    }
+
+    if (moduleweb_outstream_write_u16(&stream, list->local_count)) {
+        free(builder->info);
+        printf("error: %s\n", moduleweb_outstream_strerror(&stream));
+        return;
+    }
+
+    if (moduleweb_outstream_write_u16(&stream, list->max_stack_depth)) {
+        free(builder->info);
+        printf("error: %s\n", moduleweb_outstream_strerror(&stream));
+        return;
+    }
+
+    if (moduleweb_outstream_write_u32(&stream, list->writer_stream.memory.pos)) {
+        free(builder->info);
+        printf("error: %s\n", moduleweb_outstream_strerror(&stream));
+        return;
+    }
+
+    if (moduleweb_outstream_write_bytes(&stream, list->buffer, list->writer_stream.memory.pos)) {
+        free(builder->info);
+        printf("error: %s\n", moduleweb_outstream_strerror(&stream));
+        return;
+    }
+
+    moduleweb_outstream_uninit_buffer(&stream);
 
     moduleweb_insn_list_uninit(list);
 }

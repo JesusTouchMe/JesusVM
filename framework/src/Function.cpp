@@ -1,5 +1,5 @@
 #include "JesusVM/Function.h"
-#include "JesusVM/Module.h"
+#include "JesusVM/JesusVM.h"
 
 #include "JesusVM/constpool/ConstantAscii.h"
 #include "JesusVM/constpool/ConstantName.h"
@@ -10,7 +10,8 @@ namespace JesusVM {
 	Function::Function(Module* module, moduleweb_function_info* info)
 		: mInfo(info)
         , mModule(module)
-		, mModifiers(info->modifiers) {
+		, mModifiers(info->modifiers)
+        , mCodeAttribute(0, 0, 0, nullptr) {
         auto name = module->getConstPool().get<ConstantName>(info->name_index);
 
         mName = name->getName();
@@ -24,9 +25,6 @@ namespace JesusVM {
         mArgumentTypes.shrink_to_fit();
 
         if (isNative()) {
-            mLocalCount = mArgumentTypes.size();
-            mStackSize = 0;
-            mEntry = nullptr;
             return;
         }
 
@@ -45,10 +43,20 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        moduleweb_attribute_info* entry = &info->attributes.array[codeIndex];
+        moduleweb_attribute_info* code = &info->attributes.array[codeIndex];
 
-        mEntry = entry->info;
-        mBytecodeSize = entry->length;
+        moduleweb_instream stream;
+        if (moduleweb_instream_open_buffer(&stream, code->info, code->length, false)) {
+            // TODO: linkage error
+            std::cout << "error: failed to stream code attribute data\n";
+            std::exit(1);
+        }
+
+        if (moduleweb_code_attribute_init(&mCodeAttribute, &stream)) {
+            // TODO: linkage error
+            std::cout << "error: failed to read code attribute data\n";
+            std::exit(1);
+        }
 	}
 
     moduleweb_function_info* Function::getInfo() const {
@@ -80,19 +88,19 @@ namespace JesusVM {
 	}
 	
 	u16 Function::getLocalCount() const {
-		return mLocalCount;
+		return mCodeAttribute.max_locals;
 	}
 	
 	u16 Function::getStackSize() const {
-		return mStackSize;
+		return mCodeAttribute.max_stack_size;
 	}
 	
 	u8* Function::getEntry() const {
-		return mEntry;
+		return mCodeAttribute.code;
 	}
 	
 	u32 Function::getBytecodeSize() const {
-		return mBytecodeSize;
+		return mCodeAttribute.code_length;
 	}
 
     bool Function::isPublic() const {
@@ -113,5 +121,13 @@ namespace JesusVM {
 
     bool Function::isNative() const {
         return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_NATIVE) != 0;
+    }
+
+    VMContext Function::getNativeContext() {
+        return mModule->getVM().getContext();
+    }
+
+    JesusVM& Function::getVM() {
+        return mModule->getVM();
     }
 }

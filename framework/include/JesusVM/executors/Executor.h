@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include "JesusVM/JesusNative.h"
 #include "JesusVM/Stack.h"
 
 namespace JesusVM {
@@ -11,7 +12,11 @@ namespace JesusVM {
 
 	class Executor {
 	public:
-		Executor(JesusVM& vm, VThread& thread, Stack& stack);
+		explicit Executor(JesusVM& vm);
+
+        JValue getReturnValue() const;
+
+        void run(); // run until return
 
 		void executeInstruction(bool wide = false);
 
@@ -19,11 +24,13 @@ namespace JesusVM {
 
 	private:
         JesusVM& mVM;
-		VThread& mThread;
-		Stack& mStack;
+		Stack mStack;
 		Stack::Frame* mFrame;
 
 		u8* mPC;
+
+        bool mReturned;
+        JValue mReturnValue;
 
 		u8 getByte();
 		u16 getShort();

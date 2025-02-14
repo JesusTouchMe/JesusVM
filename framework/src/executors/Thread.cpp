@@ -5,57 +5,142 @@
 #include <algorithm>
 
 namespace JesusVM {
-	Thread::Thread(JesusVM& vm)
-		: mRunning(false)
+	Thread::Thread(JesusVM& vm, Mode mode)
+		: mInterrupted(false)
         , mState(State::NEW)
-		, mVM(vm)
-		, mIsMainThread(false) {}
-
-	u64 Thread::getThreadCount() {
-		return mVThreads.size();
-	}
-
-	VThread* Thread::getAvailableThread() {
-		std::lock_guard<std::mutex> lock(mMutex);
-		
-		auto it = std::find_if(mVThreads.begin(), mVThreads.end(), [](auto& thread) { return !thread->mIsActive; });
-		if (it != mVThreads.end()) return (*it).get();
-
-		return nullptr;
-	}
-
-    VThread* Thread::addVThread() {
-        auto thread = std::make_unique<VThread>(mVM);
-        auto res = thread.get();
-
-        mVThreads.push_back(std::move(thread));
-
-        return res;
+        , mVM(vm)
+        , mMainThread(false) {
+        setState(State::IDLE);
+        setMode(mode);
     }
 
-	void Thread::run() {
-		mRunning = true;
-		
-		std::vector<std::unique_ptr<VThread>>::size_type index = 0;
+    Thread::State Thread::getState() const {
+        return mState;
+    }
 
-		while (mRunning) {
-			VThread* currentThread = nullptr;
-			
-			{
-				std::lock_guard<std::mutex> lock(mMutex);
-				if (mVThreads.empty()) continue;
+    Thread::Mode Thread::getMode() const {
+        return mMode;
+    }
 
-				currentThread = mVThreads[index].get();
-				index = (index + 1) % mVThreads.size();
-			}
+    std::thread::id Thread::getId() const {
+        return mId;
+    }
 
-			if (currentThread != nullptr && currentThread->mIsActive) {
-				currentThread->executeCycles(5);
-			}
-		}
+    void Thread::setState(Thread::State state) {
+        mState = state;
+        mCondition.notify_all();
+    }
+
+    void Thread::setMode(Thread::Mode mode) {
+        std::unique_lock<std::mutex> lock(mMutex);
+
+        mCondition.wait(lock, [this] {
+            return mState == State::IDLE; // we can't change the threads execution mode if it's not idle
+        });
+
+        mMode = mode;
+
+        switch (mode) {
+            case Mode::SINGLE_EXECUTOR:
+                mThreadMode.emplace<SingleExecutor>(Executor(mVM));
+                break;
+
+            case Mode::VTHREAD_EXECUTOR:
+                mThreadMode.emplace<VThreadExecutor>();
+                break;
+
+            case Mode::NATIVE_EXECUTOR:
+                mThreadMode.emplace<NativeExecutor>(nullptr);
+                break;
+        }
+    }
+
+    void Thread::setFunction(Function* function) {
+        std::unique_lock<std::mutex> lock(mMutex);
+
+        if (mMode != Mode::VTHREAD_EXECUTOR) {
+            mCondition.wait(lock, [this] {
+                return mState == State::IDLE; // we can't change the threads execution mode if it's not idle
+            });
+        }
+
+        switch (mMode) {
+            case Mode::SINGLE_EXECUTOR: {
+                auto& executor = std::get<SingleExecutor>(mThreadMode);
+                executor.executor.enterFunction(function);
+                executor.executor.run();
+
+                break;
+            }
+
+            case Mode::VTHREAD_EXECUTOR: {
+                auto& executor = std::get<VThreadExecutor>(mThreadMode);
+                auto thread = executor.vThreads.emplace_back(std::make_unique<VThread>(mVM)).get();
+
+                thread->executeFunction(function);
+
+                break;
+            }
+
+            case Mode::NATIVE_EXECUTOR: {
+                if (!function->isNative()) return;
+
+                auto& executor = std::get<NativeExecutor>(mThreadMode);
+                executor.function = function;
+            }
+        }
+    }
+
+	void Thread::start() {
+        switch (mMode) {
+            case Mode::SINGLE_EXECUTOR: {
+                auto& executor = std::get<SingleExecutor>(mThreadMode);
+
+                start:
+
+                executor.executor.run();
+
+                if (mMainThread) {
+                    setState(State::IDLE);
+
+                    std::unique_lock<std::mutex> lock(mMutex);
+
+                    mCondition.wait(lock, [this] {
+                        return mState == State::RUNNABLE; // we can't change the threads execution mode if it's not idle
+                    });
+
+                    goto start;
+                }
+
+                break;
+            }
+
+            case Mode::VTHREAD_EXECUTOR: {
+                auto& executor = std::get<VThreadExecutor>(mThreadMode);
+
+                u64 index = 0;
+
+                while (!mInterrupted) {
+                    executor.vThreads[index]->executeCycles(5);
+
+                    index = (index + 1) % executor.vThreads.size();
+                }
+
+                break;
+            }
+
+            case Mode::NATIVE_EXECUTOR: {
+                auto& executor = std::get<NativeExecutor>(mThreadMode);
+
+                executor.function->invokeNative<void>();
+
+                break;
+            }
+        }
 	}
 
 	void Thread::stop() {
-		mRunning = false;
+        std::lock_guard<std::mutex> lock(mMutex);
+        mInterrupted = true;
 	}
 }
