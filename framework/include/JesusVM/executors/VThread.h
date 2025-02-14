@@ -14,6 +14,8 @@ namespace JesusVM {
 	public:
 		explicit VThread(JesusVM& vm);
 
+        Executor& getExecutor();
+
 		void executeFunction(Function* function);
 
         void run(); // run until return

@@ -5,7 +5,7 @@
 #include "moduleweb/constant_info.h"
 #include "moduleweb/function_info.h"
 
-#define MODULEWEB_MAGIC_NUMBER 0x4E696765
+#define MODULEWEB_MAGIC_NUMBER 0xFACC6969
 
 #ifdef __cplusplus
 extern "C" {

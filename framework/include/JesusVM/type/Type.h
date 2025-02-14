@@ -6,6 +6,9 @@
 #include <string_view>
 #include <vector>
 
+#undef VOID
+#undef BOOL
+
 namespace JesusVM {
     class Function;
     class Field;

@@ -6,6 +6,8 @@
 #include "JesusVM/JesusNative.h"
 #include "JesusVM/Stack.h"
 
+#include "moduleweb/code_attribute.h"
+
 namespace JesusVM {
     class JesusVM;
 	class VThread;

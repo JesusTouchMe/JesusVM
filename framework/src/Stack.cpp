@@ -134,34 +134,33 @@ namespace JesusVM {
         return mReturnAddress;
     }
 
+    Stack::Stack()
+        : mTop(nullptr) {}
+
     Stack::Frame* Stack::getTopFrame() const {
         return mTop.get();
     }
 
     Stack::Frame* Stack::enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnAddress) {
-        auto frame = std::make_unique<Frame>(localCount, maxFrameSize, function->getModule()->getConstPool(), function->getModule(), function, returnAddress);
-        Frame* result = frame.get();
+        auto frame = std::make_unique<Frame>(
+                localCount, maxFrameSize, function->getModule()->getConstPool(),
+                function->getModule(), function, returnAddress);
 
         frame->mPrevious = std::move(mTop);
         mTop = std::move(frame);
 
-        return result;
+        return mTop.get();
     }
 
     Stack::Frame* Stack::leaveFrame() {
-        if (!mTop) {
+        if (mTop == nullptr) {
             std::cout << "stackunderflow. todo: proper errors\n";
             std::exit(1);
         }
 
-        auto newFrame = std::move(mTop->mPrevious);
-        if (!newFrame) {
-            return nullptr;
-        }
+        auto oldFrame = std::move(mTop);
+        mTop = std::move(oldFrame->mPrevious);
 
-        Frame* result = newFrame.get();
-        mTop = std::move(newFrame);
-
-        return result;
+        return mTop.get();
     }
 }

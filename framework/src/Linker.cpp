@@ -380,13 +380,21 @@ namespace JesusVM::Linker {
         if (vmModule == nullptr) {
             if (module->threadsWaiting == 0) {
                 RemoveModule(linker, name);
-                delete vmModule;
             } else {
                 module->status = LinkerModule::Status::NOT_FOUND;
             }
         } else {
             module->module = std::unique_ptr<Module>(vmModule);
             module->status = LinkerModule::Status::LOADED;
+
+            lock.unlock();
+
+            Function* init = vmModule->getFunction("#LinkInit", "()V");
+            if (init != nullptr) {
+                init->invoke<void>();
+            }
+
+            lock.lock();
         }
 
         condition.notify_all();

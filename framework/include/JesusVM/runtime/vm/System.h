@@ -29,6 +29,11 @@ namespace JesusVM::rt::vm::System {
     extern Class* doubleArray;
     extern Class* handleArray;
 
+    extern Function* exit;
+
+    [[noreturn]]
+    void exit_impl(VMContext ctx, JValue* args, Int code);
+
     namespace Object {
         extern Class* self;
     }

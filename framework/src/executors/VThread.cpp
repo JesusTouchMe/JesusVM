@@ -7,6 +7,10 @@ namespace JesusVM {
 		: mExecutor(vm)
 		, mIsActive(false) {}
 
+    Executor& VThread::getExecutor() {
+        return mExecutor;
+    }
+
     void VThread::run() {
         mExecutor.run();
     }

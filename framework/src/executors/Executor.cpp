@@ -56,6 +56,8 @@ namespace JesusVM {
     }
 
     void Executor::run() {
+        mReturned = false;
+
         while (!mReturned) {
             executeInstruction();
         }

@@ -105,7 +105,7 @@ namespace JesusVM {
 
         (AddArgument(runtimeArgs, args), ...);
 
-        Executor executor(getVM());
+        Executor& executor = Threading::CurrentThread()->getExecutor(); // should be fine since the thread would be busy running this?
         executor.enterFunction(this);
         executor.run();
 

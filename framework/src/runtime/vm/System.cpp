@@ -26,6 +26,15 @@ namespace JesusVM::rt::vm::System {
     Class* doubleArray;
     Class* handleArray;
 
+    Function* exit;
+
+    [[noreturn]]
+    void exit_impl(VMContext ctx, JValue* args, Int code) {
+        EXTRACT_ARG(I, code);
+
+        std::exit(code);
+    }
+
     namespace Object {
         Class* self;
     }

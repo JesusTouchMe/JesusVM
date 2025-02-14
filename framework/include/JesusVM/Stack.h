@@ -58,6 +58,8 @@ namespace JesusVM {
         };
 
     public:
+        Stack();
+
         Frame* getTopFrame() const;
         Frame* enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnAddress);
         Frame* leaveFrame();

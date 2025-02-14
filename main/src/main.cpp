@@ -21,9 +21,11 @@ int main(int argc, char** argv) {
     JesusVM::Linker::AddPath("."); // cwd i think
     JesusVM::Linker::AddPluginPath(".");
 
+    JesusVM::Threading::Init(vm);
+
     JesusVM::Preload::PreloadSystemModules();
 
-    JesusVM::Threading::Init(vm);
+    JesusVM::Linker::LoadPlugin("Main");
 
     JesusVM::Module* mainModule = JesusVM::Linker::LoadModule(nullptr, "Main");
 
@@ -93,6 +95,22 @@ int main(int argc, char** argv) {
 
     moduleweb_module_builder_add_function(&builder, moduleweb_function_builder_build(&functionBuilder));
 
+    moduleweb_function_builder_modifiers(&functionBuilder, MODULEWEB_FUNCTION_MODIFIER_PUBLIC);
+    moduleweb_function_builder_descriptor(&functionBuilder, "#LinkInit", "()V");
+
+    moduleweb_insn_list_init(&insnList);
+    insnList.module = &builder;
+
+    moduleweb_insn_list_int(&insnList, JesusVM::Opcodes::IPUSH, 42);
+    moduleweb_insn_list_call(&insnList, JesusVM::Opcodes::CALL, "Main", "print", "(I)V");
+    moduleweb_insn_list_insn(&insnList, JesusVM::Opcodes::RETURN);
+
+    moduleweb_attribute_builder_code(&attributeBuilder, &insnList);
+
+    moduleweb_function_builder_add_attribute(&functionBuilder, moduleweb_attribute_builder_build(&attributeBuilder));
+
+    moduleweb_module_builder_add_function(&builder, moduleweb_function_builder_build(&functionBuilder));
+
     moduleweb_module_info mainInfo;
 
     moduleweb_module_builder_build(&builder, &mainInfo);
@@ -101,6 +119,11 @@ int main(int argc, char** argv) {
 
     moduleweb_module_builder_version(&builder, 1);
     moduleweb_module_builder_name(&builder, "vm/System");
+
+    moduleweb_function_builder_modifiers(&functionBuilder, MODULEWEB_FUNCTION_MODIFIER_PUBLIC | MODULEWEB_FUNCTION_MODIFIER_NATIVE);
+    moduleweb_function_builder_descriptor(&functionBuilder, "exit", "(I)V");
+
+    moduleweb_module_builder_add_function(&builder, moduleweb_function_builder_build(&functionBuilder));
 
     moduleweb_module_info systemInfo;
 

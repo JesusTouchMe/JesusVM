@@ -61,10 +61,6 @@ namespace JesusVM::Threading {
 
         auto thread = new Thread(*globalVM, Thread::Mode::SINGLE_EXECUTOR);
 
-        if (function->isNative()) {
-            thread->setMode(Thread::Mode::NATIVE_EXECUTOR);
-        }
-
         std::lock_guard<std::mutex> lock(mutex);
 
         nonDaemonThreads++; // TODO: if !thread.isDaemon or something

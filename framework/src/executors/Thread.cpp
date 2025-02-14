@@ -26,6 +26,20 @@ namespace JesusVM {
         return mId;
     }
 
+    Executor& Thread::getExecutor() {
+        switch (mMode) {
+            case Mode::SINGLE_EXECUTOR: {
+                auto& executor = std::get<SingleExecutor>(mThreadMode);
+                return executor.executor;
+            }
+
+            case Mode::VTHREAD_EXECUTOR: {
+                auto& executor = std::get<VThreadExecutor>(mThreadMode);
+                return executor.current->getExecutor();
+            }
+        }
+    }
+
     void Thread::setState(Thread::State state) {
         mState = state;
         mCondition.notify_all();
@@ -47,10 +61,6 @@ namespace JesusVM {
 
             case Mode::VTHREAD_EXECUTOR:
                 mThreadMode.emplace<VThreadExecutor>();
-                break;
-
-            case Mode::NATIVE_EXECUTOR:
-                mThreadMode.emplace<NativeExecutor>(nullptr);
                 break;
         }
     }
@@ -80,13 +90,6 @@ namespace JesusVM {
                 thread->executeFunction(function);
 
                 break;
-            }
-
-            case Mode::NATIVE_EXECUTOR: {
-                if (!function->isNative()) return;
-
-                auto& executor = std::get<NativeExecutor>(mThreadMode);
-                executor.function = function;
             }
         }
     }
@@ -121,18 +124,11 @@ namespace JesusVM {
                 u64 index = 0;
 
                 while (!mInterrupted) {
-                    executor.vThreads[index]->executeCycles(5);
+                    executor.current = executor.vThreads[index].get();
+                    executor.current->executeCycles(5);
 
                     index = (index + 1) % executor.vThreads.size();
                 }
-
-                break;
-            }
-
-            case Mode::NATIVE_EXECUTOR: {
-                auto& executor = std::get<NativeExecutor>(mThreadMode);
-
-                executor.function->invokeNative<void>();
 
                 break;
             }

@@ -39,9 +39,6 @@ namespace JesusVM::Preload {
         void* entry;
     };
 
-    Module* mainModule;
-    Function* printFunction;
-
 #   define PRELOAD_MODULE(name, var, opt) { name, &var, opt },
     ModuleEntry entries[] = {
 #       include "JesusVM/Preload-Modules.h"
@@ -92,7 +89,7 @@ namespace JesusVM::Preload {
     }
 
     NativeOverrideEntry nativeOverrideEntries[] = {
-            { &printFunction, reinterpret_cast<void*>(print) },
+            { &rt::vm::System::exit, reinterpret_cast<void*>(rt::vm::System::exit_impl) },
     };
 
     void PreloadSystemModules() {

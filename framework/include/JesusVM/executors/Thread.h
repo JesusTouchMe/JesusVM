@@ -21,13 +21,10 @@ namespace JesusVM {
 
     struct VThreadExecutor {
         std::vector<std::unique_ptr<VThread>> vThreads;
+        VThread* current;
     };
 
-    struct NativeExecutor {
-        Function* function;
-    };
-
-    using ThreadMode = std::variant<std::monostate, SingleExecutor, VThreadExecutor, NativeExecutor>;
+    using ThreadMode = std::variant<std::monostate, SingleExecutor, VThreadExecutor>;
 
 	class Thread {
 	friend class JesusVM;
@@ -44,7 +41,6 @@ namespace JesusVM {
         enum class Mode {
             SINGLE_EXECUTOR, // runs a single thing of bytecode
             VTHREAD_EXECUTOR, // runs a list of vthreads and stays idle if there are none
-            NATIVE_EXECUTOR, // runs native functions. potentially in a queue
         };
 
 		Thread(JesusVM& mVM, Mode mode);
@@ -52,6 +48,8 @@ namespace JesusVM {
         State getState() const;
         Mode getMode() const;
         std::thread::id getId() const;
+
+        Executor& getExecutor();
 
         void setState(State state);
         void setMode(Mode mode);
