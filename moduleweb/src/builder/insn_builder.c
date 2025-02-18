@@ -31,9 +31,11 @@ int moduleweb_insn_list_init(moduleweb_insn_list* list) {
 
 void moduleweb_insn_list_uninit(moduleweb_insn_list* list) {
     free(list->buffer);
+    list->buffer = NULL;
     list->size = 0;
 
     free(list->forward_labels);
+    list->forward_labels = NULL;
 
     for (u64 i = 0; i < list->label_count; i++) {
         free(list->labels[i]->name);
@@ -41,6 +43,7 @@ void moduleweb_insn_list_uninit(moduleweb_insn_list* list) {
     }
 
     free(list->labels);
+    list->labels = NULL;
 
     moduleweb_outstream_uninit_buffer(&list->writer_stream);
 }
@@ -175,7 +178,7 @@ static int moduleweb_insn_list_verify_instruction(moduleweb_insn_list* list, mod
         case JMP_ICMPGE: {
             i16 branch;
 
-            if (moduleweb_instream_read_u16(&stream, (u16*) &branch)) {
+            if (moduleweb_instream_read_u16(stream, (u16*) &branch)) {
                 return 1;
             }
 
@@ -193,7 +196,7 @@ static int moduleweb_insn_list_verify_instruction(moduleweb_insn_list* list, mod
         case JMPGE: {
             i16 branch;
 
-            if (moduleweb_instream_read_u16(&stream, (u16*) &branch)) {
+            if (moduleweb_instream_read_u16(stream, (u16*) &branch)) {
                 return 1;
             }
 
@@ -402,7 +405,7 @@ void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list) {
     }
 }
 
-moduleweb_label* moduleweb_insn_list_get_label(moduleweb_insn_list* list, const char* name) {
+moduleweb_label* moduleweb_insn_list_get_label(const moduleweb_insn_list* list, const char* name) {
     if (name == NULL) return NULL;
 
     for (u64 i = 0; i < list->label_count; i++) {
