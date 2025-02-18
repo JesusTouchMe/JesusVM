@@ -54,7 +54,7 @@ int moduleweb_insn_list_verify(moduleweb_insn_list* list);
 
 void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list);
 
-moduleweb_label* moduleweb_insn_list_get_label(moduleweb_insn_list* list, const char* name);
+moduleweb_label* moduleweb_insn_list_get_label(const moduleweb_insn_list* list, const char* name);
 
 void moduleweb_insn_list_insn(moduleweb_insn_list* list, u8 opcode);
 

@@ -5,7 +5,7 @@
 
 namespace JesusVM {
 	namespace Opcodes {
-#include "moduleweb/builder/opcodes.h"
+#       include "moduleweb/builder/opcodes.h"
 
         using EnumOpcodes = moduleweb_opcodes;
 	}
