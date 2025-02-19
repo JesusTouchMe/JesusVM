@@ -56,6 +56,8 @@ namespace JesusVM {
 
         void setFunction(Function* function);
 
+        void yield();
+
 		void start();
 		void stop();
 

@@ -5,7 +5,7 @@
 namespace JesusVM {
 	VThread::VThread(JesusVM& vm)
 		: mExecutor(vm)
-		, mIsActive(false) {}
+        , mIsYielded(false) {}
 
     Executor& VThread::getExecutor() {
         return mExecutor;
@@ -17,13 +17,15 @@ namespace JesusVM {
 
 	void VThread::executeFunction(Function* function) {
 		mExecutor.enterFunction(function);
-
-		mIsActive = true;
 	}
+
+    void VThread::yield() {
+        mIsYielded = true;
+    }
 
 	void VThread::executeCycles(u32 cycles) {
 		for (u32 i = 0; i < cycles; i++) {
-            if (!mIsActive) break;
+            if (mIsYielded) break;
 
 			mExecutor.executeInstruction();
 		}
@@ -32,13 +34,13 @@ namespace JesusVM {
 	void VThread::executeTime(u32 ms) {
 		auto start = std::chrono::high_resolution_clock::now();
 		auto end = start;
-		std::chrono::duration<double, std::milli> elapsed;
+		std::chrono::duration<double, std::milli> elapsed{};
 
 		while (true) {
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 
-			if (elapsed.count() >= ms) {
+			if (elapsed.count() >= ms || mIsYielded) {
 				break;
 			}
 

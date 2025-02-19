@@ -94,6 +94,20 @@ namespace JesusVM {
         }
     }
 
+    void Thread::yield() {
+        switch (mMode) {
+            case Mode::SINGLE_EXECUTOR:
+                std::this_thread::yield();
+                break;
+
+            case Mode::VTHREAD_EXECUTOR:
+                auto& executor = std::get<VThreadExecutor>(mThreadMode);
+                executor.current->yield();
+
+                break;
+        }
+    }
+
 	void Thread::start() {
         switch (mMode) {
             case Mode::SINGLE_EXECUTOR: {

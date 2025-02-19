@@ -18,6 +18,8 @@ namespace JesusVM {
 
 		void executeFunction(Function* function);
 
+        void yield();
+
         void run(); // run until return
 
 		void executeCycles(u32 cycles);
@@ -26,7 +28,7 @@ namespace JesusVM {
 	private:
 		Executor mExecutor;
 
-		bool mIsActive;
+        bool mIsYielded;
 	};
 }
 
