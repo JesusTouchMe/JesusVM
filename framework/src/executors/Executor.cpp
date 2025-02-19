@@ -203,6 +203,10 @@ namespace JesusVM {
                 jmpgeInsn();
                 break;
 
+            case Opcodes::JMP:
+                jmpInsn();
+                break;
+
             case Opcodes::ICMP:
                 icmpInsn();
                 break;
@@ -564,6 +568,11 @@ namespace JesusVM {
 			mPC += branch;
 		}
 	}
+
+    void Executor::jmpInsn() {
+        i16 branch = getShort();
+        mPC += branch;
+    }
 
 	void Executor::icmpInsn() {
 		i32 rhs = mFrame->pop();

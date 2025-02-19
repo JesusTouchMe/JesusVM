@@ -42,6 +42,7 @@ typedef enum moduleweb_opcodes {
     JMPGT,
     JMPLE,
     JMPGE,
+    JMP,
 
     ICMP,
     LCMP,

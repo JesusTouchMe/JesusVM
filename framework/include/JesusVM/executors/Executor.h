@@ -75,6 +75,7 @@ namespace JesusVM {
 		void jmpgtInsn();
 		void jmpleInsn();
 		void jmpgeInsn();
+        void jmpInsn();
 
 		void icmpInsn();
 		void lcmpInsn();
