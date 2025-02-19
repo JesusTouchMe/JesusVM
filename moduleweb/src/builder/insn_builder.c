@@ -193,7 +193,9 @@ static int moduleweb_insn_list_verify_instruction(moduleweb_insn_list* list, mod
         case JMPLT:
         case JMPGT:
         case JMPLE:
-        case JMPGE: {
+        case JMPGE:
+            moduleweb_insn_list_do_pop(list, 1);
+        case JMP: {
             i16 branch;
 
             if (moduleweb_instream_read_u16(stream, (u16*) &branch)) {
@@ -201,8 +203,6 @@ static int moduleweb_insn_list_verify_instruction(moduleweb_insn_list* list, mod
             }
 
             moduleweb_insn_list_verify_jump(list, branch);
-
-            moduleweb_insn_list_do_pop(list, 1);
 
             break;
         }
