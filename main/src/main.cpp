@@ -1,17 +1,9 @@
 #include "JesusVM/JesusVM.h"
 #include "JesusVM/Preload.h"
 
-#include "JesusVM/bytecode/Opcodes.h"
-
 #include "JesusVM/constpool/ConstantFunc.h"
 
 #include "JesusVM/executors/Threading.h"
-
-#include "moduleweb/reader.h"
-#include "moduleweb/writer.h"
-
-#include "moduleweb/builder/insn_builder.h"
-#include "moduleweb/builder/module_builder.h"
 
 ///*
 int main(int argc, char** argv) {
