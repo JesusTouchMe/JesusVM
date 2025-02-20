@@ -44,6 +44,7 @@ void moduleweb_insn_list_uninit(moduleweb_insn_list* list) {
 
     free(list->labels);
     list->labels = NULL;
+    list->label_count = 0;
 
     moduleweb_outstream_uninit_buffer(&list->writer_stream);
 }
