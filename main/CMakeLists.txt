@@ -14,7 +14,5 @@ target_include_directories(JesusVM
 		include
 )
 
-target_compile_definitions(JesusVM PUBLIC MODULEWEB_OPT_VERIFY_INSN)
-
 target_compile_features(JesusVM PUBLIC cxx_std_20)
 target_link_libraries(JesusVM JesusVM::framework)

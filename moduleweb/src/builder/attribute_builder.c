@@ -66,13 +66,6 @@ void moduleweb_attribute_builder_code(moduleweb_attribute_builder* builder, PARA
 
     moduleweb_insn_list_patch_labels(list);
 
-#ifdef MODULEWEB_OPT_VERIFY_INSN
-    if (moduleweb_insn_list_verify(list)) {
-        printf("error: verification failed for instruction list\n");
-        exit(1);
-    }
-#endif
-
     builder->length = list->writer_stream.memory.pos + 8;
 
     builder->info = malloc(builder->length);
