@@ -68,14 +68,12 @@ namespace JesusVM {
     void Thread::setFunction(Function* function) {
         std::unique_lock<std::mutex> lock(mMutex);
 
-        if (mMode != Mode::VTHREAD_EXECUTOR) {
-            mCondition.wait(lock, [this] {
-                return mState == State::IDLE; // we can't change the threads execution mode if it's not idle
-            });
-        }
-
         switch (mMode) {
             case Mode::SINGLE_EXECUTOR: {
+                mCondition.wait(lock, [this] {
+                    return mState == State::IDLE;
+                });
+
                 auto& executor = std::get<SingleExecutor>(mThreadMode);
                 executor.executor.enterFunction(function);
                 executor.executor.run();

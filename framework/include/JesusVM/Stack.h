@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#include "JesusVM/heap/Object.h"
+
 #include <concepts>
 #include <iostream>
 #include <memory>
@@ -11,6 +13,7 @@ namespace JesusVM {
     class ConstPool;
     class Function;
     class Module;
+
 
     class Stack {
     public:
@@ -21,18 +24,31 @@ namespace JesusVM {
 
             void push(i32 value);
             void pushLong(i64 value);
+            void pushHandle(Handle handle);
+            void pushObject(Object* object);
+
             i32 pop();
             i64 popLong();
+            Handle popHandle();
+            ObjectRef popObject();
+            Object* popObjectWeak();
 
-            i8 getLocalByte(u16 index);
-            i16 getLocalShort(u16 index);
-            i32 getLocalInt(u16 index);
-            i64 getLocalLong(u16 index);
+            void dup();
+            void dup2();
 
-            void setLocalByte(u16 index, i8 value);
-            void setLocalShort(u16 index, i16 value);
-            void setLocalInt(u16 index, i32 value);
-            void setLocalLong(u16 index, i64 value);
+            void swap();
+            void swap2();
+
+            Int getLocalInt(u16 index);
+            Long getLocalLong(u16 index);
+            Handle getLocalHandle(u16 index);
+            ObjectRef getLocalObject(u16 index);
+            Object* getLocalObjectWeak(u16 index);
+
+            void setLocalInt(u16 index, Int value);
+            void setLocalLong(u16 index, Long value);
+            void setLocalHandle(u16 index, Handle value);
+            void setLocalObject(u16 index, Object* object);
 
             ConstPool& getConstPool() const;
             Module* getCurrentModule() const;
@@ -40,6 +56,13 @@ namespace JesusVM {
             u8* getReturnAddress() const;
 
         private:
+            enum class ElementType : u8 {
+                INT,
+                LONG,
+                HANDLE,
+                REFERENCE,
+            };
+
             std::unique_ptr<Frame> mPrevious;
 
             u16 mLocalCount;
@@ -48,6 +71,7 @@ namespace JesusVM {
 
             std::unique_ptr<i32[]> mLocals;
             std::unique_ptr<i32[]> mStack;
+            std::vector<ElementType> mTypes;
 
             ConstPool& mConstPool;
 
@@ -55,6 +79,17 @@ namespace JesusVM {
             Function* mCurrentFunction;
 
             u8* mReturnAddress;
+
+            void push1(i32 value);
+            void push2(i64 value);
+
+            i32 pop1();
+            i64 pop2();
+
+            void pushType(ElementType type);
+            ElementType popType();
+
+            u32 getTypeSize(ElementType type);
         };
 
     public:

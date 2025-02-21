@@ -53,14 +53,69 @@ namespace JesusVM {
 		void andInsn();
 		void orInsn();
 		void xorInsn();
+        void shlInsn();
+        void shrInsn();
 		void landInsn();
 		void lorInsn();
 		void lxorInsn();
+        void lshlInsn();
+        void lshrInsn();
 
 		void notInsn();
 		void negInsn();
 		void lnotInsn();
 		void lnegInsn();
+
+        void dupInsn();
+        void dup2Insn();
+
+        void swapInsn();
+        void swap2Insn();
+
+        void iloadInsn(bool wide);
+        void istoreInsn(bool wide);
+
+        void lloadInsn(bool wide);
+        void lstoreInsn(bool wide);
+
+        void hloadInsn(bool wide);
+        void hstoreInsn(bool wide);
+
+        void rloadInsn(bool wide);
+        void rstoreInsn(bool wide);
+        void rload_0Insn();
+
+        void baloadInsn();
+        void bastoreInsn();
+
+        void caloadInsn();
+        void castoreInsn();
+
+        void saloadInsn();
+        void sastoreInsn();
+
+        void ialoadInsn();
+        void iastoreInsn();
+
+        void laloadInsn();
+        void lastoreInsn();
+
+        void haloadInsn();
+        void hastoreInsn();
+
+        void raloadInsn();
+        void rastoreInsn();
+
+        void arraylengthInsn();
+
+        void newInsn();
+        void newarrayInsn();
+        void rnewarrayInsn();
+
+        void isinstanceInsn();
+
+        void getfieldInsn();
+        void setfieldInsn();
 
 		void jmp_icmpeqInsn();
 		void jmp_icmpneInsn();
@@ -68,6 +123,15 @@ namespace JesusVM {
 		void jmp_icmpgtInsn();
 		void jmp_icmpleInsn();
 		void jmp_icmpgeInsn();
+
+        void jmp_hcmpeqInsn();
+        void jmp_hcmpneInsn();
+
+        void jmp_rcmpeqInsn();
+        void jmp_rcmpneInsn();
+
+        void jmp_nullInsn();
+        void jmp_nonnullInsn();
 
 		void jmpeqInsn();
 		void jmpneInsn();
@@ -79,20 +143,33 @@ namespace JesusVM {
 
 		void icmpInsn();
 		void lcmpInsn();
+        void hcmpInsn();
+        void rcmpInsn();
 
-		void bpushInsn();
+        void bpushInsn();
 		void spushInsn();
 		void ipushInsn();
 		void lpushInsn();
 
+        void i2bInsn();
+        void i2sInsn();
+        void i2lInsn();
+        void x2_i2lInsn();
+        void l2iInsn();
+
 		void constInsn(i32 value);
 		void lconstInsn(i64 value);
+
+        void hconst_nullInsn();
+        void rconst_nullInsn();
 
         void callInsn(bool wide);
 
 		void returnInsn();
         void ireturnInsn();
         void lreturnInsn();
+        void hreturnInsn();
+        void rreturnInsn();
 	};
 }
 

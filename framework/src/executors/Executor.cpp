@@ -401,7 +401,21 @@ namespace JesusVM {
 
 		mFrame->push(lhs ^ rhs);
 	}
-	
+
+    void Executor::shlInsn() {
+        i32 rhs = mFrame->pop();
+        i32 lhs = mFrame->pop();
+
+        mFrame->push(lhs << rhs);
+    }
+
+    void Executor::shrInsn() {
+        i32 rhs = mFrame->pop();
+        i32 lhs = mFrame->pop();
+
+        mFrame->push(lhs >> rhs);
+    }
+
 	void Executor::landInsn() {
 		i64 rhs = mFrame->popLong();
 		i64 lhs = mFrame->popLong();
@@ -423,6 +437,20 @@ namespace JesusVM {
 		mFrame->pushLong(lhs ^ rhs);
 	}
 
+    void Executor::lshlInsn() {
+        i64 rhs = mFrame->popLong();
+        i64 lhs = mFrame->popLong();
+
+        mFrame->pushLong(lhs << rhs);
+    }
+
+    void Executor::lshrInsn() {
+        i64 rhs = mFrame->popLong();
+        i64 lhs = mFrame->popLong();
+
+        mFrame->pushLong(lhs >> rhs);
+    }
+
 	void Executor::notInsn() {
 		i32 value = mFrame->pop();
 		mFrame->push(~value);
@@ -442,6 +470,304 @@ namespace JesusVM {
 		i32 value = mFrame->popLong();
 		mFrame->pushLong(-value);
 	}
+
+    void Executor::dupInsn() {
+        mFrame->dup();
+    }
+
+    void Executor::dup2Insn() {
+        mFrame->dup2();
+    }
+
+    void Executor::swapInsn() {
+        mFrame->swap();
+    }
+
+    void Executor::swap2Insn() {
+        mFrame->swap2();
+    }
+
+    void Executor::iloadInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        mFrame->push(mFrame->getLocalInt(index));
+    }
+
+    void Executor::istoreInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        auto value = mFrame->pop();
+        mFrame->setLocalInt(index, value);
+    }
+
+    void Executor::lloadInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        mFrame->pushLong(mFrame->getLocalLong(index));
+    }
+
+    void Executor::lstoreInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        auto value = mFrame->popLong();
+        mFrame->setLocalLong(index, value);
+    }
+
+    void Executor::hloadInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        mFrame->pushHandle(mFrame->getLocalHandle(index));
+    }
+
+    void Executor::hstoreInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        auto value = mFrame->popHandle();
+        mFrame->setLocalHandle(index, value);
+    }
+
+    void Executor::rloadInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        mFrame->pushObject(mFrame->getLocalObjectWeak(index));
+    }
+
+    void Executor::rstoreInsn(bool wide) {
+        u16 index = wide ? getShort() : getByte();
+
+        auto value = mFrame->popObject();
+        mFrame->setLocalObject(index, value);
+    }
+
+    void Executor::rload_0Insn() {
+        mFrame->pushObject(mFrame->getLocalObjectWeak(0));
+    }
+
+    void Executor::baloadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "baload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "baload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a byte array
+
+        auto array = ref->getArrayElements<Byte>();
+
+        mFrame->push(array[index]);
+    }
+
+    void Executor::bastoreInsn() {
+        auto value = static_cast<Byte>(mFrame->pop());
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "bastore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "bastore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a byte array
+
+        auto array = ref->getArrayElements<Byte>();
+
+        array[index] = value;
+    }
+
+    void Executor::caloadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "caload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "caload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a char array
+
+        auto array = ref->getArrayElements<Char>();
+
+        mFrame->push(array[index]);
+    }
+
+    void Executor::castoreInsn() {
+        auto value = static_cast<Char>(mFrame->pop());
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "castore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "castore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a byte array
+
+        auto array = ref->getArrayElements<Char>();
+
+        array[index] = value;
+    }
+
+    void Executor::saloadInsn() {
+
+    }
+
+    void Executor::sastoreInsn() {
+        auto value = static_cast<Short>(mFrame->pop());
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "sastore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "sastore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a short array
+
+        auto array = ref->getArrayElements<Short>();
+
+        array[index] = value;
+    }
+
+    void Executor::ialoadInsn() {
+
+    }
+
+    void Executor::iastoreInsn() {
+        auto value = static_cast<Int>(mFrame->pop());
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "iastore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "iastore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a int array
+
+        auto array = ref->getArrayElements<Int>();
+
+        array[index] = value;
+    }
+
+    void Executor::laloadInsn() {
+
+    }
+
+    void Executor::lastoreInsn() {
+        Long value = mFrame->popLong();
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "lastore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "lastore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a long array
+
+        auto array = ref->getArrayElements<Long>();
+
+        array[index] = value;
+    }
+
+    void Executor::haloadInsn() {
+
+    }
+
+    void Executor::hastoreInsn() {
+        Handle value = mFrame->popHandle();
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "hastore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "hastore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a long array
+
+        auto array = ref->getArrayElements<Handle>();
+
+        array[index] = value;
+    }
+
+    void Executor::raloadInsn() {
+
+    }
+
+    void Executor::rastoreInsn() {
+
+    }
+
+    void Executor::arraylengthInsn() {
+
+    }
+
+    void Executor::newInsn() {
+
+    }
+
+    void Executor::newarrayInsn() {
+
+    }
+
+    void Executor::rnewarrayInsn() {
+
+    }
+
+    void Executor::isinstanceInsn() {
+
+    }
+
+    void Executor::getfieldInsn() {
+
+    }
+
+    void Executor::setfieldInsn() {
+
+    }
 
 	void Executor::jmp_icmpeqInsn() {
 		i16 branch = getShort(); // relative
@@ -508,6 +834,31 @@ namespace JesusVM {
 			mPC += branch;
 		}
 	}
+
+
+    void Executor::jmp_hcmpeqInsn() {
+
+    }
+
+    void Executor::jmp_hcmpneInsn() {
+
+    }
+
+    void Executor::jmp_rcmpeqInsn() {
+
+    }
+
+    void Executor::jmp_rcmpneInsn() {
+
+    }
+
+    void Executor::jmp_nullInsn() {
+
+    }
+
+    void Executor::jmp_nonnullInsn() {
+
+    }
 
 	void Executor::jmpeqInsn() {
 		i16 branch = getShort(); // relative
@@ -592,6 +943,14 @@ namespace JesusVM {
 		else mFrame->push(0);
 	}
 
+    void Executor::hcmpInsn() {
+
+    }
+
+    void Executor::rcmpInsn() {
+
+    }
+
 	void Executor::bpushInsn() {
 		i8 value = getByte();
 		mFrame->push(value);
@@ -612,6 +971,26 @@ namespace JesusVM {
 		mFrame->pushLong(value);
 	}
 
+    void Executor::i2bInsn() {
+
+    }
+
+    void Executor::i2sInsn() {
+
+    }
+
+    void Executor::i2lInsn() {
+
+    }
+
+    void Executor::x2_i2lInsn() {
+
+    }
+
+    void Executor::l2iInsn() {
+
+    }
+
 	void Executor::constInsn(i32 value) {
 		mFrame->push(value);
 	}
@@ -619,6 +998,14 @@ namespace JesusVM {
 	void Executor::lconstInsn(i64 value) {
 		mFrame->pushLong(value);
 	}
+
+    void Executor::hconst_nullInsn() {
+
+    }
+
+    void Executor::rconst_nullInsn() {
+
+    }
 
     void Executor::callInsn(bool wide) {
         u32 index = wide ? getInt() : getShort();
@@ -750,5 +1137,13 @@ namespace JesusVM {
         } else {
             mFrame->pushLong(value);
         }
+    }
+
+    void Executor::hreturnInsn() {
+
+    }
+
+    void Executor::rreturnInsn() {
+
     }
 }

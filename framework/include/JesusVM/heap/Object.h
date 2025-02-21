@@ -24,10 +24,10 @@ namespace JesusVM {
     friend Object* AllocArray(Class* clas, Int size);
     public:
         Class* getClass();
-        u64 getReferenceCount() const;
+        i32 getReferenceCount() const;
 
         Array* toArray();
-        u64 getArrayLength();
+        Int getArrayLength();
 
         bool isInstance(Class* clas);
 
@@ -58,7 +58,89 @@ namespace JesusVM {
 
         Class* mClass;
 
-        std::atomic<u64> mRefCount;
+        std::atomic<i32> mRefCount;
+    };
+
+    class ObjectRef {
+    public:
+        ObjectRef(Object* object) : mObject(object) {
+            if (mObject != nullptr)
+                mObject->addReference();
+        }
+
+        ObjectRef(Object* object, bool) : mObject(object) {}
+
+        ObjectRef(std::nullptr_t = nullptr) : mObject(nullptr) {}
+
+        ObjectRef(const ObjectRef& other) : mObject(other.mObject) {
+            if (mObject != nullptr) {
+                mObject->addReference();
+            }
+        }
+
+        ObjectRef(ObjectRef&& other) : mObject(other.mObject) {
+            other.mObject = nullptr;
+        }
+
+        ~ObjectRef() {
+            if (mObject != nullptr) {
+                mObject->removeReference();
+            }
+        }
+
+        ObjectRef& operator=(const ObjectRef& other) {
+            if (&other != this) {
+                mObject = other.mObject;
+                mObject->addReference();
+            }
+
+            return *this;
+        }
+
+        ObjectRef& operator=(ObjectRef&& other) noexcept {
+            mObject = other.mObject;
+            other.mObject = nullptr;
+
+            return *this;
+        }
+
+        void release() {
+            if (mObject != nullptr) {
+                mObject->removeReference();
+                mObject = nullptr;
+            }
+        }
+
+        operator Object*() {
+            return mObject;
+        }
+
+        Object* operator->() {
+            return mObject;
+        }
+
+        bool operator==(const ObjectRef& other) const {
+            return *this == other.mObject;
+        }
+
+        bool operator==(Object* other) const {
+            return mObject == other;
+        }
+
+        bool operator!=(const ObjectRef& other) const {
+            return *this != other.mObject;
+        }
+
+        bool operator!=(Object* other) const {
+            return mObject != other;
+        }
+
+        operator bool() const {
+            return mObject != nullptr;
+        }
+
+    private:
+        Object* mObject;
     };
 
     struct Array {

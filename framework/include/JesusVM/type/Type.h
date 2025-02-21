@@ -13,7 +13,7 @@ namespace JesusVM {
     class Function;
     class Field;
 
-    enum class Type {
+    enum class Type : u8 {
         VOID,
         REFERENCE,
         HANDLE,
@@ -48,11 +48,11 @@ namespace JesusVM {
         bool parse(std::string_view descriptor, u32* index);
 
         bool is64Bit() const {
-#ifdef JESUSVM_CONFIG_32BIT
+#       ifdef JESUSVM_CONFIG_32BIT
             return mType == Type::LONG || mType == Type::DOUBLE;
-#else
+#       else
             return mType == Type::LONG || mType == Type::REFERENCE || mType == Type::DOUBLE || mType == Type::HANDLE;
-#endif
+#       endif
         }
 
         bool isFloat() const { return mType == Type::FLOAT || mType == Type::DOUBLE; }
