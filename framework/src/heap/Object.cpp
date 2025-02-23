@@ -192,7 +192,20 @@ namespace JesusVM {
         , size(size) {}
 
     ObjectRef AllocObject(Class* clas) {
-        return nullptr;
+#ifdef PLATFORM_WINDOWS
+        u8* memory = static_cast<u8*>(_aligned_malloc(clas->getTotalSize(), alignof(Array)));
+#else
+        u8* memory = static_cast<u8*>(std::aligned_alloc(alignof(Array), clas->getTotalSize();));
+#endif
+
+        if (memory == nullptr) {
+            return nullptr; //TODO: out-of-memory error
+        }
+
+        std::memset(memory, 0, clas->getTotalSize());
+
+        auto object = new(memory) Object(clas);
+        return object;
     }
 
     ObjectRef AllocArray(Class* clas, Int size) {
@@ -207,12 +220,9 @@ namespace JesusVM {
             return nullptr; //TODO: out-of-memory error
         }
 
-        auto array = new(memory) Array(clas, size);
+        std::memset(memory, 0, totalSize);
 
-        auto elements = array->object.getArrayElements<Object*>();
-        for (Int i = 0; i < size; i++) {
-            elements[i] = nullptr;
-        }
+        auto array = new(memory) Array(clas, size);
 
         return &array->object;
     }
@@ -230,7 +240,9 @@ namespace JesusVM {
         if (memory == nullptr) {
             return nullptr; //TODO: out-of-memory error
         }
-        
+
+        std::memset(memory, 0, totalSize);
+
         Class* clas;
 
         switch (typeId) {

@@ -8,6 +8,10 @@
 #include <algorithm>
 
 namespace JesusVM {
+    static inline u64 align_up(u64 x, u64 alignment) {
+        return (x + (alignment - 1)) & ~(alignment - 1);
+    }
+
     Class::Class(Module* module, moduleweb_class_info* info)
         : mInfo(info)
         , mModule(module)
@@ -116,6 +120,14 @@ namespace JesusVM {
 	std::string_view Class::getName() const {
 		return mName;
 	}
+
+    u64 Class::getFieldBufferSize() const {
+        return mMemorySize;
+    }
+
+    u64 Class::getTotalSize() const {
+        return getFieldBufferSize() + align_up(sizeof(Object), 16);
+    }
 
     bool Class::isAssignableTo(Class* other) const {
         if (other == nullptr) return false;
