@@ -402,7 +402,7 @@ namespace JesusVM::Linker {
         return vmModule;
     }
 
-    static Module* LoadSystemModule() {
+    static Module* LoadSystemModule() { // this intentionally doesn't use rt::vm::System
         static Module* cache = nullptr;
 
         if (cache == nullptr) {
@@ -550,11 +550,9 @@ namespace JesusVM::Linker {
         }
 
         if (module->mLinker != nullptr) {
-            if (basicType.isPrimitiveArrayType()) {
-                if (!systemModule) {
-                    module = LoadSystemModule();
-                    systemModule = true;
-                }
+            if (basicType.isPrimitiveArrayType() && !systemModule) {
+                module = LoadSystemModule();
+                systemModule = true;
             }
 
             if (!basicType.isArray()) {

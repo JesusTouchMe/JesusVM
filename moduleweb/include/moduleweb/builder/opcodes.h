@@ -97,8 +97,11 @@ typedef enum moduleweb_opcodes {
     JMP_RCMPEQ,
     JMP_RCMPNE,
 
-    JMP_NULL,
-    JMP_NONNULL,
+    JMP_HNULL,
+    JMP_HNONNULL,
+
+    JMP_RNULL,
+    JMP_RNONNULL,
 
     JMPEQ,
     JMPNE,
@@ -121,7 +124,6 @@ typedef enum moduleweb_opcodes {
     I2B,
     I2S,
     I2L,
-    X2_I2L,
     L2I,
 
     CONST_M1,

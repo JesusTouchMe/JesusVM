@@ -14,7 +14,8 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
         src/constpool/Constant.cpp
     src/executors/Threading.cpp
     src/Preload.cpp
-    src/runtime/vm/System.cpp)
+    src/runtime/vm/System.cpp
+    src/constpool/ConstantField.cpp)
 
 set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/executors/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
         include/JesusVM/heap/Object.h
@@ -27,6 +28,7 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
     include/JesusVM/runtime/vm/System.h
     include/JesusVM/Preload-Classes.h
     include/JesusVM/Preload-Functions.h
+    include/JesusVM/constpool/ConstantField.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

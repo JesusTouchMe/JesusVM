@@ -14,6 +14,7 @@
 #include <string_view>
 
 namespace JesusVM {
+    class ConstantName;
 	class Module;
     class Object;
 
@@ -56,6 +57,9 @@ namespace JesusVM {
         ClassKind getKind() const;
         ClassState getState() const;
 		std::string_view getName() const;
+
+        Field* getField(std::string_view name, std::string_view descriptor);
+        Field* getField(ConstantName* name);
 
         bool isPublic() const;
         bool isPrivate() const;

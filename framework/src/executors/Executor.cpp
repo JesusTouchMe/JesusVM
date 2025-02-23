@@ -2,6 +2,8 @@
 
 #include "JesusVM/bytecode/Opcodes.h"
 
+#include "JesusVM/constpool/ConstantClass.h"
+#include "JesusVM/constpool/ConstantField.h"
 #include "JesusVM/constpool/ConstantFunc.h"
 #include "JesusVM/constpool/ConstPool.h"
 
@@ -127,6 +129,14 @@ namespace JesusVM {
                 xorInsn();
                 break;
 
+            case Opcodes::SHL:
+                shlInsn();
+                break;
+
+            case Opcodes::SHR:
+                shrInsn();
+                break;
+
             case Opcodes::LAND:
                 landInsn();
                 break;
@@ -137,6 +147,14 @@ namespace JesusVM {
 
             case Opcodes::LXOR:
                 lxorInsn();
+                break;
+
+            case Opcodes::LSHL:
+                lshlInsn();
+                break;
+
+            case Opcodes::LSHR:
+                lshrInsn();
                 break;
 
             case Opcodes::NOT:
@@ -153,6 +171,142 @@ namespace JesusVM {
 
             case Opcodes::LNEG:
                 lnegInsn();
+                break;
+
+            case Opcodes::DUP:
+                dupInsn();
+                break;
+
+            case Opcodes::DUP2:
+                dup2Insn();
+                break;
+
+            case Opcodes::SWAP:
+                swapInsn();
+                break;
+
+            case Opcodes::SWAP2:
+                swap2Insn();
+                break;
+
+            case Opcodes::ILOAD:
+                iloadInsn(wide);
+                break;
+
+            case Opcodes::ISTORE:
+                istoreInsn(wide);
+                break;
+
+            case Opcodes::LLOAD:
+                lloadInsn(wide);
+                break;
+
+            case Opcodes::LSTORE:
+                lstoreInsn(wide);
+                break;
+
+            case Opcodes::HLOAD:
+                hloadInsn(wide);
+                break;
+
+            case Opcodes::HSTORE:
+                hstoreInsn(wide);
+                break;
+
+            case Opcodes::RLOAD:
+                rloadInsn(wide);
+                break;
+
+            case Opcodes::RSTORE:
+                rstoreInsn(wide);
+                break;
+
+            case Opcodes::RLOAD_0:
+                rload_0Insn();
+                break;
+
+            case Opcodes::BALOAD:
+                baloadInsn();
+                break;
+
+            case Opcodes::BASTORE:
+                bastoreInsn();
+                break;
+
+            case Opcodes::CALOAD:
+                caloadInsn();
+                break;
+
+            case Opcodes::CASTORE:
+                castoreInsn();
+                break;
+
+            case Opcodes::SALOAD:
+                saloadInsn();
+                break;
+
+            case Opcodes::SASTORE:
+                sastoreInsn();
+                break;
+
+            case Opcodes::IALOAD:
+                ialoadInsn();
+                break;
+
+            case Opcodes::IASTORE:
+                iastoreInsn();
+                break;
+
+            case Opcodes::LALOAD:
+                laloadInsn();
+                break;
+
+            case Opcodes::LASTORE:
+                lastoreInsn();
+                break;
+
+            case Opcodes::HALOAD:
+                haloadInsn();
+                break;
+
+            case Opcodes::HASTORE:
+                hastoreInsn();
+                break;
+
+            case Opcodes::RALOAD:
+                raloadInsn();
+                break;
+
+            case Opcodes::RASTORE:
+                rastoreInsn();
+                break;
+
+            case Opcodes::ARRAYLENGTH:
+                arraylengthInsn();
+                break;
+
+            case Opcodes::NEW:
+                newInsn(wide);
+                break;
+
+            case Opcodes::NEWARRAY:
+                newarrayInsn();
+                break;
+
+            case Opcodes::RNEWARRAY:
+                rnewarrayInsn(wide);
+                break;
+
+            case Opcodes::ISINSTANCE:
+                isinstanceInsn(wide);
+                break;
+
+            case Opcodes::GETFIELD:
+                getfieldInsn(wide);
+                break;
+
+            case Opcodes::SETFIELD:
+                setfieldInsn(wide);
                 break;
 
             case Opcodes::JMP_ICMPEQ:
@@ -177,6 +331,38 @@ namespace JesusVM {
 
             case Opcodes::JMP_ICMPGE:
                 jmp_icmpgeInsn();
+                break;
+
+            case Opcodes::JMP_HCMPEQ:
+                jmp_hcmpeqInsn();
+                break;
+
+            case Opcodes::JMP_HCMPNE:
+                jmp_hcmpneInsn();
+                break;
+
+            case Opcodes::JMP_RCMPEQ:
+                jmp_rcmpeqInsn();
+                break;
+
+            case Opcodes::JMP_RCMPNE:
+                jmp_rcmpneInsn();
+                break;
+
+            case Opcodes::JMP_HNULL:
+                jmp_hnullInsn();
+                break;
+
+            case Opcodes::JMP_HNONNULL:
+                jmp_hnonnullInsn();
+                break;
+
+            case Opcodes::JMP_RNULL:
+                jmp_rnullInsn();
+                break;
+
+            case Opcodes::JMP_RNONNULL:
+                jmp_rnonnullInsn();
                 break;
 
             case Opcodes::JMPEQ:
@@ -215,6 +401,14 @@ namespace JesusVM {
                 lcmpInsn();
                 break;
 
+            case Opcodes::HCMP:
+                hcmpInsn();
+                break;
+
+            case Opcodes::RCMP:
+                rcmpInsn();
+                break;
+
             case Opcodes::BPUSH:
                 bpushInsn();
                 break;
@@ -229,6 +423,22 @@ namespace JesusVM {
 
             case Opcodes::LPUSH:
                 lpushInsn();
+                break;
+
+            case Opcodes::I2B:
+                i2bInsn();
+                break;
+
+            case Opcodes::I2S:
+                i2sInsn();
+                break;
+
+            case Opcodes::I2L:
+                i2lInsn();
+                break;
+
+            case Opcodes::L2I:
+                l2iInsn();
                 break;
 
             case Opcodes::CONST_M1:
@@ -251,6 +461,13 @@ namespace JesusVM {
                 lconstInsn(1);
                 break;
 
+            case Opcodes::HCONST_NULL:
+                hconst_nullInsn();
+                break;
+
+            case Opcodes::RCONST_NULL:
+                rconst_nullInsn();
+
             case Opcodes::CALL:
                 callInsn(wide);
                 break;
@@ -267,9 +484,22 @@ namespace JesusVM {
                 lreturnInsn();
                 break;
 
+            case Opcodes::HRETURN:
+                hreturnInsn();
+                break;
+
+            case Opcodes::RRETURN:
+                rreturnInsn();
+                break;
+
             case Opcodes::WIDE:
                 executeInstruction(true);
                 break;
+
+            case Opcodes::BREAKPOINT:
+            case Opcodes::RESERVE1:
+            case Opcodes::RESERVE2:
+                break; // these are official instructions that are meant for debuggers or other special vm stuff
 
 			default:
 				std::cout << "Unknown instruction: " << static_cast<i32>(instruction) << ". TODO: proper error stuff\n";
@@ -547,6 +777,8 @@ namespace JesusVM {
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "baload: reference is not an array reference\n";
             std::exit(1);
@@ -569,6 +801,8 @@ namespace JesusVM {
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "bastore: reference is not an array reference\n";
             std::exit(1);
@@ -589,6 +823,8 @@ namespace JesusVM {
     void Executor::caloadInsn() {
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
+
+        ref->nullCheck();
 
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "caload: reference is not an array reference\n";
@@ -612,6 +848,8 @@ namespace JesusVM {
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "castore: reference is not an array reference\n";
             std::exit(1);
@@ -630,13 +868,34 @@ namespace JesusVM {
     }
 
     void Executor::saloadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "saload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "saload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a short array
+
+        auto array = ref->getArrayElements<Short>();
+
+        mFrame->push(array[index]);
     }
 
     void Executor::sastoreInsn() {
         auto value = static_cast<Short>(mFrame->pop());
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
+
+        ref->nullCheck();
 
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "sastore: reference is not an array reference\n";
@@ -656,13 +915,34 @@ namespace JesusVM {
     }
 
     void Executor::ialoadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "iaload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "iaload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a int array
+
+        auto array = ref->getArrayElements<Int>();
+
+        mFrame->push(array[index]);
     }
 
     void Executor::iastoreInsn() {
         auto value = static_cast<Int>(mFrame->pop());
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
+
+        ref->nullCheck();
 
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "iastore: reference is not an array reference\n";
@@ -682,13 +962,34 @@ namespace JesusVM {
     }
 
     void Executor::laloadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "laload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "laload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a long array
+
+        auto array = ref->getArrayElements<Long>();
+
+        mFrame->pushLong(array[index]);
     }
 
     void Executor::lastoreInsn() {
         Long value = mFrame->popLong();
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
+
+        ref->nullCheck();
 
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "lastore: reference is not an array reference\n";
@@ -708,13 +1009,34 @@ namespace JesusVM {
     }
 
     void Executor::haloadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "haload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "haload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a handle array
+
+        auto array = ref->getArrayElements<Handle>();
+
+        mFrame->pushHandle(array[index]);
     }
 
     void Executor::hastoreInsn() {
         Handle value = mFrame->popHandle();
         Int index = mFrame->pop();
         ObjectRef ref = mFrame->popObject();
+
+        ref->nullCheck();
 
         if (ref->getClass()->getKind() != ClassKind::ARRAY) {
             std::cout << "hastore: reference is not an array reference\n";
@@ -726,7 +1048,7 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        // TODO: check if the ref is a long array
+        // TODO: check if the ref is a handle array
 
         auto array = ref->getArrayElements<Handle>();
 
@@ -734,39 +1056,260 @@ namespace JesusVM {
     }
 
     void Executor::raloadInsn() {
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "raload: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "raload: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a char array
+
+        auto array = ref->getArrayElements<Object*>();
+
+        mFrame->pushObject(array[index]);
     }
 
     void Executor::rastoreInsn() {
+        ObjectRef value = mFrame->popObject();
+        Int index = mFrame->pop();
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "rastore: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        if (index < 0 || index >= ref->getArrayLength()) {
+            std::cout << "rastore: index out of bounds\n";
+            std::exit(1);
+        }
+
+        // TODO: check if the ref is a reference array
+
+        auto array = ref->getArrayElements<Object*>();
+
+        array[index] = value;
+        value->addReference(); // the array gets its reference here, we lose our reference right after from destructor
     }
 
     void Executor::arraylengthInsn() {
+        ObjectRef ref = mFrame->popObject();
 
+        ref->nullCheck();
+
+        if (ref->getClass()->getKind() != ClassKind::ARRAY) {
+            std::cout << "arraylength: reference is not an array reference\n";
+            std::exit(1);
+        }
+
+        mFrame->push(ref->getArrayLength());
     }
 
-    void Executor::newInsn() {
+    void Executor::newInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto classRef = mFrame->getConstPool().get<ConstantClass>(index);
 
+        if (classRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        ObjectRef obj = AllocObject(classRef->getClass()); // we get our reference from the alloc call
+
+        mFrame->pushObject(obj);
     }
 
     void Executor::newarrayInsn() {
+        u8 typeId = getByte();
+        Int size = mFrame->pop();
 
+        ObjectRef array = AllocPrimitiveArray(typeId, size);
+
+        mFrame->pushObject(array);
     }
 
-    void Executor::rnewarrayInsn() {
+    void Executor::rnewarrayInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto classRef = mFrame->getConstPool().get<ConstantClass>(index);
 
+        if (classRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        Int size = mFrame->pop();
+
+        ObjectRef array = AllocArray(classRef->getClass(), size);
+
+        mFrame->pushObject(array);
     }
 
-    void Executor::isinstanceInsn() {
+    void Executor::isinstanceInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto classRef = mFrame->getConstPool().get<ConstantClass>(index);
 
+        if (classRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        ObjectRef object = mFrame->popObject();
+        object->nullCheck();
+
+        mFrame->push(object->isInstance(classRef->getClass()));
     }
 
-    void Executor::getfieldInsn() {
+    void Executor::getfieldInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto fieldRef = mFrame->getConstPool().get<ConstantField>(index);
 
+        if (fieldRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        ObjectRef object = mFrame->popObject();
+
+        Field* field = fieldRef->getField();
+
+        object->nullCheck();
+
+        switch (field->getType().getInternalType()) {
+            case Type::REFERENCE:
+                mFrame->pushObject(object->getObject(field));
+                break;
+            case Type::HANDLE:
+                mFrame->pushHandle(object->getHandle(field));
+                break;
+            case Type::BYTE:
+                mFrame->push(object->getByte(field));
+                break;
+            case Type::SHORT:
+                mFrame->push(object->getShort(field));
+                break;
+            case Type::INT:
+                mFrame->push(object->getInt(field));
+                break;
+            case Type::LONG:
+                mFrame->pushLong(object->getLong(field));
+                break;
+            case Type::CHAR:
+                mFrame->push(object->getChar(field));
+                break;
+            case Type::FLOAT:
+                std::cout << "float is NOT supported yet\n";
+                std::exit(1);
+            case Type::DOUBLE:
+                std::cout << "double is NOT supported yet\n";
+                std::exit(1);
+            case Type::BOOL:
+                mFrame->push(object->getBool(field));
+                break;
+        }
     }
 
-    void Executor::setfieldInsn() {
+    void Executor::setfieldInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto fieldRef = mFrame->getConstPool().get<ConstantField>(index);
 
+        if (fieldRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        Field* field = fieldRef->getField();
+
+        switch (field->getType().getInternalType()) {
+            case Type::REFERENCE: {
+                ObjectRef value = mFrame->popObject();
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setObject(field, value);
+                break;
+            }
+            case Type::HANDLE: {
+                Handle value = mFrame->popHandle();
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setHandle(field, value);
+                break;
+            }
+            case Type::BYTE: {
+                auto value = static_cast<Byte>(mFrame->pop());
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setByte(field, value);
+                break;
+            }
+            case Type::SHORT: {
+                auto value = static_cast<Short>(mFrame->pop());
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setShort(field, value);
+                break;
+            }
+            case Type::INT: {
+                Int value = mFrame->pop();
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setInt(field, value);
+                break;
+            }
+            case Type::LONG: {
+                Long value = mFrame->popLong();
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setLong(field, value);
+                break;
+            }
+            case Type::CHAR: {
+                auto value = static_cast<Char>(mFrame->pop());
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setChar(field, value);
+                break;
+            }
+            case Type::FLOAT:
+                std::cout << "float is NOT supported yet\n";
+                std::exit(1);
+            case Type::DOUBLE:
+                std::cout << "double is NOT supported yet\n";
+                std::exit(1);
+            case Type::BOOL: {
+                auto value = static_cast<Bool>(mFrame->pop());
+                ObjectRef object = mFrame->popObject();
+
+                object->nullCheck();
+
+                object->setBool(field, value);
+                break;
+            }
+        }
     }
 
 	void Executor::jmp_icmpeqInsn() {
@@ -837,27 +1380,87 @@ namespace JesusVM {
 
 
     void Executor::jmp_hcmpeqInsn() {
+        i16 branch = getShort(); // relative
 
+        Handle rhs = mFrame->popHandle();
+        Handle lhs = mFrame->popHandle();
+
+        if (lhs == rhs) {
+            mPC += branch;
+        }
     }
 
     void Executor::jmp_hcmpneInsn() {
+        i16 branch = getShort(); // relative
 
+        Handle rhs = mFrame->popHandle();
+        Handle lhs = mFrame->popHandle();
+
+        if (lhs != rhs) {
+            mPC += branch;
+        }
     }
 
     void Executor::jmp_rcmpeqInsn() {
+        i16 branch = getShort(); // relative
 
+        ObjectRef rhs = mFrame->popObject();
+        ObjectRef lhs = mFrame->popObject();
+
+        if (lhs == rhs) {
+            mPC += branch;
+        }
     }
 
     void Executor::jmp_rcmpneInsn() {
+        i16 branch = getShort(); // relative
 
+        ObjectRef rhs = mFrame->popObject();
+        ObjectRef lhs = mFrame->popObject();
+
+        if (lhs != rhs) {
+            mPC += branch;
+        }
     }
 
-    void Executor::jmp_nullInsn() {
+    void Executor::jmp_hnullInsn() {
+        i16 branch = getShort(); // relative
 
+        Handle value = mFrame->popHandle();
+
+        if (value == nullptr) {
+            mPC += branch;
+        }
     }
 
-    void Executor::jmp_nonnullInsn() {
+    void Executor::jmp_hnonnullInsn() {
+        i16 branch = getShort(); // relative
 
+        Handle value = mFrame->popHandle();
+
+        if (value != nullptr) {
+            mPC += branch;
+        }
+    }
+
+    void Executor::jmp_rnullInsn() {
+        i16 branch = getShort(); // relative
+
+        ObjectRef value = mFrame->popObject();
+
+        if (value == nullptr) {
+            mPC += branch;
+        }
+    }
+
+    void Executor::jmp_rnonnullInsn() {
+        i16 branch = getShort(); // relative
+
+        ObjectRef value = mFrame->popObject();
+
+        if (value != nullptr) {
+            mPC += branch;
+        }
     }
 
 	void Executor::jmpeqInsn() {
@@ -944,11 +1547,21 @@ namespace JesusVM {
 	}
 
     void Executor::hcmpInsn() {
+        Handle rhs = mFrame->popHandle();
+        Handle lhs = mFrame->popHandle();
 
+        if (lhs < rhs) mFrame->push(-1);
+        else if (lhs > rhs) mFrame->push(1);
+        else mFrame->push(0);
     }
 
     void Executor::rcmpInsn() {
+        ObjectRef rhs = mFrame->popObject();
+        ObjectRef lhs = mFrame->popObject();
 
+        if (lhs.get() < rhs.get()) mFrame->push(-1);
+        else if (lhs.get() > rhs.get()) mFrame->push(1);
+        else mFrame->push(0);
     }
 
 	void Executor::bpushInsn() {
@@ -972,23 +1585,23 @@ namespace JesusVM {
 	}
 
     void Executor::i2bInsn() {
-
+        Int value = mFrame->pop();
+        mFrame->push(static_cast<Byte>(value));
     }
 
     void Executor::i2sInsn() {
-
+        Int value = mFrame->pop();
+        mFrame->push(static_cast<Short>(value));
     }
 
     void Executor::i2lInsn() {
-
-    }
-
-    void Executor::x2_i2lInsn() {
-
+        Int value = mFrame->pop();
+        mFrame->pushLong(value);
     }
 
     void Executor::l2iInsn() {
-
+        Long value = mFrame->popLong();
+        mFrame->push(static_cast<Int>(value));
     }
 
 	void Executor::constInsn(i32 value) {
@@ -1000,23 +1613,23 @@ namespace JesusVM {
 	}
 
     void Executor::hconst_nullInsn() {
-
+        mFrame->pushHandle(nullptr);
     }
 
     void Executor::rconst_nullInsn() {
-
+        mFrame->pushObject(nullptr);
     }
 
     void Executor::callInsn(bool wide) {
         u32 index = wide ? getInt() : getShort();
-        ConstantFunc* constant = mFrame->getConstPool().get<ConstantFunc>(index);
+        auto funcRef = mFrame->getConstPool().get<ConstantFunc>(index);
 
-        if (constant == nullptr) {
+        if (funcRef == nullptr) {
             std::cout << "constant index out of bounds. todo: better errors\n";
             std::exit(1);
         }
 
-        Function* func = constant->getFunction();
+        Function* func = funcRef->getFunction();
 
         if (func->isAsync()) {
             Threading::LaunchThread(func);
@@ -1140,10 +1753,32 @@ namespace JesusVM {
     }
 
     void Executor::hreturnInsn() {
+        Handle value = mFrame->popHandle();
 
+        mPC = mFrame->getReturnAddress();
+        mFrame = mStack.leaveFrame();
+
+        if (mFrame == nullptr) {
+            mReturned = true;
+            mReturnValue.H = value;
+        } else {
+            mFrame->pushHandle(value);
+        }
     }
 
     void Executor::rreturnInsn() {
+        ObjectRef value = mFrame->popObject();
 
+        mPC = mFrame->getReturnAddress();
+        mFrame = mStack.leaveFrame();
+
+        if (mFrame == nullptr) {
+            mReturned = true;
+            mReturnValue.R = value;
+            std::cout << "warning: potential memory leak. native interface with objects is not stable yet!\n";
+            value->addReference(); // the native value gets a reference
+        } else {
+            mFrame->pushObject(value);
+        }
     }
 }

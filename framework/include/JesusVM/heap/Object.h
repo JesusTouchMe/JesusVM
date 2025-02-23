@@ -5,28 +5,25 @@
 
 #include "JesusVM/heap/Class.h"
 
+#include "JesusVM/type/Type.h"
+
 #include <atomic>
 
 namespace JesusVM {
-    enum PrimitiveTypeID {
-        T_BOOL,
-        T_BYTE,
-        T_SHORT,
-        T_INT,
-        T_LONG
-    };
-
     struct Array;
+
+    class ObjectRef;
 
     class Object {
     friend struct Array;
-    friend Object* AllocObject(Class* clas);
-    friend Object* AllocArray(Class* clas, Int size);
+    friend ObjectRef AllocObject(Class* clas);
+    friend ObjectRef AllocArray(Class* clas, Int size);
     public:
         Class* getClass();
         i32 getReferenceCount() const;
 
-        Array* toArray();
+        constexpr Array* toArray();
+
         Int getArrayLength();
 
         bool isInstance(Class* clas);
@@ -34,23 +31,33 @@ namespace JesusVM {
         void addReference();
         void removeReference();
 
+        void nullCheck();
+
         u8* getFieldsBuffer();
 
-        template <typename T>
+        template<typename T>
         constexpr T* getArrayElements();
 
-        Bool getBoolean(Field* field) const;
+        Bool getBool(Field* field) const;
+        Char getChar(Field* field) const;
         Byte getByte(Field* field) const;
         Short getShort(Field* field) const;
         Int getInt(Field* field) const;
         Long getLong(Field* field) const;
-        Object* getObject(Field* field) const;
+        // Float getFloat(Field* field) const;
+        // Double getDouble(Field* field) const;
+        Handle getHandle(Field* field) const;
+        ObjectRef getObject(Field* field) const;
 
-        void setBoolean(Field* field, Bool value);
+        void setBool(Field* field, Bool value);
+        void setChar(Field* field, Char value);
         void setByte(Field* field, Byte value);
         void setShort(Field* field, Short value);
         void setInt(Field* field, Int value);
         void setLong(Field* field, Long value);
+        // void setFloat(Field* field, Float value) const;
+        // void setDouble(Field* field, Double value) const;
+        void setHandle(Field* field, Handle value);
         void setObject(Field* field, Object* value);
 
     private:
@@ -58,7 +65,7 @@ namespace JesusVM {
 
         Class* mClass;
 
-        std::atomic<i32> mRefCount;
+        std::atomic<i32> mRefCount = 1;
     };
 
     class ObjectRef {
@@ -68,6 +75,7 @@ namespace JesusVM {
                 mObject->addReference();
         }
 
+        // This constructor doesn't implicitly add its own reference, as it expects the caller to have already added a reference and is simply using this to transfer that.
         ObjectRef(Object* object, bool) : mObject(object) {}
 
         ObjectRef(std::nullptr_t = nullptr) : mObject(nullptr) {}
@@ -104,6 +112,31 @@ namespace JesusVM {
             return *this;
         }
 
+        ObjectRef& operator=(Object* obj) {
+            if (mObject != nullptr) {
+                mObject->removeReference();
+            }
+
+            mObject = obj;
+            mObject->addReference();
+
+            return *this;
+        }
+
+        ObjectRef& operator=(std::nullptr_t) {
+            if (mObject != nullptr) {
+                mObject->removeReference();
+            }
+
+            mObject = nullptr;
+
+            return *this;
+        }
+
+        Object* get() const {
+            return mObject;
+        }
+
         void release() {
             if (mObject != nullptr) {
                 mObject->removeReference();
@@ -111,8 +144,12 @@ namespace JesusVM {
             }
         }
 
-        operator Object*() {
+        operator Object*() const {
             return mObject;
+        }
+
+        operator JObject() const {
+            return reinterpret_cast<JObject>(mObject); // this is safe
         }
 
         Object* operator->() {
@@ -120,7 +157,7 @@ namespace JesusVM {
         }
 
         bool operator==(const ObjectRef& other) const {
-            return *this == other.mObject;
+            return mObject == other.mObject;
         }
 
         bool operator==(Object* other) const {
@@ -139,6 +176,14 @@ namespace JesusVM {
             return mObject != nullptr;
         }
 
+        bool operator==(std::nullptr_t) const {
+            return mObject == nullptr;
+        }
+
+        bool operator!=(std::nullptr_t) const {
+            return mObject != nullptr;
+        }
+
     private:
         Object* mObject;
     };
@@ -150,13 +195,38 @@ namespace JesusVM {
         const Int size;
     };
 
+    // the famous container_of macro (c++ edition) !!!
+    // credit to https://stackoverflow.com/a/40851139
+
+    template <class P, class M>
+    std::size_t _offsetof(const M P::*member) {
+        return (std::size_t) &(reinterpret_cast<P*>(0)->*member);
+    }
+
+    template<class P, class M>
+    P* _container_of_impl(M* ptr, const M P::*member) {
+        return (P*) ((char*) ptr - _offsetof(member));
+    }
+
+#   define container_of(ptr, type, member) _container_of_impl(ptr, &type::member)
+
+    // inline Object methods for optimization
+    constexpr Array* Object::toArray() {
+        return container_of(this, Array, object);
+    }
+
+    Int Object::getArrayLength() {
+        return toArray()->size;
+    }
+
     template<typename T>
     constexpr T* Object::getArrayElements() {
         return std::launder(reinterpret_cast<T*>(reinterpret_cast<u8*>(this) + sizeof(Array)));
     }
 
-    Object* AllocObject(Class* clas);
-    Object* AllocArray(Class* clas, Int size);
+    ObjectRef AllocObject(Class* clas);
+    ObjectRef AllocArray(Class* clas, Int size);
+    ObjectRef AllocPrimitiveArray(u8 typeId, Int size);
 }
 
 #endif //JESUSVM_OBJECT_H

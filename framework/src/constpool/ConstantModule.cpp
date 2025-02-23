@@ -13,6 +13,6 @@ namespace JesusVM {
     }
 
     void ConstantModule::addTo(Stack::Frame* frame) {
-        //TODO: implement
+        frame->pushHandle(mModule); // TODO: when reflection gets added, push the reflection object for the module
     }
 }

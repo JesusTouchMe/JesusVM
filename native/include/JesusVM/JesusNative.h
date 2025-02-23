@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 #include <cstddef>
+#include <type_traits>
 #endif
 
 #include "win32/JesusNative_platform.h"

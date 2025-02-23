@@ -47,7 +47,8 @@ namespace JesusVM {
 
         pushType(ElementType::REFERENCE);
 
-        object->addReference();
+        if (object != nullptr)
+            object->addReference();
     }
 
     i32 Stack::Frame::pop() {
@@ -118,7 +119,8 @@ namespace JesusVM {
         obj = reinterpret_cast<Object*>(pop2());
 #       endif
 
-        obj->removeReference();
+        if (obj != nullptr)
+            obj->removeReference();
 
         return obj;
     }

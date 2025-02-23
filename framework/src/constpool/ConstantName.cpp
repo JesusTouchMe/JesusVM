@@ -19,6 +19,6 @@ namespace JesusVM {
     }
 
     void ConstantName::addTo(Stack::Frame* frame) {
-        //TODO: implement
+        //TODO: allocate and push some sort of Pair class from the std lib
     }
 }

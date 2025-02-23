@@ -97,6 +97,26 @@ namespace JesusVM {
         }
     }
 
+    Type CodeTypeToType(u8 type) {
+        static Type map[] = {
+                [T_BYTE] = Type::BYTE,
+                [T_SHORT] = Type::SHORT,
+                [T_INT] = Type::INT,
+                [T_LONG] = Type::LONG,
+                [T_CHAR] = Type::CHAR,
+                [T_FLOAT] = Type::FLOAT,
+                [T_DOUBLE] = Type::DOUBLE,
+                [T_BOOL] = Type::BOOL,
+        };
+
+        if (type >= sizeof(map) / sizeof(map[0])) {
+            std::cout << "error: provided code type id does not match any known type id\n";
+            std::exit(1);
+        }
+
+        return map[type];
+    }
+
     Type StringToType(std::string_view descriptor) {
         switch (descriptor[0]) {
             case 'V':

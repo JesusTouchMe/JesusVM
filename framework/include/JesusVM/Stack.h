@@ -3,8 +3,6 @@
 
 #include "types.h"
 
-#include "JesusVM/heap/Object.h"
-
 #include <concepts>
 #include <iostream>
 #include <memory>
@@ -13,7 +11,8 @@ namespace JesusVM {
     class ConstPool;
     class Function;
     class Module;
-
+    class Object;
+    class ObjectRef;
 
     class Stack {
     public:

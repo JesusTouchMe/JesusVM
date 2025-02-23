@@ -18,6 +18,6 @@ namespace JesusVM {
     }
 
     void ConstantFunc::addTo(Stack::Frame* frame) {
-        frame->pushLong(reinterpret_cast<i64>(mFunc));
+        frame->pushHandle(mFunc); // TODO: when reflection gets added, push the reflection object for the function
     }
 }

@@ -13,6 +13,17 @@ namespace JesusVM {
     class Function;
     class Field;
 
+    enum CodeType : u8 { // these are the type IDs used in bytecode for newarray (and maybe more) instructions
+        T_BYTE,
+        T_SHORT,
+        T_INT,
+        T_LONG,
+        T_CHAR,
+        T_FLOAT,
+        T_DOUBLE,
+        T_BOOL,
+    };
+
     enum class Type : u8 {
         VOID,
         REFERENCE,
@@ -36,6 +47,8 @@ namespace JesusVM {
     constexpr u32 REFERENCE_SIZE = 8;
     constexpr u32 HANDLE_SIZE = 8;
 #endif
+
+    u32 GetTypeSize(Type type);
 
 	class TypeInfo {
     public:
@@ -64,30 +77,7 @@ namespace JesusVM {
         }
 
         u32 getByteSize() const {
-            switch (mType) {
-                case Type::VOID:
-                    return 0;
-                case Type::REFERENCE:
-                    return REFERENCE_SIZE;
-                case Type::HANDLE:
-                    return HANDLE_SIZE;
-                case Type::BYTE:
-                case Type::CHAR:
-                case Type::BOOL:
-                    return 1;
-                case Type::SHORT:
-                    return 2;
-                case Type::INT:
-                case Type::FLOAT:
-                    return 4;
-                case Type::LONG:
-                case Type::DOUBLE:
-                    return 8;
-
-                default:
-                    //TODO: error?
-                    return 0;
-            }
+            return GetTypeSize(mType);
         }
 
         bool isPrimitiveArrayType() const {
@@ -111,6 +101,35 @@ namespace JesusVM {
         Type mType;
         std::string_view mClassName; // descriptor, but also allows searching up the class name in the vm.
 	};
+
+    u32 GetTypeSize(Type type) {
+        switch (type) {
+            case Type::VOID:
+                return 0;
+            case Type::REFERENCE:
+                return REFERENCE_SIZE;
+            case Type::HANDLE:
+                return HANDLE_SIZE;
+            case Type::BYTE:
+            case Type::CHAR:
+            case Type::BOOL:
+                return 1;
+            case Type::SHORT:
+                return 2;
+            case Type::INT:
+            case Type::FLOAT:
+                return 4;
+            case Type::LONG:
+            case Type::DOUBLE:
+                return 8;
+
+            default:
+                //TODO: error?
+                return 0;
+        }
+    }
+
+    Type CodeTypeToType(u8 type);
 
     Type StringToType(std::string_view descriptor);
 

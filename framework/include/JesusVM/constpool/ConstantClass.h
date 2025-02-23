@@ -5,6 +5,8 @@
 
 #include "JesusVM/constpool/Constant.h"
 
+#include "JesusVM/heap/Class.h"
+
 namespace JesusVM {
     class ConstantClass : public Constant {
     public:

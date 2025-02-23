@@ -108,14 +108,14 @@ namespace JesusVM {
 
         void arraylengthInsn();
 
-        void newInsn();
+        void newInsn(bool wide);
         void newarrayInsn();
-        void rnewarrayInsn();
+        void rnewarrayInsn(bool wide);
 
-        void isinstanceInsn();
+        void isinstanceInsn(bool wide);
 
-        void getfieldInsn();
-        void setfieldInsn();
+        void getfieldInsn(bool wide);
+        void setfieldInsn(bool wide);
 
 		void jmp_icmpeqInsn();
 		void jmp_icmpneInsn();
@@ -130,8 +130,11 @@ namespace JesusVM {
         void jmp_rcmpeqInsn();
         void jmp_rcmpneInsn();
 
-        void jmp_nullInsn();
-        void jmp_nonnullInsn();
+        void jmp_hnullInsn();
+        void jmp_hnonnullInsn();
+
+        void jmp_rnullInsn();
+        void jmp_rnonnullInsn();
 
 		void jmpeqInsn();
 		void jmpneInsn();
@@ -154,7 +157,6 @@ namespace JesusVM {
         void i2bInsn();
         void i2sInsn();
         void i2lInsn();
-        void x2_i2lInsn();
         void l2iInsn();
 
 		void constInsn(i32 value);

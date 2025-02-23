@@ -1,8 +1,6 @@
 #ifndef JESUSVM_VTHREAD_H
 #define JESUSVM_VTHREAD_H
 
-#include "JesusVM/Stack.h"
-
 #include "JesusVM/executors/Executor.h"
 
 namespace JesusVM {
