@@ -1183,6 +1183,12 @@ namespace JesusVM {
 
         Field* field = fieldRef->getField();
 
+        if (!object->isInstance(field->getClass())) {
+            std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+            object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+            std::exit(1);
+        }
+
         object->nullCheck();
 
         switch (field->getType().getInternalType()) {
@@ -1237,6 +1243,12 @@ namespace JesusVM {
 
                 object->nullCheck();
 
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
+
                 object->setObject(field, value);
                 break;
             }
@@ -1245,6 +1257,12 @@ namespace JesusVM {
                 ObjectRef object = mFrame->popObject();
 
                 object->nullCheck();
+
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
 
                 object->setHandle(field, value);
                 break;
@@ -1255,6 +1273,12 @@ namespace JesusVM {
 
                 object->nullCheck();
 
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
+
                 object->setByte(field, value);
                 break;
             }
@@ -1263,6 +1287,12 @@ namespace JesusVM {
                 ObjectRef object = mFrame->popObject();
 
                 object->nullCheck();
+
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
 
                 object->setShort(field, value);
                 break;
@@ -1273,6 +1303,12 @@ namespace JesusVM {
 
                 object->nullCheck();
 
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
+
                 object->setInt(field, value);
                 break;
             }
@@ -1282,6 +1318,12 @@ namespace JesusVM {
 
                 object->nullCheck();
 
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
+
                 object->setLong(field, value);
                 break;
             }
@@ -1290,6 +1332,12 @@ namespace JesusVM {
                 ObjectRef object = mFrame->popObject();
 
                 object->nullCheck();
+
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
 
                 object->setChar(field, value);
                 break;
@@ -1305,6 +1353,12 @@ namespace JesusVM {
                 ObjectRef object = mFrame->popObject();
 
                 object->nullCheck();
+
+                if (!object->isInstance(field->getClass())) {
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                              object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
+                    std::exit(1);
+                }
 
                 object->setBool(field, value);
                 break;
