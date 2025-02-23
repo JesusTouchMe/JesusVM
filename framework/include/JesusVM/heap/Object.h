@@ -34,6 +34,7 @@ namespace JesusVM {
         void nullCheck();
 
         u8* getFieldsBuffer();
+        const u8* getFieldsBuffer() const;
 
         template<typename T>
         constexpr T* getArrayElements();
@@ -48,6 +49,7 @@ namespace JesusVM {
         // Double getDouble(Field* field) const;
         Handle getHandle(Field* field) const;
         ObjectRef getObject(Field* field) const;
+        Object* getObjectWeak(Field* field) const;
 
         void setBool(Field* field, Bool value);
         void setChar(Field* field, Char value);
@@ -66,6 +68,8 @@ namespace JesusVM {
         Class* mClass;
 
         std::atomic<i32> mRefCount = 1;
+
+        void freeThis();
     };
 
     class ObjectRef {

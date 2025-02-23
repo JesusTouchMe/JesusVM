@@ -5,6 +5,8 @@
 
 #include "JesusVM/heap/Class.h"
 
+#include <algorithm>
+
 namespace JesusVM {
     Class::Class(Module* module, moduleweb_class_info* info)
         : mInfo(info)
@@ -114,6 +116,31 @@ namespace JesusVM {
 	std::string_view Class::getName() const {
 		return mName;
 	}
+
+    bool Class::isAssignableTo(Class* other) const {
+        if (other == nullptr) return false;
+
+        const Class* current = this;
+        while (current != nullptr) {
+            if (current == other) return true;
+            current = current->mSuperClass;
+        }
+
+        return false;
+    }
+
+    Field* Class::getField(std::string_view name, std::string_view descriptor) {
+        auto it = std::find_if(mFields.begin(), mFields.end(), [name, descriptor](Field& field) {
+            return field.getName() == name && field.getDescriptor() == descriptor;
+        });
+        if (it != mFields.end()) return &*it;
+
+        return nullptr;
+    }
+
+    Field* Class::getField(ConstantName* name) {
+        return getField(name->getName(), name->getDescriptor());
+    }
 
     bool Class::isPublic() const {
         return mModifiers & MODULEWEB_CLASS_MODIFIER_PUBLIC;

@@ -43,6 +43,7 @@ namespace JesusVM {
     friend Class* Linker::LoadClass(Module* module, std::string_view name);
     friend Class* Linker::LoadClass(std::string_view qualifiedName, Object* linker);
     friend Class* Linker::LoadPrimitive(std::string_view name);
+    friend class Object;
 	public:
         using Modifiers = u16;
 
@@ -60,6 +61,8 @@ namespace JesusVM {
 
         Field* getField(std::string_view name, std::string_view descriptor);
         Field* getField(ConstantName* name);
+
+        bool isAssignableTo(Class* other) const;
 
         bool isPublic() const;
         bool isPrivate() const;

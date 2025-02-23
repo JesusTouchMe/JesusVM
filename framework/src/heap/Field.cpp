@@ -22,6 +22,10 @@ namespace JesusVM {
         }
     }
 
+    Class* Field::getClass() const {
+        return mClass;
+    }
+
     moduleweb_field_info* Field::getInfo() const {
         return &mClass->getInfo()->fields[mIndex];
     }

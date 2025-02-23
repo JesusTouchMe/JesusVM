@@ -16,6 +16,7 @@ namespace JesusVM {
     public:
         Field(Class* clas, u32 index);
 
+        Class* getClass() const;
         moduleweb_field_info* getInfo() const;
         const TypeInfo& getType() const;
         std::string_view getName() const;
