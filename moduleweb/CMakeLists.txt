@@ -18,6 +18,7 @@ set(SOURCES "src/stream.c"
         src/builder/module_builder.c
         src/builder/insn_builder.c
     src/code_attribute.c
+    src/stackmap_attribute.c
 )
 
 set(HEADERS "include/moduleweb/stream.h"
