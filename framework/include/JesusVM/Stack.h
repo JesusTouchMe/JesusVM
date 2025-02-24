@@ -3,9 +3,12 @@
 
 #include "types.h"
 
+#include "JesusVM/JesusNative.h"
+
 #include <concepts>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 namespace JesusVM {
     class ConstPool;

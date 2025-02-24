@@ -29,22 +29,12 @@ namespace JesusVM {
     }
 
     void Stack::Frame::pushHandle(Handle handle) {
-#       ifdef JESUSVM_CONFIG_32BIT
-        push1(reinterpret_cast<i32>(handle));
-#       else
         push2(reinterpret_cast<i64>(handle));
-#       endif
-
         pushType(ElementType::HANDLE);
     }
 
     void Stack::Frame::pushObject(Object* object) {
-#       ifdef JESUSVM_CONFIG_32BIT
-        push1(reinterpret_cast<i32>(object));
-#       else
         push2(reinterpret_cast<i64>(object));
-#       endif
-
         pushType(ElementType::REFERENCE);
 
         if (object != nullptr)
@@ -78,11 +68,7 @@ namespace JesusVM {
             std::exit(1);
         }
 
-#       ifdef JESUSVM_CONFIG_32BIT
-        return reinterpret_cast<Handle>(pop1());
-#       else
         return reinterpret_cast<Handle>(pop2());
-#       endif
     }
 
     ObjectRef Stack::Frame::popObject() {
@@ -92,14 +78,7 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        Object* obj;
-
-#       ifdef JESUSVM_CONFIG_32BIT
-        obj = reinterpret_cast<Object*>(pop1());
-#       else
-        obj = reinterpret_cast<Object*>(pop2());
-#       endif
-
+        auto obj = reinterpret_cast<Object*>(pop2());
         return {obj, false}; // we don't increment or decrement the objects refcount here because we lose our reference and caller gets a reference
     }
 
@@ -111,13 +90,7 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        Object* obj;
-
-#       ifdef JESUSVM_CONFIG_32BIT
-        obj = reinterpret_cast<Object*>(pop1());
-#       else
-        obj = reinterpret_cast<Object*>(pop2());
-#       endif
+        auto obj = reinterpret_cast<Object*>(pop2());
 
         if (obj != nullptr)
             obj->removeReference();
@@ -132,20 +105,12 @@ namespace JesusVM {
         }
 
         ElementType type = mTypes.back();
-
         i32 top = mStack[mStackTop - 1];
 
-#       ifdef JESUSVM_CONFIG_32BIT
         if (type == ElementType::REFERENCE) {
-            auto obj = reinterpret_cast<Object*>(top);
-            obj->addReference();
-        }
-#       else
-        if (type == ElementType::REFERENCE) {
-            std::cout << "type mismatch: popping category 1 reference type in 64 bit mode";
+            std::cout << "type mismatch: category 2 type found in category 1 dup\n";
             std::exit(1);
         }
-#       endif
 
         push1(top);
         pushType(type);
@@ -168,17 +133,10 @@ namespace JesusVM {
         i32 high = mStack[mStackTop - 2];
         i64 top = (static_cast<i64>(high) << 32) | (static_cast<i64>(low) & 0xFFFFFFFF);
 
-#       ifdef JESUSVM_CONFIG_32BIT
-        if (type == ElementType::REFERENCE) {
-            std::cout << "type mismatch: popping category 2 reference type in 32 bit mode";
-            std::exit(1);
-        }
-#       else
         if (type == ElementType::REFERENCE) {
             auto obj = reinterpret_cast<Object*>(top);
             obj->addReference();
         }
-#       endif
 
         push2(top);
         pushType(type);
@@ -258,33 +216,17 @@ namespace JesusVM {
     }
 
     Handle Stack::Frame::getLocalHandle(u16 index) {
-#       ifdef JESUSVM_CONFIG_32BIT
-        return reinterpret_cast<Handle>(getLocalInt(index));
-#       else
         return reinterpret_cast<Handle>(getLocalLong(index));
-#       endif
     }
 
     ObjectRef Stack::Frame::getLocalObject(u16 index) {
-        Object* obj;
-
-#       ifdef JESUSVM_CONFIG_32BIT
-        obj = reinterpret_cast<Object*>(getLocalInt(index));
-#       else
-        obj = reinterpret_cast<Object*>(getLocalLong(index));
-#       endif
+        auto obj = reinterpret_cast<Object*>(getLocalLong(index));
 
         return obj;
     }
 
     Object* Stack::Frame::getLocalObjectWeak(u16 index) {
-        Object* obj;
-
-#       ifdef JESUSVM_CONFIG_32BIT
-        obj = reinterpret_cast<Object*>(getLocalInt(index));
-#       else
-        obj = reinterpret_cast<Object*>(getLocalLong(index));
-#       endif
+        auto obj = reinterpret_cast<Object*>(getLocalLong(index));
 
         return obj;
     }
@@ -307,27 +249,15 @@ namespace JesusVM {
     }
 
     void Stack::Frame::setLocalHandle(u16 index, Handle value) {
-#       ifdef JESUSVM_CONFIG_32BIT
-        setLocalInt(index, reinterpret_cast<i32>(value));
-#       else
         setLocalLong(index, reinterpret_cast<i64>(value));
-#       endif
     }
 
     void Stack::Frame::setLocalObject(u16 index, Object* object) {
-#       ifdef JESUSVM_CONFIG_32BIT
-        auto initial = reinterpret_cast<Object*>(getLocalInt(index));
-        if (initial != nullptr)
-            initial->removeReference();
-
-        setLocalInt(index, reinterpret_cast<i32>(object));
-#       else
-        auto initial = reinterpret_cast<Object*>(getLocalLong(index));
+        auto initial = getLocalObjectWeak(index);
         if (initial != nullptr)
             initial->removeReference();
 
         setLocalLong(index, reinterpret_cast<i64>(object));
-#       endif
 
         object->addReference();
     }
@@ -388,6 +318,11 @@ namespace JesusVM {
     }
 
     Stack::Frame::ElementType Stack::Frame::popType() {
+        if (mTypes.empty()) {
+            std::cout << "type stackunderflow (impossible) \n";
+            std::exit(1);
+        }
+
         ElementType res = mTypes.back();
         mTypes.pop_back();
         return res;
@@ -395,22 +330,16 @@ namespace JesusVM {
 
     u32 Stack::Frame::getTypeSize(Stack::Frame::ElementType type) {
         switch (type) {
-#           ifdef JESUSVM_CONFIG_32BIT
-            case ElementType::INT:
-            case ElementType::HANDLE:
-            case ElementType::REFERENCE:
-                return 1;
-            case ElementType::LONG:
-                return 2;
-#           else
             case ElementType::INT:
                 return 1;
             case ElementType::HANDLE:
             case ElementType::REFERENCE:
             case ElementType::LONG:
                 return 2;
-#           endif
         }
+
+        std::cout << "Unreachable. Stupid microsoft\n";
+        std::exit(1);
     }
 
     Stack::Stack()
