@@ -13,6 +13,7 @@
 
 #include "moduleweb/code_attribute.h"
 #include "moduleweb/function_info.h"
+#include "moduleweb/stackmap_attribute.h"
 
 namespace JesusVM {
 	template <typename ReturnType>
@@ -46,10 +47,14 @@ namespace JesusVM {
 		std::string_view getName() const;
 		std::string_view getDescriptor() const;
 		Modifiers getModifiers() const;
+
 		u16 getLocalCount() const;
 		u16 getStackSize() const;
 		u8* getEntry() const;
 		u32 getBytecodeSize() const;
+
+        moduleweb_stackmap_local_type getLocalTypeAt(u16 index) const;
+        bool isLocalDualSlot(u16 index) const;
 
         bool isPublic() const;
         bool isPrivate() const;

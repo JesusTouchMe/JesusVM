@@ -40,6 +40,7 @@ set(HEADERS "include/moduleweb/stream.h"
         include/moduleweb/builder/insn_builder.h
     include/moduleweb/code_attribute.h
     include/moduleweb/builder/opcodes.h
+        include/moduleweb/stackmap_attribute.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

@@ -367,6 +367,17 @@ namespace JesusVM {
         }
 
         auto oldFrame = std::move(mTop);
+
+        for (u16 i = 0; i < oldFrame->mLocalCount; i++) {
+            if (oldFrame->mCurrentFunction->getLocalTypeAt(i) == STACKMAP_REFERENCE) {
+                oldFrame->getLocalObjectWeak(i)->removeReference();
+            }
+
+            if (oldFrame->mCurrentFunction->isLocalDualSlot(i)) {
+                i++; // skip next slot
+            }
+        }
+
         mTop = std::move(oldFrame->mPrevious);
 
         return mTop.get();

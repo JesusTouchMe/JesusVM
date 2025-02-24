@@ -38,6 +38,9 @@ namespace JesusVM {
                 return executor.current->getExecutor();
             }
         }
+
+        std::cout << "Unreachable. Stupid microsoft\n";
+        std::exit(1);
     }
 
     void Thread::setState(Thread::State state) {

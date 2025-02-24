@@ -22,7 +22,7 @@ namespace JesusVM {
         Class* getClass();
         i32 getReferenceCount() const;
 
-        constexpr Array* toArray();
+        Array* toArray();
 
         Int getArrayLength();
 
@@ -203,25 +203,16 @@ namespace JesusVM {
     // credit to https://stackoverflow.com/a/40851139
 
     template <class P, class M>
-    std::size_t _offsetof(const M P::*member) {
+    constexpr std::size_t _offsetof(const M P::*member) {
         return (std::size_t) &(reinterpret_cast<P*>(0)->*member);
     }
 
     template<class P, class M>
-    P* _container_of_impl(M* ptr, const M P::*member) {
+    constexpr P* _container_of_impl(M* ptr, const M P::*member) {
         return (P*) ((char*) ptr - _offsetof(member));
     }
 
 #   define container_of(ptr, type, member) _container_of_impl(ptr, &type::member)
-
-    // inline Object methods for optimization
-    constexpr Array* Object::toArray() {
-        return container_of(this, Array, object);
-    }
-
-    Int Object::getArrayLength() {
-        return toArray()->size;
-    }
 
     template<typename T>
     constexpr T* Object::getArrayElements() {

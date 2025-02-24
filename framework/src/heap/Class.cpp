@@ -15,7 +15,8 @@ namespace JesusVM {
     Class::Class(Module* module, moduleweb_class_info* info)
         : mInfo(info)
         , mModule(module)
-        , mState(ClassState::INITIALIZED) { }
+        , mState(ClassState::INITIALIZED)
+        , mWaitingThreads(0) { }
 
     bool Class::link() {
         mState = ClassState::LINKING;
@@ -171,6 +172,8 @@ namespace JesusVM {
     }
 
     bool Class::linkCommon() {
+        mLoadingThread = Threading::CurrentThread();
+
         return false; // TODO: reflection support here in future
     }
 

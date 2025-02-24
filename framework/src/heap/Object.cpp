@@ -15,6 +15,14 @@ namespace JesusVM {
     i32 Object::getReferenceCount() const {
         return mRefCount;
     }
+    
+    Array* Object::toArray() {
+        return container_of(this, Array, object);
+    }
+
+    Int Object::getArrayLength() {
+        return toArray()->size;
+    }
 
     bool Object::isInstance(Class* clas) {
         return mClass->isAssignableTo(clas);
@@ -167,6 +175,8 @@ namespace JesusVM {
 
         // TODO: finalizer/destructor
 
+        std::cout << "Freeing instance of " << mClass->getName() << "\n";
+
         for (auto& field : mClass->mFields) {
             if (field.getType().getInternalType() != Type::REFERENCE) {
                 break; // fields are sorted so all references are first. in the weird cases where fields aren't sorted, that's on the guy pushing elements into a private vector (idiot)
@@ -195,7 +205,7 @@ namespace JesusVM {
 #ifdef PLATFORM_WINDOWS
         u8* memory = static_cast<u8*>(_aligned_malloc(clas->getTotalSize(), alignof(Array)));
 #else
-        u8* memory = static_cast<u8*>(std::aligned_alloc(alignof(Array), clas->getTotalSize();));
+        u8* memory = static_cast<u8*>(std::aligned_alloc(alignof(Array), clas->getTotalSize()));
 #endif
 
         if (memory == nullptr) {
@@ -205,7 +215,7 @@ namespace JesusVM {
         std::memset(memory, 0, clas->getTotalSize());
 
         auto object = new(memory) Object(clas);
-        return object;
+        return {object, false};
     }
 
     ObjectRef AllocArray(Class* clas, Int size) {
@@ -224,7 +234,7 @@ namespace JesusVM {
 
         auto array = new(memory) Array(clas, size);
 
-        return &array->object;
+        return {&array->object, false};
     }
 
     ObjectRef AllocPrimitiveArray(u8 typeId, Int size) {
@@ -283,6 +293,6 @@ namespace JesusVM {
 
         auto array = new(memory) Array(clas, size);
 
-        return &array->object;
+        return {&array->object, false};
     }
 }
