@@ -97,17 +97,56 @@ namespace JesusVM {
         }
     }
 
+    u32 GetTypeSize(Type type) {
+        switch (type) {
+            case Type::VOID:
+                return 0;
+            case Type::REFERENCE:
+                return REFERENCE_SIZE;
+            case Type::HANDLE:
+                return HANDLE_SIZE;
+            case Type::BYTE:
+            case Type::CHAR:
+            case Type::BOOL:
+                return 1;
+            case Type::SHORT:
+                return 2;
+            case Type::INT:
+            case Type::FLOAT:
+                return 4;
+            case Type::LONG:
+            case Type::DOUBLE:
+                return 8;
+
+            default:
+                //TODO: error?
+                return 0;
+        }
+    }
+
+    constexpr Type MakeTypeMap(size_t index) {
+        switch (index) {
+            case T_BYTE:   return Type::BYTE;
+            case T_SHORT:  return Type::SHORT;
+            case T_INT:    return Type::INT;
+            case T_LONG:   return Type::LONG;
+            case T_CHAR:   return Type::CHAR;
+            case T_FLOAT:  return Type::FLOAT;
+            case T_DOUBLE: return Type::DOUBLE;
+            case T_BOOL:   return Type::BOOL;
+            default:
+               std::cout << "Unreachable\n";
+               std::exit(1);
+        }
+    }
+
+    template <size_t... Indices>
+    constexpr auto MakeTypeArray(std::index_sequence<Indices...>) {
+        return std::array<Type, sizeof...(Indices)>{ MakeTypeMap(Indices)... };
+    }
+
     Type CodeTypeToType(u8 type) {
-        static Type map[] = {
-                [T_BYTE] = Type::BYTE,
-                [T_SHORT] = Type::SHORT,
-                [T_INT] = Type::INT,
-                [T_LONG] = Type::LONG,
-                [T_CHAR] = Type::CHAR,
-                [T_FLOAT] = Type::FLOAT,
-                [T_DOUBLE] = Type::DOUBLE,
-                [T_BOOL] = Type::BOOL,
-        };
+        static constexpr auto map = MakeTypeArray(std::make_index_sequence<T_MAX>{});
 
         if (type >= sizeof(map) / sizeof(map[0])) {
             std::cout << "error: provided code type id does not match any known type id\n";

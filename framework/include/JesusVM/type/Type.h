@@ -22,6 +22,8 @@ namespace JesusVM {
         T_FLOAT,
         T_DOUBLE,
         T_BOOL,
+
+        T_MAX,
     };
 
     enum class Type : u8 {
@@ -40,13 +42,8 @@ namespace JesusVM {
         TYPE_COUNT
     };
 
-#ifdef JESUSVM_CONFIG_32BIT
-    constexpr u32 REFERENCE_SIZE = 4;
-    constexpr u32 HANDLE_SIZE = 4;
-#else
     constexpr u32 REFERENCE_SIZE = 8;
     constexpr u32 HANDLE_SIZE = 8;
-#endif
 
     u32 GetTypeSize(Type type);
 
@@ -61,11 +58,7 @@ namespace JesusVM {
         bool parse(std::string_view descriptor, u32* index);
 
         bool is64Bit() const {
-#       ifdef JESUSVM_CONFIG_32BIT
-            return mType == Type::LONG || mType == Type::DOUBLE;
-#       else
             return mType == Type::LONG || mType == Type::REFERENCE || mType == Type::DOUBLE || mType == Type::HANDLE;
-#       endif
         }
 
         bool isFloat() const { return mType == Type::FLOAT || mType == Type::DOUBLE; }
@@ -101,33 +94,6 @@ namespace JesusVM {
         Type mType;
         std::string_view mClassName; // descriptor, but also allows searching up the class name in the vm.
 	};
-
-    u32 GetTypeSize(Type type) {
-        switch (type) {
-            case Type::VOID:
-                return 0;
-            case Type::REFERENCE:
-                return REFERENCE_SIZE;
-            case Type::HANDLE:
-                return HANDLE_SIZE;
-            case Type::BYTE:
-            case Type::CHAR:
-            case Type::BOOL:
-                return 1;
-            case Type::SHORT:
-                return 2;
-            case Type::INT:
-            case Type::FLOAT:
-                return 4;
-            case Type::LONG:
-            case Type::DOUBLE:
-                return 8;
-
-            default:
-                //TODO: error?
-                return 0;
-        }
-    }
 
     Type CodeTypeToType(u8 type);
 
