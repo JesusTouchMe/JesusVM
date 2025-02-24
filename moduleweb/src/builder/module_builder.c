@@ -224,6 +224,33 @@ u16 moduleweb_module_builder_resolve_class_ref(moduleweb_module_builder* builder
     return class->index;
 }
 
+u16 moduleweb_module_builder_resolve_field_ref(moduleweb_module_builder* builder, const char* owner_module, const char* owner,
+                                               const char* name, const char* descriptor) {
+    moduleweb_constant_vector* pool = GET_CONST_POOL(builder, MODULEWEB_CONSTANT_TYPE_FIELD_REF);
+
+    u16 owner_index = moduleweb_module_builder_resolve_class_ref(builder, owner_module, owner);
+    u16 name_index = moduleweb_module_builder_resolve_name(builder, name, descriptor);
+
+    if (pool->pool != NULL) {
+        for (u16 i = 0; i < pool->size; i++) {
+            if (pool->pool[i].info.field_ref_info.class_index == owner_index && pool->pool[i].info.field_ref_info.name_info_index == name_index) {
+                return pool->pool[i].index;
+            }
+        }
+    }
+
+    ensure_const_pool_capacity(pool);
+
+    moduleweb_constant* field = &pool->pool[pool->size++];
+    field->index = builder->constant_pool_index++;
+
+    field->info.type = MODULEWEB_CONSTANT_TYPE_FIELD_REF;
+    field->info.field_ref_info.class_index = owner_index;
+    field->info.field_ref_info.name_info_index = name_index;
+
+    return field->index;
+}
+
 static void moduleweb_module_builder_transfer_attributes(moduleweb_module_builder* builder,
                                                          moduleweb_attribute_vector* src,
                                                          moduleweb_attribute_array* dest) {

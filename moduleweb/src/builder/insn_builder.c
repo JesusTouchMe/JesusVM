@@ -11,6 +11,8 @@ u16 moduleweb_module_builder_resolve_name(moduleweb_module_builder* builder, con
 u16 moduleweb_module_builder_resolve_module_ref(moduleweb_module_builder* builder, const char* name);
 u16 moduleweb_module_builder_resolve_function_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor);
 u16 moduleweb_module_builder_resolve_class_ref(moduleweb_module_builder* builder, const char* module_name, const char* name);
+u16 moduleweb_module_builder_resolve_field_ref(moduleweb_module_builder* builder, const char* owner_module, const char* owner,
+                                               const char* name, const char* descriptor);
 
 int moduleweb_insn_list_init(moduleweb_insn_list* list) {
     memset(list, 0, sizeof(moduleweb_insn_list));
@@ -206,6 +208,36 @@ void moduleweb_insn_list_jump(moduleweb_insn_list* list, u8 opcode, moduleweb_la
 
     if (!label->location_init) {
         moduleweb_insn_list_forward_label(list, label, 2, -2);
+    }
+}
+
+void moduleweb_insn_list_class(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name) {
+    if (moduleweb_insn_list_prepare(list, 3)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u8(&list->writer_stream, opcode)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u16(&list->writer_stream,
+                                      moduleweb_module_builder_resolve_class_ref(list->module, module, name))) {
+        return;
+    }
+}
+
+void moduleweb_insn_list_field(moduleweb_insn_list* list, u8 opcode, const char* owner_module, const char* owner, const char* name, const char* descriptor) {
+    if (moduleweb_insn_list_prepare(list, 3)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u8(&list->writer_stream, opcode)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u16(&list->writer_stream,
+                                      moduleweb_module_builder_resolve_field_ref(list->module, owner_module, owner, name, descriptor))) {
+        return;
     }
 }
 

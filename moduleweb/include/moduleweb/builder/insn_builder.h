@@ -65,6 +65,10 @@ void moduleweb_insn_list_add_label(moduleweb_insn_list* list, moduleweb_label* l
 
 void moduleweb_insn_list_jump(moduleweb_insn_list* list, u8 opcode, moduleweb_label* label);
 
+void moduleweb_insn_list_class(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name);
+
+void moduleweb_insn_list_field(moduleweb_insn_list* list, u8 opcode, const char* owner_module, const char* owner, const char* name, const char* descriptor);
+
 void moduleweb_insn_list_var(moduleweb_insn_list* list, u8 opcode, u16 local);
 
 void moduleweb_insn_list_byte(moduleweb_insn_list* list, u8 opcode, i8 operand);
