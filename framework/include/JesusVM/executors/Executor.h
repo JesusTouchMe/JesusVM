@@ -29,7 +29,8 @@ namespace JesusVM {
 		Stack mStack;
 		Stack::Frame* mFrame;
 
-		u8* mPC;
+        u8* mCode;
+		u32 mPC;
 
         bool mReturned;
         JValue mReturnValue;

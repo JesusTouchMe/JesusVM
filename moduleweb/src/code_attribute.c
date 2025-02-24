@@ -18,7 +18,6 @@ int moduleweb_code_attribute_init(moduleweb_code_attribute* code, moduleweb_inst
     code->code = moduleweb_instream_pointer(stream);
 
     if (moduleweb_instream_skip(stream, code->code_length)) {
-        free(code->code);
         return 1;
     }
 
@@ -26,5 +25,4 @@ int moduleweb_code_attribute_init(moduleweb_code_attribute* code, moduleweb_inst
 }
 
 void moduleweb_code_attribute_uninit(moduleweb_code_attribute* code) {
-    free(code->code);
 }

@@ -30,8 +30,14 @@ namespace JesusVM {
         void PreloadSystemModules();
     }
 
+    // helper class
+    class StackMapEntry {
+
+    };
+
 	class Function {
 	friend class Module;
+    friend class StackMapEntry;
     friend bool ParseFunctionType(Function*);
     friend void Linker::LinkNativeFunction(Function*);
     friend void Preload::PreloadSystemModules();
@@ -39,6 +45,7 @@ namespace JesusVM {
 		using Modifiers = u16;
 
 		Function(Module* module, moduleweb_function_info* info);
+        ~Function();
 
         moduleweb_function_info* getInfo() const;
 		Module* getModule() const;
@@ -53,8 +60,8 @@ namespace JesusVM {
 		u8* getEntry() const;
 		u32 getBytecodeSize() const;
 
-        moduleweb_stackmap_local_type getLocalTypeAt(u16 index) const;
-        bool isLocalDualSlot(u16 index) const;
+        StackMapEntry getStackMapFrame(u8* pc);
+        StackMapEntry getStackMapFrame(u32 bytecodeOffset);
 
         bool isPublic() const;
         bool isPrivate() const;
@@ -80,6 +87,7 @@ namespace JesusVM {
 		Modifiers mModifiers;
 
         moduleweb_code_attribute mCodeAttribute;
+        moduleweb_stackmap_attribute mStackMapAttribute;
 
         VMContext getNativeContext();
         JesusVM& getVM();

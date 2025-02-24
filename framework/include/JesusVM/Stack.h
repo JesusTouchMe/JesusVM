@@ -22,7 +22,7 @@ namespace JesusVM {
         class Frame {
         friend class Stack;
         public:
-            Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnAddress);
+            Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc);
 
             void push(i32 value);
             void pushLong(i64 value);
@@ -55,7 +55,8 @@ namespace JesusVM {
             ConstPool& getConstPool() const;
             Module* getCurrentModule() const;
             Function* getCurrentFunction() const;
-            u8* getReturnAddress() const;
+            u8* getReturnCode() const;
+            u32 getReturnPC() const;
 
         private:
             enum class ElementType : u8 {
@@ -80,7 +81,8 @@ namespace JesusVM {
             Module* mCurrentModule;
             Function* mCurrentFunction;
 
-            u8* mReturnAddress;
+            u8* mReturnCode;
+            u32 mReturnPC;
 
             void push1(i32 value);
             void push2(i64 value);
@@ -98,7 +100,7 @@ namespace JesusVM {
         Stack();
 
         Frame* getTopFrame() const;
-        Frame* enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnAddress);
+        Frame* enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnCode, u32 returnPc);
         Frame* leaveFrame();
 
     private:

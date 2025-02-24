@@ -46,7 +46,8 @@ namespace JesusVM {
 		, mFrame(mStack.getTopFrame())
         , mReturned(false)
         , mReturnValue(0)
-		, mPC(nullptr) {}
+		, mPC(0)
+        , mCode(nullptr) {}
 
     JValue Executor::getReturnValue() const {
         if (!mReturned) {
@@ -66,12 +67,12 @@ namespace JesusVM {
     }
 
 	void Executor::executeInstruction(bool wide) {
-        if (mReturned || mPC >= mFrame->getCurrentFunction()->getEntry() + mFrame->getCurrentFunction()->getBytecodeSize()) {
+        if (mReturned || mPC >= mFrame->getCurrentFunction()->getBytecodeSize()) {
             std::cout << "bad execution!!!\n";
             std::exit(1);
         }
 
-		u8 instruction = *mPC++;
+		u8 instruction = mCode[mPC++];
 
 		switch (instruction) {
             case Opcodes::NOP:
@@ -508,33 +509,34 @@ namespace JesusVM {
 	}
 
 	void Executor::enterFunction(Function* function) {
-		mFrame = mStack.enterFrame(function->getLocalCount(), function->getStackSize(), function, mPC);
-		mPC = function->getEntry();
+		mFrame = mStack.enterFrame(function->getLocalCount(), function->getStackSize(), function, mCode, mPC);
+        mPC = 0;
+		mCode = function->getEntry();
 	}
 	
 	u8 Executor::getByte() {
-		u8 value = ReadU8(mPC, 0);
+		u8 value = ReadU8(&mCode[mPC], 0);
 		mPC += 1;
 
 		return value;
 	}
 	
 	u16 Executor::getShort() {
-		u16 value = ReadU16(mPC, 0);
+		u16 value = ReadU16(&mCode[mPC], 0);
 		mPC += 2;
 
 		return value;
 	}
 	
 	u32 Executor::getInt() {
-		u32 value = ReadU32(mPC, 0);
+		u32 value = ReadU32(&mCode[mPC], 0);
 		mPC += 4;
 
 		return value;
 	}
 	
 	u64 Executor::getLong() {
-		u64 value = ReadU8(mPC, 0);
+		u64 value = ReadU8(&mCode[mPC], 0);
 		mPC += 8;
 
 		return value;
@@ -1770,7 +1772,8 @@ namespace JesusVM {
     }
 
 	void Executor::returnInsn() {
-		mPC = mFrame->getReturnAddress();
+        mPC = mFrame->getReturnPC();
+		mCode = mFrame->getReturnCode();
 		mFrame = mStack.leaveFrame();
 
 		if (mFrame == nullptr) {
@@ -1781,7 +1784,8 @@ namespace JesusVM {
     void Executor::ireturnInsn() {
         i32 value = mFrame->pop();
 
-        mPC = mFrame->getReturnAddress();
+        mPC = mFrame->getReturnPC();
+        mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
         if (mFrame == nullptr) {
@@ -1795,7 +1799,8 @@ namespace JesusVM {
     void Executor::lreturnInsn() {
         i64 value = mFrame->popLong();
 
-        mPC = mFrame->getReturnAddress();
+        mPC = mFrame->getReturnPC();
+        mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
         if (mFrame == nullptr) {
@@ -1809,7 +1814,8 @@ namespace JesusVM {
     void Executor::hreturnInsn() {
         Handle value = mFrame->popHandle();
 
-        mPC = mFrame->getReturnAddress();
+        mPC = mFrame->getReturnPC();
+        mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
         if (mFrame == nullptr) {
@@ -1823,7 +1829,8 @@ namespace JesusVM {
     void Executor::rreturnInsn() {
         ObjectRef value = mFrame->popObject();
 
-        mPC = mFrame->getReturnAddress();
+        mPC = mFrame->getReturnPC();
+        mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
         if (mFrame == nullptr) {

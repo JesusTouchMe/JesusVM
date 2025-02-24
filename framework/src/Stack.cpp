@@ -4,7 +4,7 @@
 #include "JesusVM/constpool/ConstPool.h"
 
 namespace JesusVM {
-    Stack::Frame::Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnAddress)
+    Stack::Frame::Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc)
             : mPrevious(nullptr)
             , mLocalCount(localCount)
             , mStackSize(maxFrameSize)
@@ -14,7 +14,8 @@ namespace JesusVM {
             , mConstPool(constPool)
             , mCurrentModule(module)
             , mCurrentFunction(function)
-            , mReturnAddress(returnAddress) {
+            , mReturnCode(returnCode)
+            , mReturnPC(returnPc) {
         mTypes.reserve(maxFrameSize);
     }
 
@@ -274,8 +275,12 @@ namespace JesusVM {
         return mCurrentFunction;
     }
 
-    u8* Stack::Frame::getReturnAddress() const {
-        return mReturnAddress;
+    u8* Stack::Frame::getReturnCode() const {
+        return mReturnCode;
+    }
+
+    u32 Stack::Frame::getReturnPC() const {
+        return mReturnPC;
     }
 
     void Stack::Frame::push1(i32 value) {
@@ -349,10 +354,10 @@ namespace JesusVM {
         return mTop.get();
     }
 
-    Stack::Frame* Stack::enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnAddress) {
+    Stack::Frame* Stack::enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnCode, u32 returnPc) {
         auto frame = std::make_unique<Frame>(
                 localCount, maxFrameSize, function->getModule()->getConstPool(),
-                function->getModule(), function, returnAddress);
+                function->getModule(), function, returnCode, returnPc);
 
         frame->mPrevious = std::move(mTop);
         mTop = std::move(frame);
