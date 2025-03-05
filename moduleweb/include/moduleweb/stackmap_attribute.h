@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 typedef enum moduleweb_stackmap_type_id {
-    STACKMAP_TYPE_NONE, // for dual slot locals. tells the verifier that this local should NOT be used
+    STACKMAP_TYPE_NONE = 0, // for dual slot locals. tells the verifier that this local should NOT be used
     STACKMAP_TYPE_INT,
     STACKMAP_TYPE_LONG,
     STACKMAP_TYPE_FLOAT,

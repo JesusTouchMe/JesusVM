@@ -5,6 +5,8 @@
 
 #include "JesusVM/JesusNative.h"
 
+#include "moduleweb/stackmap_attribute.h"
+
 #include <concepts>
 #include <iostream>
 #include <memory>
@@ -23,6 +25,7 @@ namespace JesusVM {
         friend class Stack;
         public:
             Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc);
+            ~Frame();
 
             void push(i32 value);
             void pushLong(i64 value);
@@ -73,8 +76,9 @@ namespace JesusVM {
             u16 mStackTop;
 
             std::unique_ptr<i32[]> mLocals;
+            std::unique_ptr<u8[]> mLocalTypes;
             std::unique_ptr<i32[]> mStack;
-            std::vector<ElementType> mTypes;
+            std::vector<ElementType> mStackTypes;
 
             ConstPool& mConstPool;
 
@@ -92,6 +96,15 @@ namespace JesusVM {
 
             void pushType(ElementType type);
             ElementType popType();
+
+            i32 getLocal1(u16 index);
+            i64 getLocal2(u16 index);
+
+            void setLocal1(u16 index, i32 value);
+            void setLocal2(u16 index, i64 value);
+
+            moduleweb_stackmap_type_id getLocalType(u16 index);
+            void setLocalType(u16 index, moduleweb_stackmap_type_id type);
 
             u32 getTypeSize(ElementType type);
         };

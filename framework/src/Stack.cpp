@@ -5,18 +5,48 @@
 
 namespace JesusVM {
     Stack::Frame::Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc)
-            : mPrevious(nullptr)
-            , mLocalCount(localCount)
-            , mStackSize(maxFrameSize)
-            , mStackTop(0)
-            , mLocals(std::make_unique<i32[]>(localCount))
-            , mStack(std::make_unique<i32[]>(maxFrameSize))
-            , mConstPool(constPool)
-            , mCurrentModule(module)
-            , mCurrentFunction(function)
-            , mReturnCode(returnCode)
-            , mReturnPC(returnPc) {
-        mTypes.reserve(maxFrameSize);
+        : mPrevious(nullptr)
+        , mLocalCount(localCount)
+        , mStackSize(maxFrameSize)
+        , mStackTop(0)
+        , mLocals(std::make_unique<i32[]>(localCount))
+        , mLocalTypes(std::make_unique<u8[]>(localCount))
+        , mStack(std::make_unique<i32[]>(maxFrameSize))
+        , mConstPool(constPool)
+        , mCurrentModule(module)
+        , mCurrentFunction(function)
+        , mReturnCode(returnCode)
+        , mReturnPC(returnPc) {
+        mStackTypes.reserve(maxFrameSize);
+    }
+
+    Stack::Frame::~Frame() {
+        while (!mStackTypes.empty()) {
+            ElementType type = popType();
+
+            if (type == ElementType::REFERENCE) {
+                auto object = popObjectWeak();
+                object->removeReference(); // remove this stacks reference
+            } else {
+                if (getTypeSize(type) == 2) {
+                    (void) pop2();
+                } else {
+                    (void) pop1();
+                }
+            }
+        }
+
+        for (u16 i = 0; i < mLocalCount; i++) {
+            if (getLocalType(i) == STACKMAP_TYPE_REFERENCE) {
+                if (getLocalType(i + 1) != STACKMAP_TYPE_NONE) {
+                    std::cout << "error: corrupted local slot at index " << i << "\n";
+                    std::exit(1);
+                }
+
+                auto object = getLocalObjectWeak(i);
+                object->removeReference();
+            }
+        }
     }
 
     void Stack::Frame::push(i32 value) {
@@ -105,7 +135,7 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        ElementType type = mTypes.back();
+        ElementType type = mStackTypes.back();
         i32 top = mStack[mStackTop - 1];
 
         if (type == ElementType::REFERENCE) {
@@ -123,7 +153,7 @@ namespace JesusVM {
             std::exit(1);
         }
 
-        ElementType type = mTypes.back();
+        ElementType type = mStackTypes.back();
 
         if (type == ElementType::INT) {
             std::cout << "attempt to dup a category 1 type with a category 2 dup\n";
@@ -199,66 +229,61 @@ namespace JesusVM {
     }
 
     Int Stack::Frame::getLocalInt(u16 index) {
-        if (index >= mLocalCount) {
-            std::cout << "too high local access. todo: proper errors\n";
-            std::exit(1);
-        }
-        return static_cast<i32>(mLocals[index]);
+        return getLocal1(index);
     }
 
     Long Stack::Frame::getLocalLong(u16 index) {
-        if (index + 1 >= mLocalCount) {
-            std::cout << "too high local access. todo: proper errors\n";
-            std::exit(1);
-        }
-        i32 low = mLocals[index];
-        i32 high = mLocals[index + 1];
-        return (static_cast<i64>(high) << 32) | (static_cast<i64>(low) & 0xFFFFFFFF);
+        return getLocal2(index);
     }
 
     Handle Stack::Frame::getLocalHandle(u16 index) {
-        return reinterpret_cast<Handle>(getLocalLong(index));
+        if (getLocalType(index) != STACKMAP_TYPE_HANDLE || getLocalType(index + 1) != STACKMAP_TYPE_NONE) {
+            std::cout << "type mismatch: expected handle, then none at local index " << index << "\n";
+            std::exit(1);
+        }
+
+        return reinterpret_cast<Handle>(getLocal2(index));
     }
 
     ObjectRef Stack::Frame::getLocalObject(u16 index) {
-        auto obj = reinterpret_cast<Object*>(getLocalLong(index));
+        if (getLocalType(index) != STACKMAP_TYPE_REFERENCE || getLocalType(index + 1) != STACKMAP_TYPE_NONE) {
+            std::cout << "type mismatch: expected reference, then none at local index " << index << "\n";
+            std::exit(1);
+        }
 
-        return obj;
+        return reinterpret_cast<Object*>(getLocal2(index));
     }
 
     Object* Stack::Frame::getLocalObjectWeak(u16 index) {
-        auto obj = reinterpret_cast<Object*>(getLocalLong(index));
+        if (getLocalType(index) != STACKMAP_TYPE_REFERENCE || getLocalType(index + 1) != STACKMAP_TYPE_NONE) {
+            std::cout << "type mismatch: expected reference, then none at local index " << index << "\n";
+            std::exit(1);
+        }
 
-        return obj;
+        return reinterpret_cast<Object*>(getLocal2(index));
     }
 
     void Stack::Frame::setLocalInt(u16 index, Int value) {
-        if (index >= mLocalCount) {
-            std::cout << "too high local access. todo: proper errors\n";
-            std::exit(1);
-        }
-        mLocals[index] = value;
+        setLocalType(index, STACKMAP_TYPE_INT);
+        setLocal1(index, value);
     }
 
     void Stack::Frame::setLocalLong(u16 index, Long value) {
-        if (index + 1 >= mLocalCount) {
-            std::cout << "too high local access for long. todo: proper errors\n";
-            std::exit(1);
-        }
-        mLocals[index] = static_cast<i32>(value & 0xFFFFFFFF);
-        mLocals[index + 1] = static_cast<i32>(value >> 32);
+        setLocalType(index, STACKMAP_TYPE_LONG);
+        setLocalType(index + 1, STACKMAP_TYPE_NONE);
+        setLocal2(index, value);
     }
 
     void Stack::Frame::setLocalHandle(u16 index, Handle value) {
-        setLocalLong(index, reinterpret_cast<i64>(value));
+        setLocalType(index, STACKMAP_TYPE_HANDLE);
+        setLocalType(index + 1, STACKMAP_TYPE_NONE);
+        setLocal2(index, reinterpret_cast<i64>(value));
     }
 
     void Stack::Frame::setLocalObject(u16 index, Object* object) {
-        auto initial = getLocalObjectWeak(index);
-        if (initial != nullptr)
-            initial->removeReference();
-
-        setLocalLong(index, reinterpret_cast<i64>(object));
+        setLocalType(index, STACKMAP_TYPE_REFERENCE);
+        setLocalType(index + 1, STACKMAP_TYPE_NONE);
+        setLocal2(index, reinterpret_cast<i64>(object));
 
         object->addReference();
     }
@@ -319,18 +344,66 @@ namespace JesusVM {
     }
 
     void Stack::Frame::pushType(Stack::Frame::ElementType type) {
-        mTypes.push_back(type);
+        mStackTypes.push_back(type);
     }
 
     Stack::Frame::ElementType Stack::Frame::popType() {
-        if (mTypes.empty()) {
+        if (mStackTypes.empty()) {
             std::cout << "type stackunderflow (impossible) \n";
             std::exit(1);
         }
 
-        ElementType res = mTypes.back();
-        mTypes.pop_back();
+        ElementType res = mStackTypes.back();
+        mStackTypes.pop_back();
         return res;
+    }
+
+    i32 Stack::Frame::getLocal1(u16 index) {
+        if (index >= mLocalCount) {
+            std::cout << "too high local access. todo: proper errors\n";
+            std::exit(1);
+        }
+        return static_cast<i32>(mLocals[index]);
+    }
+
+    i64 Stack::Frame::getLocal2(u16 index) {
+        if (index + 1 >= mLocalCount) {
+            std::cout << "too high local access. todo: proper errors\n";
+            std::exit(1);
+        }
+        i32 low = mLocals[index];
+        i32 high = mLocals[index + 1];
+        return (static_cast<i64>(high) << 32) | (static_cast<i64>(low) & 0xFFFFFFFF);
+    }
+
+    void Stack::Frame::setLocal1(u16 index, i32 value) {
+        if (index >= mLocalCount) {
+            std::cout << "too high local access. todo: proper errors\n";
+            std::exit(1);
+        }
+        mLocals[index] = value;
+    }
+
+    void Stack::Frame::setLocal2(u16 index, i64 value) {
+        if (index + 1 >= mLocalCount) {
+            std::cout << "too high local access for long. todo: proper errors\n";
+            std::exit(1);
+        }
+        mLocals[index] = static_cast<i32>(value & 0xFFFFFFFF);
+        mLocals[index + 1] = static_cast<i32>(value >> 32);
+    }
+
+    moduleweb_stackmap_type_id Stack::Frame::getLocalType(u16 index) {
+        return static_cast<moduleweb_stackmap_type_id>(mLocalTypes[index]);
+    }
+
+    void Stack::Frame::setLocalType(u16 index, moduleweb_stackmap_type_id type) {
+        if (getLocalType(index) == STACKMAP_TYPE_REFERENCE && getLocalType(index + 1) == STACKMAP_TYPE_NONE) {
+            Object* object = getLocalObjectWeak(index);
+            object->removeReference();
+        }
+
+        mLocalTypes[index] = type;
     }
 
     u32 Stack::Frame::getTypeSize(Stack::Frame::ElementType type) {
@@ -372,16 +445,6 @@ namespace JesusVM {
         }
 
         auto oldFrame = std::move(mTop);
-
-        for (u16 i = 0; i < oldFrame->mLocalCount; i++) {
-            if (oldFrame->mCurrentFunction->getLocalTypeAt(i) == STACKMAP_REFERENCE) {
-                oldFrame->getLocalObjectWeak(i)->removeReference();
-            }
-
-            if (oldFrame->mCurrentFunction->isLocalDualSlot(i)) {
-                i++; // skip next slot
-            }
-        }
 
         mTop = std::move(oldFrame->mPrevious);
 

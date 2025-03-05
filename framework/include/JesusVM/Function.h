@@ -19,7 +19,7 @@ namespace JesusVM {
 	template <typename ReturnType>
 	using NativeFunctionPtr = ReturnType(JESUSVM_CALL *)(VMContext, JValue*);
 
-	class Executor;
+    class Function;
 	class Module;
 
     namespace Linker {
@@ -29,11 +29,6 @@ namespace JesusVM {
     namespace Preload {
         void PreloadSystemModules();
     }
-
-    // helper class
-    class StackMapEntry {
-
-    };
 
 	class Function {
 	friend class Module;
@@ -50,7 +45,7 @@ namespace JesusVM {
         moduleweb_function_info* getInfo() const;
 		Module* getModule() const;
 		const TypeInfo& getReturnType() const;
-        const std::vector<TypeInfo>& getArgumentTypes();
+        const std::vector<TypeInfo>& getArgumentTypes() const;
 		std::string_view getName() const;
 		std::string_view getDescriptor() const;
 		Modifiers getModifiers() const;
@@ -59,9 +54,6 @@ namespace JesusVM {
 		u16 getStackSize() const;
 		u8* getEntry() const;
 		u32 getBytecodeSize() const;
-
-        StackMapEntry getStackMapFrame(u8* pc);
-        StackMapEntry getStackMapFrame(u32 bytecodeOffset);
 
         bool isPublic() const;
         bool isPrivate() const;
@@ -86,8 +78,7 @@ namespace JesusVM {
 		std::string_view mDescriptor;
 		Modifiers mModifiers;
 
-        moduleweb_code_attribute mCodeAttribute;
-        moduleweb_stackmap_attribute mStackMapAttribute;
+        moduleweb_code_attribute mCodeAttribute{};
 
         VMContext getNativeContext();
         JesusVM& getVM();

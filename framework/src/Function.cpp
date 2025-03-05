@@ -10,8 +10,7 @@ namespace JesusVM {
 	Function::Function(Module* module, moduleweb_function_info* info)
 		: mInfo(info)
         , mModule(module)
-		, mModifiers(info->modifiers)
-        , mCodeAttribute(0, 0, 0, nullptr) {
+		, mModifiers(info->modifiers) {
         auto name = module->getConstPool().get<ConstantName>(info->name_index);
 
         mName = name->getName();
@@ -59,41 +58,10 @@ namespace JesusVM {
         }
 
         moduleweb_instream_close_buffer(&stream);
-
-        index = 0;
-
-        if (moduleweb_attribute_array_get(&info->attributes, "StackMap", module->getInfo(), &index)) {
-            //TODO: maybe generate a stackmap based on the Code attribute
-            std::cout << "Bad function data. No 'StackMap' attribute defined\n";
-            std::exit(1);
-        }
-
-        index2 = index + 1;
-
-        if (!moduleweb_attribute_array_get(&info->attributes, "StackMap", module->getInfo(), &index2)) {
-            std::cout << "Bad function data: More than one 'StackMap' attribute defined\n";
-            std::exit(1);
-        }
-
-        moduleweb_attribute_info* stackmap = &info->attributes.array[index];
-
-        if (moduleweb_instream_open_buffer(&stream, stackmap->info, stackmap->length, false)) {
-            std::cout << "error: failed to stream StackMap attribute data\n";
-            std::exit(1);
-        }
-
-        if (moduleweb_stackmap_attribute_init(&mStackMapAttribute, &stream)) {
-            // TODO: linkage error
-            std::cout << "error: failed to read StackMap attribute data\n";
-            std::exit(1);
-        }
-
-        moduleweb_instream_close_buffer(&stream);
 	}
 
     Function::~Function() {
         moduleweb_code_attribute_uninit(&mCodeAttribute);
-        moduleweb_stackmap_attribute_uninit(&mStackMapAttribute);
     }
 
     moduleweb_function_info* Function::getInfo() const {
@@ -108,7 +76,7 @@ namespace JesusVM {
         return mReturnType;
 	}
 
-    const std::vector<TypeInfo>& Function::getArgumentTypes() {
+    const std::vector<TypeInfo>& Function::getArgumentTypes() const {
         return mArgumentTypes;
     }
 
@@ -139,14 +107,6 @@ namespace JesusVM {
 	u32 Function::getBytecodeSize() const {
 		return mCodeAttribute.code_length;
 	}
-
-    StackMapEntry Function::getStackMapFrame(u8* pc) {
-        return StackMapEntry();
-    }
-
-    StackMapEntry Function::getStackMapFrame(u32 bytecodeOffset) {
-        return StackMapEntry();
-    }
 
     bool Function::isPublic() const {
         return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PUBLIC) != 0;
