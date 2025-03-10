@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <format>
 
 namespace JesusVM {
     Class* Object::getClass() {
@@ -235,6 +236,12 @@ namespace JesusVM {
         auto array = new(memory) Array(clas, size);
 
         return {&array->object, false};
+    }
+
+    ObjectRef AllocArrayOf(Class* base, Int size) {
+        std::string name = std::format("[R{};", base->getModule()->getName(), base->getName());
+        Class* clas = Linker::LoadClass(base->getModule(), name);
+        return AllocArray(clas, size);
     }
 
     ObjectRef AllocPrimitiveArray(u8 typeId, Int size) {

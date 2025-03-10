@@ -221,6 +221,7 @@ namespace JesusVM {
 
     ObjectRef AllocObject(Class* clas);
     ObjectRef AllocArray(Class* clas, Int size);
+    ObjectRef AllocArrayOf(Class* base, Int size);
     ObjectRef AllocPrimitiveArray(u8 typeId, Int size);
 }
 

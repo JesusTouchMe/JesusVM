@@ -1152,7 +1152,7 @@ namespace JesusVM {
 
         Int size = mFrame->pop();
 
-        ObjectRef array = AllocArray(classRef->getClass(), size);
+        ObjectRef array = AllocArrayOf(classRef->getClass(), size);
 
         mFrame->pushObject(array);
     }

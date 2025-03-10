@@ -510,11 +510,12 @@ namespace JesusVM::Linker {
     static Class* LoadArrayClass(Module* module, std::string_view name) {
         assert(name[0] == '[');
 
-        Class* arrayClass = new Class(module, nullptr);
+        auto arrayClass = new Class(module, nullptr);
         Class* baseClass;
         std::string_view baseClassName = GetArrayBaseName(name);
 
         if (baseClassName.empty()) {
+            delete arrayClass;
             return nullptr;
         }
 
@@ -533,6 +534,7 @@ namespace JesusVM::Linker {
 
         if (arrayClass->linkArray(baseClass, name)) {
             // TODO: error mayhaps
+            delete arrayClass;
             return nullptr;
         }
 

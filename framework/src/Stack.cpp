@@ -25,7 +25,7 @@ namespace JesusVM {
             ElementType type = popType();
 
             if (type == ElementType::REFERENCE) {
-                auto object = popObjectWeak();
+                auto object = reinterpret_cast<Object*>(pop2());
                 object->removeReference(); // remove this stacks reference
             } else {
                 if (getTypeSize(type) == 2) {
