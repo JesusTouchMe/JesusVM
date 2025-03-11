@@ -246,7 +246,7 @@ namespace JesusVM {
     }
 
     ObjectRef AllocArrayOf(Class* base, Int size) {
-        std::string name = std::format("[R{};", base->getName(), base->getName());
+        std::string name = std::format("[R{};", base->getName());
         Class* clas = Linker::LoadClass(base->getModule(), name);
         return AllocArray(clas, size);
     }

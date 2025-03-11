@@ -29,6 +29,7 @@ namespace JesusVM::rt::vm::System {
     Class* handleArray;
 
     Function* exit;
+    Function* loadPlugin;
 
     [[noreturn]]
     void exit_impl(VMContext ctx, JValue* args, Int code) {
@@ -37,7 +38,7 @@ namespace JesusVM::rt::vm::System {
         std::exit(code);
     }
 
-    void loadLibrary_impl(VMContext ctx, JValue* args, JObject path) {
+    void loadPlugin_impl(VMContext ctx, JValue* args, JObject path) {
         path = args[0].R;
         auto object = reinterpret_cast<Object*>(path);
 

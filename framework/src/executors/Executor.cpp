@@ -10,6 +10,8 @@
 #include "JesusVM/executors/Executor.h"
 #include "JesusVM/executors/VThread.h"
 
+#include <ranges>
+
 #undef VOID
 #undef BOOL
 
@@ -494,7 +496,7 @@ namespace JesusVM {
                 break;
 
             case Opcodes::LDC:
-                ldcInsn();
+                ldcInsn(wide);
                 break;
 
             case Opcodes::WIDE:
@@ -1628,21 +1630,21 @@ namespace JesusVM {
 		i8 value = getByte();
 		mFrame->push(value);
 	}
-	
-	void Executor::spushInsn() {
-		i16 value = getShort();
-		mFrame->push(value);
-	}
-	
-	void Executor::ipushInsn() {
-		i32 value = getInt();
-		mFrame->push(value);
-	}
-	
-	void Executor::lpushInsn() {
-		i64 value = getLong();
-		mFrame->pushLong(value);
-	}
+
+    void Executor::spushInsn() {
+        i16 value = getShort();
+        mFrame->push(value);
+    }
+
+    void Executor::ipushInsn() {
+        i32 value = getInt();
+        mFrame->push(value);
+    }
+
+    void Executor::lpushInsn() {
+        i64 value = getLong();
+        mFrame->pushLong(value);
+    }
 
     void Executor::i2bInsn() {
         Int value = mFrame->pop();
@@ -1664,13 +1666,13 @@ namespace JesusVM {
         mFrame->push(static_cast<Int>(value));
     }
 
-	void Executor::constInsn(i32 value) {
-		mFrame->push(value);
-	}
-	
-	void Executor::lconstInsn(i64 value) {
-		mFrame->pushLong(value);
-	}
+    void Executor::constInsn(i32 value) {
+        mFrame->push(value);
+    }
+
+    void Executor::lconstInsn(i64 value) {
+        mFrame->pushLong(value);
+    }
 
     void Executor::hconst_nullInsn() {
         mFrame->pushHandle(nullptr);
@@ -1703,55 +1705,162 @@ namespace JesusVM {
 
             std::unique_ptr<JValue[]> nativeArgs = std::make_unique<JValue[]>(func->getArgumentTypes().size());
 
-            u64 i = 0;
-            for (auto& paramType : func->getArgumentTypes()) {
-                if (paramType.is64Bit()) {
-                    i64 value = mFrame->popLong();
-                    nativeArgs[i++].L = value;
-                } else {
-                    i32 value = mFrame->pop();
-                    nativeArgs[i++].I = value;
+            u16 i = func->getArgumentTypes().size();
+
+            for (const auto& arg : std::ranges::reverse_view(func->getArgumentTypes())) {
+                switch (arg.getInternalType()) {
+                    case Type::REFERENCE: {
+                        ObjectRef obj = mFrame->popObject();
+
+                        i -= 1;
+                        nativeArgs[i].R = obj;
+                        obj->addReference(); // the native arg needs its own explicit reference here
+
+                        break;
+                    }
+
+                    case Type::HANDLE: {
+                        auto value = mFrame->popHandle();
+
+                        i -= 1;
+                        nativeArgs[i].H = value;
+
+                        break;
+                    }
+
+                    case Type::BYTE: {
+                        auto value = mFrame->pop();
+
+                        i -= 1;
+                        nativeArgs[i].B = static_cast<Byte>(value);
+
+                        break;
+                    }
+
+                    case Type::SHORT: {
+                        auto value = mFrame->pop();
+
+                        i -= 1;
+                        nativeArgs[i].S = static_cast<Short>(value);
+
+                        break;
+                    }
+
+                    case Type::INT: {
+                        auto value = mFrame->pop();
+
+                        i -= 1;
+                        nativeArgs[i].I = static_cast<Int>(value);
+
+                        break;
+                    }
+
+                    case Type::LONG: {
+                        auto value = mFrame->popLong();
+
+                        i -= 1;
+                        nativeArgs[i].L = static_cast<Long>(value);
+
+                        break;
+                    }
+
+                    case Type::CHAR: {
+                        auto value = mFrame->pop();
+
+                        i -= 1;
+                        nativeArgs[i].C = static_cast<Char>(value);
+
+                        break;
+                    }
+
+                    case Type::FLOAT:
+                    case Type::DOUBLE:
+                        std::exit(3);
+                    case Type::BOOL: {
+                        auto value = mFrame->pop();
+
+                        i -= 1;
+                        nativeArgs[i].Z = (value != 0);
+
+                        break;
+                    }
                 }
             }
 
             if (func->getReturnType().getInternalType() == Type::VOID) {
                 auto ptr = reinterpret_cast<NativeFunctionPtr<void>>(func->getEntry());
                 ptr(mVM.getContext(), nativeArgs.get());
-
-                return;
             } else {
-                switch (func->getReturnType().getByteSize()) {
-                    case 1: {
+                switch (func->getReturnType().getInternalType()) {
+                    case Type::REFERENCE: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<JObject>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->pushObject(reinterpret_cast<Object*>(value));
+                        break;
+                    }
+
+                    case Type::HANDLE: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Handle>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->pushHandle(value);
+                        break;
+                    }
+
+                    case Type::BYTE: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Byte>>(func->getEntry());
                         auto value = ptr(mVM.getContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
-                    case 2: {
+
+                    case Type::SHORT: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Short>>(func->getEntry());
                         auto value = ptr(mVM.getContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
-                    case 4: {
+
+                    case Type::INT: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Int>>(func->getEntry());
                         auto value = ptr(mVM.getContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
-                    case 8: {
+
+                    case Type::LONG: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Long>>(func->getEntry());
                         auto value = ptr(mVM.getContext(), nativeArgs.get());
                         mFrame->pushLong(value);
                         break;
                     }
-                    default:
-                        std::cout << "native call error\n";
-                        std::exit(1);
-                }
 
-                return;
+                    case Type::CHAR: {
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Char>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->push(value);
+                        break;
+                    }
+
+                    case Type::FLOAT:
+                    case Type::DOUBLE:
+                        std::exit(3);
+
+                    case Type::BOOL:
+                        auto ptr = reinterpret_cast<NativeFunctionPtr<Bool>>(func->getEntry());
+                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        mFrame->push(value);
+                        break;
+                }
             }
+
+            for (i = 0; i < func->getArgumentTypes().size(); i++) {
+                if (func->getArgumentTypes()[i].getInternalType() == Type::REFERENCE) {
+                    auto object = reinterpret_cast<Object*>(nativeArgs[i].R);
+                    object->removeReference(); // explicitly remove the native reference after call
+                }
+            }
+
+            return;
         }
 
         Stack::Frame* oldFrame = mFrame;
@@ -1759,9 +1868,7 @@ namespace JesusVM {
 
         u16 i = func->getNeededLocalsForArgs();
 
-        for (auto it = func->getArgumentTypes().rbegin(); it != func->getArgumentTypes().rend(); ++it) {
-            auto& arg = *it;
-
+        for (auto & arg : std::ranges::reverse_view(func->getArgumentTypes())) {
             switch (arg.getInternalType()) {
                 case Type::REFERENCE: {
                     ObjectRef obj = oldFrame->popObject();
@@ -1918,7 +2025,7 @@ namespace JesusVM {
         Constant* value = mFrame->getConstPool().getGeneric(index);
 
         if (value == nullptr) {
-            std::cout << "idk what to error here...\n";
+            std::cout << "error: index out of bounds\n";
             std::exit(1);
         }
 

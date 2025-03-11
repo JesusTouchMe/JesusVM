@@ -3,6 +3,8 @@
 
 #include "JesusVM/constpool/Constant.h"
 
+#include "JesusVM/heap/Object.h"
+
 namespace JesusVM {
     class ConstantAscii : public Constant {
     public:
@@ -16,6 +18,7 @@ namespace JesusVM {
 
     private:
         std::string_view mValue;
+        ObjectRef mStringObject = nullptr;
     };
 }
 

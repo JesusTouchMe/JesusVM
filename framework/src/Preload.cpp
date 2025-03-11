@@ -99,7 +99,7 @@ namespace JesusVM::Preload {
 
     NativeOverrideEntry nativeOverrideEntries[] = {
             { &rt::vm::System::exit, reinterpret_cast<void*>(rt::vm::System::exit_impl) },
-            { &rt::vm::System::loadLibrary, reinterpret_cast<void*>(rt::vm::System::loadLibrary_impl) },
+            { &rt::vm::System::loadPlugin, reinterpret_cast<void*>(rt::vm::System::loadPlugin_impl) },
     };
 
     void PreloadSystemModules() {
