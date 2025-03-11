@@ -173,6 +173,8 @@ namespace JesusVM {
         void lreturnInsn();
         void hreturnInsn();
         void rreturnInsn();
+
+        void ldcInsn(bool wide);
 	};
 }
 

@@ -145,6 +145,8 @@ typedef enum moduleweb_opcodes {
     HRETURN,
     RRETURN,
 
+    LDC,
+
     WIDE,
 
     // reserved opcodes. usually for debugger use

@@ -493,6 +493,10 @@ namespace JesusVM {
                 rreturnInsn();
                 break;
 
+            case Opcodes::LDC:
+                ldcInsn();
+                break;
+
             case Opcodes::WIDE:
                 executeInstruction(true);
                 break;
@@ -1907,5 +1911,17 @@ namespace JesusVM {
         } else {
             mFrame->pushObject(value);
         }
+    }
+
+    void Executor::ldcInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        Constant* value = mFrame->getConstPool().getGeneric(index);
+
+        if (value == nullptr) {
+            std::cout << "idk what to error here...\n";
+            std::exit(1);
+        }
+
+        value->addTo(mFrame);
     }
 }
