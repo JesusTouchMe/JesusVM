@@ -1750,24 +1750,90 @@ namespace JesusVM {
             }
         }
 
-        std::vector<i32> args;
-        args.reserve(func->getArgumentTypes().size());
-
-        for (auto& paramType : func->getArgumentTypes()) {
-            if (paramType.is64Bit()) {
-                i64 value = mFrame->popLong();
-                args.push_back(static_cast<i32>(value >> 32));
-                args.push_back(static_cast<i32>(value & 0xFFFFFFFF));
-            } else {
-                args.push_back(mFrame->pop());
-            }
-        }
-
+        Stack::Frame* oldFrame = mFrame;
         enterFunction(func);
 
-        u16 i = 0;
-        for (auto arg : args) {
-            mFrame->setLocalInt(i++, arg);
+        u16 i = func->getNeededLocalsForArgs();
+
+        for (auto it = func->getArgumentTypes().rbegin(); it != func->getArgumentTypes().rend(); ++it) {
+            auto& arg = *it;
+
+            switch (arg.getInternalType()) {
+                case Type::REFERENCE: {
+                    ObjectRef obj = oldFrame->popObject();
+
+                    i -= 2;
+                    mFrame->setLocalObject(i, obj);
+
+                    break;
+                }
+
+                case Type::HANDLE: {
+                    auto value = oldFrame->popHandle();
+
+                    i -= 2;
+                    mFrame->setLocalHandle(i, value);
+
+                    break;
+                }
+
+                case Type::BYTE: {
+                    auto value = oldFrame->pop();
+
+                    i -= 1;
+                    mFrame->setLocalInt(i, static_cast<Byte>(value));
+
+                    break;
+                }
+
+                case Type::SHORT: {
+                    auto value = oldFrame->pop();
+
+                    i -= 1;
+                    mFrame->setLocalInt(i, static_cast<Short>(value));
+
+                    break;
+                }
+
+                case Type::INT: {
+                    auto value = oldFrame->pop();
+
+                    i -= 1;
+                    mFrame->setLocalInt(i, static_cast<Int>(value));
+
+                    break;
+                }
+
+                case Type::LONG: {
+                    auto value = oldFrame->popLong();
+
+                    i -= 2;
+                    mFrame->setLocalLong(i, static_cast<Long>(value));
+
+                    break;
+                }
+
+                case Type::CHAR: {
+                    auto value = oldFrame->pop();
+
+                    i -= 1;
+                    mFrame->setLocalInt(i, static_cast<Char>(value));
+
+                    break;
+                }
+
+                case Type::FLOAT:
+                case Type::DOUBLE:
+                    std::exit(3);
+                case Type::BOOL: {
+                    auto value = oldFrame->pop();
+
+                    i -= 1;
+                    mFrame->setLocalInt(i, value != 0);
+
+                    break;
+                }
+            }
         }
     }
 

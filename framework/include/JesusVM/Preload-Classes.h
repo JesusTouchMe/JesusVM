@@ -1,3 +1,3 @@
 // Copyright 2025 JesusTouchMe
 
-PRELOAD_CLASS(rt::vm::System::self, "Object", rt::vm::System::Object::self, true)
+PRELOAD_CLASS(rt::std::Primitives::self, "String", rt::std::Primitives::String::self, false)

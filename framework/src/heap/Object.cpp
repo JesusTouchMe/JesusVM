@@ -164,7 +164,16 @@ namespace JesusVM {
         : mClass(clas) {}
 
     void Object::freeThis() {
+        std::cout << "Freeing instance of " << mClass->getName() << "\n";
+
         if (mClass->getKind() == ClassKind::ARRAY) {
+            if (mClass->mArrayBaseClass->getKind() != ClassKind::PRIMITIVE) {
+                auto elements = getArrayElements<Object*>();
+                for (Int i = 0; i < getArrayLength(); i++) {
+                    elements[i]->removeReference();
+                }
+            }
+
 #ifdef PLATFORM_WINDOWS
             _aligned_free(toArray());
 #else
@@ -175,8 +184,6 @@ namespace JesusVM {
         }
 
         // TODO: finalizer/destructor
-
-        std::cout << "Freeing instance of " << mClass->getName() << "\n";
 
         for (auto& field : mClass->mFields) {
             if (field.getType().getInternalType() != Type::REFERENCE) {
@@ -239,7 +246,7 @@ namespace JesusVM {
     }
 
     ObjectRef AllocArrayOf(Class* base, Int size) {
-        std::string name = std::format("[R{};", base->getModule()->getName(), base->getName());
+        std::string name = std::format("[R{};", base->getName(), base->getName());
         Class* clas = Linker::LoadClass(base->getModule(), name);
         return AllocArray(clas, size);
     }

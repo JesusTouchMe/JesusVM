@@ -542,6 +542,8 @@ namespace JesusVM::Linker {
     }
 
     Class* LoadClass(Module* module, std::string_view name) {
+        name = StringPool::Intern(name);
+
         TypeInfo basicType(name);
 
         bool systemModule = false;
@@ -617,16 +619,31 @@ namespace JesusVM::Linker {
     }
 
     Class* LoadClass(std::string_view qualifiedName, Object* linker) {
+        std::size_t arrayDepth = 0;
+        while (arrayDepth < qualifiedName.size() && qualifiedName[arrayDepth] == '[') {
+            ++arrayDepth;
+        }
+
+        std::string_view coreTypeName = qualifiedName.substr(arrayDepth);
+
         auto index = qualifiedName.find(':');
         if (index == std::string_view::npos) {
             return LoadClass(nullptr, qualifiedName);
         }
 
-        std::string_view moduleName = qualifiedName.substr(0, index);
-        std::string_view className = qualifiedName.substr(index + 1);
+        std::string_view moduleName = coreTypeName.substr(0, index);
+        std::string_view className = coreTypeName.substr(index + 1);
 
         Module* module = LoadModule(linker, moduleName);
-        return LoadClass(module, className);
+
+        if (arrayDepth > 0) {
+            std::string fullClassName(qualifiedName.substr(0, arrayDepth));
+            fullClassName += className;
+
+            return LoadClass(module, fullClassName);
+        } else {
+            return LoadClass(module, className);
+        }
     }
 
     static Type TypeFromPrimitiveName(std::string_view name) {

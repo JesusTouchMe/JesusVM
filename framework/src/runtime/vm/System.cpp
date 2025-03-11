@@ -1,5 +1,7 @@
 // Copyright 2025 JesusTouchMe
 
+#include "JesusVM/JesusVM.h"
+
 #include "JesusVM/runtime/vm/System.h"
 
 namespace JesusVM::rt::vm::System {
@@ -30,9 +32,18 @@ namespace JesusVM::rt::vm::System {
 
     [[noreturn]]
     void exit_impl(VMContext ctx, JValue* args, Int code) {
-        EXTRACT_ARG(I, code);
+        code = args[0].I;
 
         std::exit(code);
+    }
+
+    void loadLibrary_impl(VMContext ctx, JValue* args, JObject path) {
+        path = args[0].R;
+        auto object = reinterpret_cast<Object*>(path);
+
+        std::string_view realPath = GetStringData(object);
+
+        Linker::LoadPlugin(realPath);
     }
 
     namespace Object {

@@ -46,6 +46,7 @@ namespace JesusVM {
 		Module* getModule() const;
 		const TypeInfo& getReturnType() const;
         const std::vector<TypeInfo>& getArgumentTypes() const;
+        u16 getNeededLocalsForArgs() const;
 		std::string_view getName() const;
 		std::string_view getDescriptor() const;
 		Modifiers getModifiers() const;
@@ -74,6 +75,7 @@ namespace JesusVM {
 		
 		TypeInfo mReturnType;
         std::vector<TypeInfo> mArgumentTypes;
+        u16 mNeededLocalsForArgs;
 		std::string_view mName;
 		std::string_view mDescriptor;
 		Modifiers mModifiers;

@@ -10,6 +10,7 @@ namespace JesusVM {
 	Function::Function(Module* module, moduleweb_function_info* info)
 		: mInfo(info)
         , mModule(module)
+        , mNeededLocalsForArgs(0)
 		, mModifiers(info->modifiers) {
         auto name = module->getConstPool().get<ConstantName>(info->name_index);
 
@@ -22,6 +23,10 @@ namespace JesusVM {
         }
 
         mArgumentTypes.shrink_to_fit();
+
+        for (const auto& arg: mArgumentTypes) {
+            mNeededLocalsForArgs += arg.getSlotCount();
+        }
 
         if (isNative()) {
             return;
@@ -78,6 +83,10 @@ namespace JesusVM {
 
     const std::vector<TypeInfo>& Function::getArgumentTypes() const {
         return mArgumentTypes;
+    }
+
+    u16 Function::getNeededLocalsForArgs() const {
+        return mNeededLocalsForArgs;
     }
 
 	std::string_view Function::getName() const {

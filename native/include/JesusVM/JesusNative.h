@@ -8,8 +8,6 @@
 
 #include "win32/JesusNative_platform.h"
 
-#define EXTRACT_ARG(typeDesc, argName) argName = args[__COUNTER__].typeDesc
-
 typedef unsigned char	Bool;
 typedef char        	Char;
 typedef short			Short;

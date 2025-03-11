@@ -3,6 +3,7 @@
 #include "JesusVM/Linker.h"
 #include "JesusVM/Preload.h"
 
+#include "JesusVM/runtime/std/Primitives.h"
 #include "JesusVM/runtime/vm/System.h"
 
 #include <any>
@@ -23,6 +24,14 @@ namespace JesusVM::Preload {
         Module** module; // owner
         std::string_view name;
         Class** clas;
+        bool optional;
+    };
+
+    struct FieldEntry {
+        Class** owner;
+        std::string_view name;
+        std::string_view desc;
+        Field** field;
         bool optional;
     };
 
@@ -76,20 +85,21 @@ namespace JesusVM::Preload {
             { &rt::vm::System::self, "[H", &rt::vm::System::handleArray, false },
     };
 
+#   define PRELOAD_FIELD(owner, name, desc, var, opt) { &owner, name, desc, &var, opt }
+    FieldEntry fieldEntries[] = {
+#       include "JesusVM/Preload-Fields.h"
+    };
+#   undef PRELOAD_FIELD
+
 #   define PRELOAD_FUNCTION(module, name, desc, var, opt) { &module, name, desc, &var, opt },
     FunctionEntry functionEntries[] = {
 #       include "JesusVM/Preload-Functions.h"
     };
 #   undef PRELOAD_FUNCTION
 
-    static void print(VMContext ctx, JValue* args, Int i) {
-        EXTRACT_ARG(I, i);
-
-        std::cout << i << "\n";
-    }
-
     NativeOverrideEntry nativeOverrideEntries[] = {
             { &rt::vm::System::exit, reinterpret_cast<void*>(rt::vm::System::exit_impl) },
+            { &rt::vm::System::loadLibrary, reinterpret_cast<void*>(rt::vm::System::loadLibrary_impl) },
     };
 
     void PreloadSystemModules() {
@@ -141,6 +151,18 @@ namespace JesusVM::Preload {
             }
 
             *entry.clas = clas;
+        }
+
+        for (auto& entry : fieldEntries) {
+            Field* field = (*entry.owner)->getField(entry.name, entry.desc);
+            if (field == nullptr) {
+                if (entry.optional) continue;
+
+                std::cout << "warning: preload for field " << entry.name << " failed\n";
+                std::exit(1);
+            }
+
+            *entry.field = field;
         }
 
         for (auto& entry : functionEntries) {

@@ -17,8 +17,6 @@ int main(int argc, char** argv) {
 
     JesusVM::Preload::PreloadSystemModules();
 
-    JesusVM::Linker::LoadPlugin("Main");
-
     JesusVM::Module* mainModule = JesusVM::Linker::LoadModule(nullptr, "Main");
 
     JesusVM::Function* mainFunction = mainModule->getFunction("main", "()V");

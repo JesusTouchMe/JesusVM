@@ -37,6 +37,8 @@ namespace JesusVM {
 
         bool mPreloadFinished; //TODO: implement
 	};
+
+    std::string_view GetStringData(Object* object);
 }
 
 #endif // JESUSVM_JESUSVM_H

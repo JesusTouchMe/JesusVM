@@ -30,13 +30,12 @@ namespace JesusVM::rt::vm::System {
     extern Class* handleArray;
 
     extern Function* exit;
+    extern Function* loadLibrary;
 
     [[noreturn]]
     void exit_impl(VMContext ctx, JValue* args, Int code);
 
-    namespace Object {
-        extern Class* self;
-    }
+    void loadLibrary_impl(VMContext ctx, JValue* args, JObject path);
 }
 
 #endif // JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_RUNTIME_VM_SYSTEM_H
