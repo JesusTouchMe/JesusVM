@@ -9,5 +9,7 @@ namespace JesusVM::rt::std::Primitives {
         Class* self;
 
         Field* data;
+
+        Function* init;
     }
 }

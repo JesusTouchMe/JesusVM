@@ -368,7 +368,7 @@ namespace JesusVM {
 
     i64 Stack::Frame::getLocal2(u16 index) {
         if (index + 1 >= mLocalCount) {
-            std::cout << "too high local access. todo: proper errors\n";
+            std::cout << "too high local access for long. todo: proper errors\n";
             std::exit(1);
         }
         i32 low = mLocals[index];

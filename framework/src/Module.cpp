@@ -12,6 +12,37 @@ namespace JesusVM {
         , mLinker(linker)
         , mName(info->name)
 		, mConstPool(vm, info->constant_pool_size, info->constant_pool) {
+        u16 index = 0;
+
+        while (!moduleweb_attribute_array_get(&info->attributes, "RequiredPlugins", info, &index)) {
+            moduleweb_attribute_info* requiredPlugins = &info->attributes.array[index];
+
+            index += 1;
+
+            moduleweb_instream stream;
+            if (moduleweb_instream_open_buffer(&stream, requiredPlugins->info, requiredPlugins->length, false)) {
+                // TODO: linkage error
+                std::cout << "error: failed to stream RequiredPlugins attribute data\n";
+                std::exit(1);
+            }
+
+            u16 count;
+            if (moduleweb_instream_read_u16(&stream, &count)) {
+                std::cout << "error: failed to read RequiredPlugins attribute data. Potentially malformed\n";
+                std::exit(1);
+            }
+
+            for (u16 i = 0; i < count; i++) {
+                u16 nameIndex = 0;
+                if (moduleweb_instream_read_u16(&stream, &nameIndex)) {
+                    std::cout << "error: failed to read RequiredPlugins attribute data. Potentially malformed\n";
+                    std::exit(1);
+                }
+
+                Linker::LoadPlugin(mConstPool.get<ConstantAscii>(nameIndex)->getValue());
+            }
+        }
+
         mClasses.reserve(info->class_count);
         mFunctions.reserve(info->function_count);
 

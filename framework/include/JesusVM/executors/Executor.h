@@ -13,6 +13,7 @@ namespace JesusVM {
 	class VThread;
 
 	class Executor {
+    friend class Function;
 	public:
 		explicit Executor(JesusVM& vm);
 
@@ -32,7 +33,7 @@ namespace JesusVM {
         u8* mCode;
 		u32 mPC;
 
-        bool mReturned;
+        i32 mReturnDepth;
         JValue mReturnValue;
 
 		u8 getByte();

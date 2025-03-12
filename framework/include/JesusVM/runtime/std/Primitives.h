@@ -12,6 +12,8 @@ namespace JesusVM::rt::std::Primitives {
         extern Class* self;
 
         extern Field* data;
+
+        extern Function* init;
     }
 }
 

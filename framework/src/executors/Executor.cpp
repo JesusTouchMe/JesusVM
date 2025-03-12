@@ -46,30 +46,25 @@ namespace JesusVM {
 	Executor::Executor(JesusVM& vm)
         : mVM(vm)
 		, mFrame(mStack.getTopFrame())
-        , mReturned(false)
+        , mReturnDepth(0)
         , mReturnValue(0)
 		, mPC(0)
         , mCode(nullptr) {}
 
     JValue Executor::getReturnValue() const {
-        if (!mReturned) {
-            std::cout << "error: illegal state at " << mFrame->getCurrentFunction()->getName() << ": get return value before return"; // illegal state
-            std::exit(1);
-        }
-
         return mReturnValue;
     }
 
     void Executor::run() {
-        mReturned = false;
+        i32 savedDepth = mReturnDepth;
 
-        while (!mReturned) {
+        while (savedDepth < mReturnDepth) {
             executeInstruction();
         }
     }
 
 	void Executor::executeInstruction(bool wide) {
-        if (mReturned || mPC >= mFrame->getCurrentFunction()->getBytecodeSize()) {
+        if (mPC >= mFrame->getCurrentFunction()->getBytecodeSize()) {
             std::cout << "bad execution!!!\n";
             std::exit(1);
         }
@@ -518,6 +513,7 @@ namespace JesusVM {
 		mFrame = mStack.enterFrame(function->getLocalCount(), function->getStackSize(), function, mCode, mPC);
         mPC = 0;
 		mCode = function->getEntry();
+        mReturnDepth++;
 	}
 	
 	u8 Executor::getByte() {
@@ -1192,7 +1188,7 @@ namespace JesusVM {
         Field* field = fieldRef->getField();
 
         if (!object->isInstance(field->getClass())) {
-            std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+            std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
             object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
             std::exit(1);
         }
@@ -1252,7 +1248,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1267,7 +1263,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1282,7 +1278,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1297,7 +1293,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1312,7 +1308,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1327,7 +1323,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1342,7 +1338,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1363,7 +1359,7 @@ namespace JesusVM {
                 object->nullCheck();
 
                 if (!object->isInstance(field->getClass())) {
-                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class" <<
+                    std::cout << "error: field '" << field->getType().getClassName() << " " << field->getName() << "' is not a part of the class " <<
                               object->getClass()->getModule()->getName() << ":" << object->getClass()->getName() << "\n";
                     std::exit(1);
                 }
@@ -1953,9 +1949,7 @@ namespace JesusVM {
 		mCode = mFrame->getReturnCode();
 		mFrame = mStack.leaveFrame();
 
-		if (mFrame == nullptr) {
-			mReturned = true;
-		}
+        mReturnDepth--;
 	}
 
     void Executor::ireturnInsn() {
@@ -1965,10 +1959,10 @@ namespace JesusVM {
         mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
-        if (mFrame == nullptr) {
-            mReturned = true;
-            mReturnValue.I = value;
-        } else {
+        mReturnDepth--;
+        mReturnValue.I = value;
+
+        if (mFrame != nullptr) {
             mFrame->push(value);
         }
     }
@@ -1980,10 +1974,10 @@ namespace JesusVM {
         mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
-        if (mFrame == nullptr) {
-            mReturned = true;
-            mReturnValue.L = value;
-        } else {
+        mReturnDepth--;
+        mReturnValue.L = value;
+
+        if (mFrame != nullptr) {
             mFrame->pushLong(value);
         }
     }
@@ -1995,10 +1989,10 @@ namespace JesusVM {
         mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
-        if (mFrame == nullptr) {
-            mReturned = true;
-            mReturnValue.H = value;
-        } else {
+        mReturnDepth--;
+        mReturnValue.H = value;
+
+        if (mFrame != nullptr) {
             mFrame->pushHandle(value);
         }
     }
@@ -2010,9 +2004,10 @@ namespace JesusVM {
         mCode = mFrame->getReturnCode();
         mFrame = mStack.leaveFrame();
 
+        mReturnDepth--;
+        mReturnValue.R = value;
+
         if (mFrame == nullptr) {
-            mReturned = true;
-            mReturnValue.R = value;
             std::cout << "warning: potential memory leak. native interface with objects is not stable yet!\n";
             value->addReference(); // the native value gets a reference
         } else {

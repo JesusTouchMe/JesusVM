@@ -15,6 +15,8 @@
 #include "moduleweb/function_info.h"
 #include "moduleweb/stackmap_attribute.h"
 
+#include <ranges>
+
 namespace JesusVM {
 	template <typename ReturnType>
 	using NativeFunctionPtr = ReturnType(JESUSVM_CALL *)(VMContext, JValue*);
@@ -82,37 +84,35 @@ namespace JesusVM {
 
         moduleweb_code_attribute mCodeAttribute{};
 
+        template<typename T>
+        void processArg(T& arg, Stack::Frame* frame, u16 localIndex, u16 argIndex);
+
+        template<typename Iter, typename T, typename... Rest>
+        void processArgs(Stack::Frame* frame, u16& localIndex, u16& argIndex, Iter typeIt, T&& arg, Rest&&... rest);
+        inline void processArgs(Stack::Frame*, u16&, u16&, std::vector<TypeInfo>::iterator) {}
+
         VMContext getNativeContext();
         JesusVM& getVM();
 	};
 
-    template<typename T>
-    void AddArgument(std::vector<i32>& args, T value) {
-        if constexpr (sizeof(T) == 8) {
-            i64 val = reinterpret_cast<i64>(value);
-            args.push_back(static_cast<i32>(val >> 32));
-            args.push_back(static_cast<i32>(val & 0xFFFFFFFF));
-        } else {
-            args.push_back(static_cast<i32>(value));
-        }
-    }
-
     template<typename R, typename... Args>
     R Function::invoke(Args... args) {
-        if (isNative()) return invokeNative<R>(args...);
+        if (isNative()) return invokeNative<R>(std::forward<Args>(args)...);
 
         if (isAsync()) {
             Threading::LaunchThread(this);
             return;
         }
 
-        std::vector<i32> runtimeArgs;
-        runtimeArgs.reserve(mArgumentTypes.size() * 2); // reserve for worst case scenario
-
-        (AddArgument(runtimeArgs, args), ...);
-
-        Executor& executor = Threading::CurrentThread()->getExecutor(); // should be fine since the thread would be busy running this?
+        Executor& executor = Threading::CurrentThread()->getExecutor();
         executor.enterFunction(this);
+
+        Stack::Frame* frame = executor.mFrame;
+        u16 localIndex = 0;
+        u16 argIndex = 0;
+
+        processArgs(frame, localIndex, argIndex, mArgumentTypes.begin(), args...);
+
         executor.run();
 
         if constexpr (!std::is_same_v<R, void>) {
@@ -144,6 +144,111 @@ namespace JesusVM {
         } else {
             return code(getNativeContext(), runtimeArgs.data());
         }
+    }
+
+    template <typename T>
+    void Function::processArg(T& arg, Stack::Frame* frame, u16 localIndex, u16 argIndex) {
+        switch (mArgumentTypes[argIndex].getInternalType()) {
+            case Type::REFERENCE: {
+                if constexpr (std::is_same_v<T, Object*> || std::is_same_v<T, ObjectRef>) {
+                    frame->setLocalObject(localIndex, arg);
+                } else {
+                    std::cerr << "Type mismatch: Expected Object at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::HANDLE: {
+                if constexpr (std::is_same_v<T, Handle>) {
+                    frame->setLocalHandle(localIndex, arg);
+                } else {
+                    std::cerr << "Type mismatch: Expected Handle at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::BYTE: {
+                if constexpr (std::is_integral_v<T>) {
+                    frame->setLocalInt(localIndex, static_cast<Byte>(arg));
+                } else {
+                    std::cerr << "Type mismatch: Expected Byte at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::SHORT: {
+                if constexpr (std::is_integral_v<T>) {
+                    frame->setLocalInt(localIndex, static_cast<Short>(arg));
+                } else {
+                    std::cerr << "Type mismatch: Expected Short at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::INT: {
+                if constexpr (std::is_integral_v<T>) {
+                    frame->setLocalInt(localIndex, static_cast<Int>(arg));
+                } else {
+                    std::cerr << "Type mismatch: Expected Int at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::LONG: {
+                if constexpr (std::is_same_v<T, Long>) {
+                    frame->setLocalLong(localIndex, arg);
+                } else {
+                    std::cerr << "Type mismatch: Expected Long at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::CHAR: {
+                if constexpr (std::is_integral_v<T>) {
+                    frame->setLocalInt(localIndex, static_cast<Char>(arg));
+                } else {
+                    std::cerr << "Type mismatch: Expected Char at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::BOOL: {
+                if constexpr (std::is_same_v<T, Bool>) {
+                    frame->setLocalInt(localIndex, arg != 0);
+                } else {
+                    std::cerr << "Type mismatch: Expected Bool at arg " << argIndex << std::endl;
+                    std::exit(1);
+                }
+                break;
+            }
+
+            case Type::FLOAT:
+            case Type::DOUBLE:
+                std::cerr << "Floating point types are unsupported at arg " << argIndex << std::endl;
+                std::exit(3);
+
+            default:
+                std::cerr << "Unknown type at arg " << argIndex << std::endl;
+                std::exit(1);
+        }
+    }
+
+    template <typename Iter, typename T, typename ...Rest>
+    void Function::processArgs(Stack::Frame* frame, u16& localIndex, u16& argIndex, Iter typeIt, T&& arg, Rest&& ...rest) {
+        if (typeIt == mArgumentTypes.end()) return;
+
+        processArg(arg, frame, localIndex, argIndex);
+        localIndex += typeIt->getSlotCount();
+        argIndex++;
+
+        processArgs(frame, localIndex, argIndex, std::next(typeIt), std::forward<Rest>(rest)...);
     }
 }
 

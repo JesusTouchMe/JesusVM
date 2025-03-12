@@ -23,7 +23,9 @@ namespace JesusVM {
             std::memcpy(data, mValue.data(), static_cast<Int>(mValue.length()));
 
             mStringObject = AllocObject(rt::std::Primitives::String::self);
-            mStringObject->setObject(rt::std::Primitives::String::data, array);
+            rt::std::Primitives::String::init->invoke<void>(mStringObject.get(), array.get());
+
+            //mStringObject->setObject(rt::std::Primitives::String::data, array);
         }
 
         frame->pushObject(mStringObject);
