@@ -241,6 +241,20 @@ void moduleweb_insn_list_field(moduleweb_insn_list* list, u8 opcode, const char*
     }
 }
 
+void moduleweb_insn_list_ldc_str(moduleweb_insn_list* list, const char* value) {
+    if (moduleweb_insn_list_prepare(list, 3)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u8(&list->writer_stream, LDC)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u16(&list->writer_stream, moduleweb_module_builder_resolve_string(list->module, value))) {
+        return;
+    }
+}
+
 void moduleweb_insn_list_var(moduleweb_insn_list* list, u8 opcode, u16 local) {
     if (local > 0xFF) {
         if (moduleweb_insn_list_prepare(list, 4)) {

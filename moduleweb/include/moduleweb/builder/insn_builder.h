@@ -49,7 +49,6 @@ int moduleweb_insn_list_init(moduleweb_insn_list* list);
 
 void moduleweb_insn_list_uninit(moduleweb_insn_list* list);
 
-
 void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list);
 
 moduleweb_label* moduleweb_insn_list_get_label(const moduleweb_insn_list* list, const char* name);
@@ -68,6 +67,8 @@ void moduleweb_insn_list_jump(moduleweb_insn_list* list, u8 opcode, moduleweb_la
 void moduleweb_insn_list_class(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name);
 
 void moduleweb_insn_list_field(moduleweb_insn_list* list, u8 opcode, const char* owner_module, const char* owner, const char* name, const char* descriptor);
+
+void moduleweb_insn_list_ldc_str(moduleweb_insn_list* list, const char* value);
 
 void moduleweb_insn_list_var(moduleweb_insn_list* list, u8 opcode, u16 local);
 
