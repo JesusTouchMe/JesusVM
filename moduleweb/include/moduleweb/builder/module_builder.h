@@ -59,6 +59,14 @@ void moduleweb_module_builder_add_function(moduleweb_module_builder* builder, PA
 
 void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUTATED moduleweb_module_info* info);
 
+u16 moduleweb_module_builder_resolve_string(moduleweb_module_builder* builder, const char* string);
+u16 moduleweb_module_builder_resolve_name(moduleweb_module_builder* builder, const char* name, const char* descriptor);
+u16 moduleweb_module_builder_resolve_module_ref(moduleweb_module_builder* builder, const char* name);
+u16 moduleweb_module_builder_resolve_function_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor);
+u16 moduleweb_module_builder_resolve_class_ref(moduleweb_module_builder* builder, const char* module_name, const char* name);
+u16 moduleweb_module_builder_resolve_field_ref(moduleweb_module_builder* builder, const char* owner_module, const char* owner,
+                                               const char* name, const char* descriptor);
+
 #ifdef __cplusplus
 }
 #endif
