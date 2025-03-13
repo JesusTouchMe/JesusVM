@@ -45,6 +45,8 @@ target_include_directories(jesusvm-framework-jesusvm-framework
 		include
 )
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native") #TODO: figure out why lto errors
+
 if(WIN32)
     target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC PLATFORM_WINDOWS)
 elseif(APPLE)
