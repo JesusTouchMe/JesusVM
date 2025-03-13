@@ -24,8 +24,6 @@ namespace JesusVM {
 
             mStringObject = AllocObject(rt::std::Primitives::String::self);
             rt::std::Primitives::String::init->invoke<void>(mStringObject.get(), array.get());
-
-            //mStringObject->setObject(rt::std::Primitives::String::data, array);
         }
 
         frame->pushObject(mStringObject);

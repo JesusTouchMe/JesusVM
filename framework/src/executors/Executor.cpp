@@ -56,7 +56,7 @@ namespace JesusVM {
     }
 
     void Executor::run() {
-        i32 savedDepth = mReturnDepth;
+        i32 savedDepth = mReturnDepth - 1;
 
         while (savedDepth < mReturnDepth) {
             executeInstruction();
