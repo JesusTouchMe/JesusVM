@@ -13,8 +13,91 @@
 #include <vector>
 
 namespace JesusVM {
-	class JesusVM;
+    namespace Threading {
+        static inline void LaunchThreadInternal(Function*);
+    }
 
+    enum class ThreadState {
+        NEW,
+        RUNNABLE,
+        TERMINATED,
+        IDLE,
+    };
+
+    class Thread {
+    friend void Threading::Init();
+    friend void Threading::LaunchThreadInternal(Function*);
+    public:
+        Thread();
+
+        std::thread::id getId() const;
+        ThreadState getState() const;
+        bool isDaemon() const;
+        bool isInterrupted() const;
+
+        Executor& getExecutor();
+
+        void setState(ThreadState state);
+        void setFunction(Function* function);
+
+        void yield();
+        void sleep(Long ms);
+
+        void start();
+        void interrupt();
+
+    private:
+        std::thread::id mId;
+
+        std::mutex mMutex;
+        std::condition_variable mCondition;
+
+        std::atomic<ThreadState> mState;
+        bool mInterrupted;
+
+        Executor mExecutor;
+        Function* mFunction;
+    };
+
+    class VThreadGroup {
+    friend void Threading::Init();
+    friend void Threading::LaunchThread(Function*);
+    public:
+        VThreadGroup();
+
+        ThreadState getState() const;
+        std::thread::id getId() const;
+        bool isDaemon() const;
+        bool isInterrupted() const;
+        u64 getThreadCount() const;
+
+        Executor& getExecutor();
+
+        void setState(ThreadState state);
+        void runFunction(Function* function);
+
+        void yield();
+        void sleep(Long ms);
+
+        void start();
+        void interrupt();
+        void interruptCurrent();
+
+    private:
+        std::thread::id mId;
+
+        std::mutex mMutex;
+        std::condition_variable mCondition;
+
+        std::atomic<ThreadState> mState;
+        bool mInterrupted;
+        bool mCurrentInterrupted;
+
+        std::vector<std::unique_ptr<VThread>> mThreads;
+        VThread* mCurrent;
+    };
+
+    /*
     struct SingleExecutor {
         Executor executor;
     };
@@ -24,11 +107,10 @@ namespace JesusVM {
         VThread* current;
     };
 
-    using ThreadMode = std::variant<std::monostate, SingleExecutor, VThreadExecutor>;
+    using ThreadMode = std::variant<SingleExecutor, VThreadExecutor>;
 
 	class Thread {
-	friend class JesusVM;
-    friend void Threading::Init(JesusVM&);
+    friend void Threading::Init();
     friend void Threading::LaunchThread(Function*);
 	public:
         enum class State {
@@ -43,7 +125,7 @@ namespace JesusVM {
             VTHREAD_EXECUTOR, // runs a list of vthreads and stays idle if there are none
         };
 
-		Thread(JesusVM& mVM, Mode mode);
+		explicit Thread(Mode mode);
 
         State getState() const;
         Mode getMode() const;
@@ -56,7 +138,9 @@ namespace JesusVM {
 
         void setFunction(Function* function);
 
+        // Methods that will be called by a threading module eventually
         void yield();
+        void sleep(Long ms);
 
 		void start();
 		void stop();
@@ -73,10 +157,9 @@ namespace JesusVM {
 
         std::thread::id mId;
 
-		JesusVM& mVM;
-
         bool mMainThread;
 	};
+    */
 }
 
 #endif // JESUSVM_THREAD_H

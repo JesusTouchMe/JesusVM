@@ -12,7 +12,7 @@ namespace JesusVM {
     public:
         static constexpr Type type = Type::CLASS;
 
-        ConstantClass(JesusVM& vm, ConstPool& container, moduleweb_constant_class_ref_info* info);
+        ConstantClass(ConstPool& container, moduleweb_constant_class_ref_info* info);
 
         Class* getClass() const;
 

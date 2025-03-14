@@ -43,9 +43,8 @@ namespace JesusVM {
                (static_cast<u64>(data[index + 7]) << 0);
     }
 
-	Executor::Executor(JesusVM& vm)
-        : mVM(vm)
-		, mFrame(mStack.getTopFrame())
+	Executor::Executor()
+		: mFrame(mStack.getTopFrame())
         , mReturnDepth(0)
         , mReturnValue(0)
 		, mPC(0)
@@ -1785,54 +1784,54 @@ namespace JesusVM {
 
             if (func->getReturnType().getInternalType() == Type::VOID) {
                 auto ptr = reinterpret_cast<NativeFunctionPtr<void>>(func->getEntry());
-                ptr(mVM.getContext(), nativeArgs.get());
+                ptr(GetContext(), nativeArgs.get());
             } else {
                 switch (func->getReturnType().getInternalType()) {
                     case Type::REFERENCE: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<JObject>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->pushObject(reinterpret_cast<Object*>(value));
                         break;
                     }
 
                     case Type::HANDLE: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Handle>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->pushHandle(value);
                         break;
                     }
 
                     case Type::BYTE: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Byte>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
 
                     case Type::SHORT: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Short>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
 
                     case Type::INT: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Int>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
 
                     case Type::LONG: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Long>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->pushLong(value);
                         break;
                     }
 
                     case Type::CHAR: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Char>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                     }
@@ -1843,7 +1842,7 @@ namespace JesusVM {
 
                     case Type::BOOL:
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Bool>>(func->getEntry());
-                        auto value = ptr(mVM.getContext(), nativeArgs.get());
+                        auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
                         break;
                 }

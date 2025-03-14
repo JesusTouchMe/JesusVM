@@ -138,10 +138,6 @@ namespace JesusVM {
     }
 
     VMContext Function::getNativeContext() {
-        return mModule->getVM().getContext();
-    }
-
-    JesusVM& Function::getVM() {
-        return mModule->getVM();
+        return GetContext();
     }
 }

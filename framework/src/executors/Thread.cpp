@@ -5,153 +5,180 @@
 #include <algorithm>
 
 namespace JesusVM {
-	Thread::Thread(JesusVM& vm, Mode mode)
-		: mInterrupted(false)
-        , mState(State::NEW)
-        , mVM(vm)
-        , mMainThread(false) {
-        setState(State::IDLE);
-        setMode(mode);
-    }
-
-    Thread::State Thread::getState() const {
-        return mState;
-    }
-
-    Thread::Mode Thread::getMode() const {
-        return mMode;
+    Thread::Thread()
+        : mState(ThreadState::NEW)
+        , mInterrupted(false)
+        , mFunction(nullptr) {
+        setState(ThreadState::IDLE);
     }
 
     std::thread::id Thread::getId() const {
         return mId;
     }
 
+    ThreadState Thread::getState() const {
+        return mState.load(std::memory_order_acquire);
+    }
+
+    bool Thread::isDaemon() const {
+        return false;
+    }
+
+    bool Thread::isInterrupted() const {
+        return mInterrupted;
+    }
+
     Executor& Thread::getExecutor() {
-        switch (mMode) {
-            case Mode::SINGLE_EXECUTOR: {
-                auto& executor = std::get<SingleExecutor>(mThreadMode);
-                return executor.executor;
-            }
-
-            case Mode::VTHREAD_EXECUTOR: {
-                auto& executor = std::get<VThreadExecutor>(mThreadMode);
-                return executor.current->getExecutor();
-            }
-        }
-
-        std::cout << "Unreachable. Stupid microsoft\n";
-        std::exit(1);
+        return mExecutor;
     }
 
-    void Thread::setState(Thread::State state) {
-        mState = state;
+    void Thread::setState(ThreadState state) {
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            mState.store(state, std::memory_order_release);
+        }
         mCondition.notify_all();
-    }
-
-    void Thread::setMode(Thread::Mode mode) {
-        std::unique_lock<std::mutex> lock(mMutex);
-
-        mCondition.wait(lock, [this] {
-            return mState == State::IDLE; // we can't change the threads execution mode if it's not idle
-        });
-
-        mMode = mode;
-
-        switch (mode) {
-            case Mode::SINGLE_EXECUTOR:
-                mThreadMode.emplace<SingleExecutor>(Executor(mVM));
-                break;
-
-            case Mode::VTHREAD_EXECUTOR:
-                mThreadMode.emplace<VThreadExecutor>();
-                break;
-        }
     }
 
     void Thread::setFunction(Function* function) {
         std::unique_lock<std::mutex> lock(mMutex);
+        mCondition.wait(lock, [this] {
+            return mState == ThreadState::IDLE;
+        });
 
-        switch (mMode) {
-            case Mode::SINGLE_EXECUTOR: {
-                mCondition.wait(lock, [this] {
-                    return mState == State::IDLE;
-                });
-
-                auto& executor = std::get<SingleExecutor>(mThreadMode);
-                executor.executor.enterFunction(function);
-                executor.executor.run();
-
-                break;
-            }
-
-            case Mode::VTHREAD_EXECUTOR: {
-                auto& executor = std::get<VThreadExecutor>(mThreadMode);
-                auto thread = executor.vThreads.emplace_back(std::make_unique<VThread>(mVM)).get();
-
-                thread->executeFunction(function);
-
-                break;
-            }
-        }
+        mFunction = function;
+        setState(ThreadState::RUNNABLE);
     }
 
     void Thread::yield() {
-        switch (mMode) {
-            case Mode::SINGLE_EXECUTOR:
-                std::this_thread::yield();
-                break;
+        std::this_thread::yield();
+    }
 
-            case Mode::VTHREAD_EXECUTOR:
-                auto& executor = std::get<VThreadExecutor>(mThreadMode);
-                executor.current->yield();
+    void Thread::sleep(Long ms) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }
 
-                break;
+    void Thread::start() {
+        std::unique_lock<std::mutex> lock(mMutex);
+        mCondition.wait(lock, [this] { return (mState == ThreadState::RUNNABLE && mFunction != nullptr) || mInterrupted; });
+
+        if (mInterrupted) return;
+
+        if (mFunction->isNative()) {
+            mFunction->invokeNative<void>();
+        } else {
+            mExecutor.enterFunction(mFunction);
+            mExecutor.run();
+            setState(ThreadState::IDLE);
         }
     }
 
-	void Thread::start() {
-        switch (mMode) {
-            case Mode::SINGLE_EXECUTOR: {
-                auto& executor = std::get<SingleExecutor>(mThreadMode);
-
-                start:
-
-                executor.executor.run();
-
-                if (mMainThread) {
-                    setState(State::IDLE);
-
-                    std::unique_lock<std::mutex> lock(mMutex);
-
-                    mCondition.wait(lock, [this] {
-                        return mState == State::RUNNABLE; // we can't change the threads execution mode if it's not idle
-                    });
-
-                    goto start;
-                }
-
-                break;
-            }
-
-            case Mode::VTHREAD_EXECUTOR: {
-                auto& executor = std::get<VThreadExecutor>(mThreadMode);
-
-                u64 index = 0;
-
-                while (!mInterrupted) {
-                    executor.current = executor.vThreads[index].get();
-                    executor.current->executeCycles(5);
-
-                    index = (index + 1) % executor.vThreads.size();
-                }
-
-                break;
-            }
-        }
-	}
-
-	void Thread::stop() {
+    void Thread::interrupt() {
         std::lock_guard<std::mutex> lock(mMutex);
         mInterrupted = true;
-	}
+        mCondition.notify_all();
+    }
+
+    VThreadGroup::VThreadGroup()
+        : mState(ThreadState::NEW)
+        , mInterrupted(false)
+        , mCurrentInterrupted(false)
+        , mCurrent(nullptr) {}
+
+    ThreadState VThreadGroup::getState() const {
+        return mState.load(std::memory_order_acquire);
+    }
+
+    std::thread::id VThreadGroup::getId() const {
+        return mId;
+    }
+
+    bool VThreadGroup::isDaemon() const {
+        return false;
+    }
+
+    bool VThreadGroup::isInterrupted() const {
+        return mInterrupted;
+    }
+
+    u64 VThreadGroup::getThreadCount() const {
+        return mThreads.size();
+    }
+
+    Executor& VThreadGroup::getExecutor() {
+        return mCurrent->getExecutor();
+    }
+
+    void VThreadGroup::setState(ThreadState state) {
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            mState.store(state, std::memory_order_release);
+        }
+        mCondition.notify_all();
+    }
+
+    void VThreadGroup::runFunction(Function* function) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto thread = std::make_unique<VThread>();
+        thread->executeFunction(function);
+        mThreads.push_back(std::move(thread));
+        mCondition.notify_one();
+    }
+
+    void VThreadGroup::yield() {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if (mCurrent != nullptr) {
+            mCurrent->yield();
+        }
+    }
+
+    void VThreadGroup::sleep(Long ms) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if (mCurrent != nullptr) {
+            mCurrent->sleep(ms);
+        }
+    }
+
+    void VThreadGroup::start() {
+        using namespace std::chrono_literals;
+
+        while (!mInterrupted) {
+            std::unique_lock<std::mutex> lock(mMutex);
+            if (mThreads.empty()) {
+                if (!mCondition.wait_for(lock, 500ms, [this] { return !mThreads.empty() || mInterrupted; })) {
+                    break;
+                }
+            }
+
+            if (mInterrupted) break;
+
+            for (auto it = mThreads.begin(); it != mThreads.end();) {
+                auto& thread = *it;
+                if (!thread->isSleeping()) {
+                    mCurrent = thread.get();
+                    lock.unlock();
+                    thread->executeCycles(5);
+                    lock.lock();
+                }
+
+                if (mCurrentInterrupted) {
+                    it = mThreads.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+        }
+    }
+
+    void VThreadGroup::interrupt() {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mInterrupted = true;
+        mCondition.notify_all();
+    }
+
+    void VThreadGroup::interruptCurrent() {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mCurrentInterrupted = true;
+        mCondition.notify_all();
+    }
 }

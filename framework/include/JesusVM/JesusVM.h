@@ -20,23 +20,9 @@ namespace JesusVM {
 
     };
 
-	class JesusVM {
-	friend class Thread;
-	public:
-		JesusVM();
+    void Init();
 
-		void start(Function* main); // should be called from the main thread
-		void stop();
-
-        VMContext getContext();
-
-	private:
-		Thread* mMainThread;
-
-        Context mContext;
-
-        bool mPreloadFinished; //TODO: implement
-	};
+    VMContext GetContext();
 
     std::string_view GetStringData(Object* object);
 }

@@ -10,7 +10,7 @@ namespace JesusVM {
     public:
         static constexpr Type type = Type::MODULE;
 
-        ConstantModule(JesusVM& vm, ConstPool& container, moduleweb_constant_module_ref_info* info);
+        ConstantModule(ConstPool& container, moduleweb_constant_module_ref_info* info);
 
         Module* getModule() const;
 

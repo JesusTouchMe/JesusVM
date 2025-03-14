@@ -6,12 +6,11 @@
 #include <algorithm>
 
 namespace JesusVM {
-	Module::Module(JesusVM& vm, Object* linker, moduleweb_module_info* info)
+	Module::Module( Object* linker, moduleweb_module_info* info)
 		: mInfo(info)
-        , mVM(vm)
         , mLinker(linker)
         , mName(info->name)
-		, mConstPool(vm, info->constant_pool_size, info->constant_pool) {
+		, mConstPool(info->constant_pool_size, info->constant_pool) {
         u16 index = 0;
 
         while (!moduleweb_attribute_array_get(&info->attributes, "RequiredPlugins", info, &index)) {
@@ -66,10 +65,6 @@ namespace JesusVM {
 
     const moduleweb_module_info* Module::getInfo() {
         return mInfo;
-    }
-
-    JesusVM& Module::getVM() const {
-        return mVM;
     }
 
 	std::string_view Module::getName() const {

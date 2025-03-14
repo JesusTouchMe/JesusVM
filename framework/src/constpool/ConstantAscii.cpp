@@ -7,7 +7,7 @@
 #include <cstring>
 
 namespace JesusVM {
-    ConstantAscii::ConstantAscii(JesusVM&, ConstPool&, moduleweb_constant_ascii_info* info)
+    ConstantAscii::ConstantAscii(ConstPool&, moduleweb_constant_ascii_info* info)
         : Constant(type)
         , mValue(reinterpret_cast<const char*>(info->bytes), info->length) { }
 

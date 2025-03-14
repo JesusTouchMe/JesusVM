@@ -17,8 +17,6 @@
 #include <unordered_map>
 
 namespace JesusVM {
-    class JesusVM;
-
     // for friends. import Linker.h and do NOT use these
     namespace Linker {
         static Module* LoadModuleWithBootstrap(std::string_view);
@@ -31,12 +29,10 @@ namespace JesusVM {
     friend Class* Linker::FindClass(std::unique_lock<std::mutex>&, Module* module, std::string_view name);
     friend Class* Linker::LoadClass(Module* module, std::string_view name);
 	public:
-		Module(JesusVM& vm, Object* linker, moduleweb_module_info* info);
+		Module(Object* linker, moduleweb_module_info* info);
         ~Module();
 
         const moduleweb_module_info* getInfo();
-
-        JesusVM& getVM() const;
 
 		std::string_view getName() const;
 		ConstPool& getConstPool();
@@ -49,7 +45,6 @@ namespace JesusVM {
 	private:
         moduleweb_module_info* mInfo;
 
-        JesusVM& mVM;
         Object* mLinker;
 
 		std::string_view mName;

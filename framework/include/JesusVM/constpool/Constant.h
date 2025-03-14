@@ -10,8 +10,6 @@
 #include <memory>
 
 namespace JesusVM {
-    class JesusVM;
-
 	class Constant {
     public:
         virtual ~Constant() = default;
@@ -25,7 +23,7 @@ namespace JesusVM {
             FIELD,
         };
 
-        static std::unique_ptr<Constant> Create(JesusVM& vm, ConstPool& container, moduleweb_constant_info* info);
+        static std::unique_ptr<Constant> Create(ConstPool& container, moduleweb_constant_info* info);
 
         Type getType() const { return mType; }
 

@@ -12,7 +12,7 @@ namespace JesusVM {
     public:
         static constexpr Type type = Type::FIELD;
 
-        ConstantField(JesusVM& vm, ConstPool& container, moduleweb_constant_field_ref_info* info);
+        ConstantField(ConstPool& container, moduleweb_constant_field_ref_info* info);
 
         Field* getField();
 

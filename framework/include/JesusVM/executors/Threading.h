@@ -7,16 +7,19 @@
 
 namespace JesusVM {
     class Function;
-    class JesusVM;
     class Thread;
 }
 
 namespace JesusVM::Threading {
-    void Init(JesusVM& vm);
+    void Init();
 
+    // Will always launch a new thread
     void LaunchThread(Function* function);
 
-    Thread* CurrentThread();
+    // Only guarantees that the function will be run. Not how or when
+    void Schedule(Function* function);
+
+    Handle CurrentThread();
 
     u64 ThreadCount();
 

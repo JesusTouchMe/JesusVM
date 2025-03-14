@@ -3,6 +3,8 @@
 
 #include "JesusVM/executors/Executor.h"
 
+#include <chrono>
+
 namespace JesusVM {
 	class Thread;
 
@@ -10,13 +12,16 @@ namespace JesusVM {
 	friend class Executor;
 	friend class Thread;
 	public:
-		explicit VThread(JesusVM& vm);
+		VThread();
 
         Executor& getExecutor();
+
+        bool isSleeping();
 
 		void executeFunction(Function* function);
 
         void yield();
+        void sleep(Long ms);
 
         void run(); // run until return
 
@@ -27,6 +32,9 @@ namespace JesusVM {
 		Executor mExecutor;
 
         bool mIsYielded;
+
+        bool mSleeping;
+        std::chrono::steady_clock::time_point mWakeTime;
 	};
 }
 

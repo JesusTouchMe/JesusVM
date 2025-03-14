@@ -1,9 +1,8 @@
 #include "JesusVM/constpool/ConstPool.h"
 
 namespace JesusVM {
-	ConstPool::ConstPool(JesusVM& vm, u32 size, moduleweb_constant_info* constants)
-		: mVM(vm)
-        , mSize(size)
+	ConstPool::ConstPool(u32 size, moduleweb_constant_info* constants)
+        : mSize(size)
         , mModulewebConstants(constants)
 		, mConstants(std::make_unique<ConstantPtr[]>(size)) { }
 
@@ -15,7 +14,7 @@ namespace JesusVM {
 		auto& constant = mConstants[index];
 
         if (constant == nullptr) {
-            constant = Constant::Create(mVM, *this, &mModulewebConstants[index]);
+            constant = Constant::Create(*this, &mModulewebConstants[index]);
         }
 
         return constant.get();

@@ -5,7 +5,7 @@
 #include "JesusVM/constpool/ConstPool.h"
 
 namespace JesusVM {
-    ConstantName::ConstantName(JesusVM& vm, ConstPool& container, moduleweb_constant_name_info* info)
+    ConstantName::ConstantName(ConstPool& container, moduleweb_constant_name_info* info)
         : Constant(type)
         , mName(container.get<ConstantAscii>(info->name_index)->getValue())
         , mDescriptor(container.get<ConstantAscii>(info->descriptor_index)->getValue()) { }

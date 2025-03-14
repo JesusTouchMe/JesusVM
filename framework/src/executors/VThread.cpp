@@ -3,12 +3,21 @@
 #include <chrono>
 
 namespace JesusVM {
-	VThread::VThread(JesusVM& vm)
-		: mExecutor(vm)
-        , mIsYielded(false) {}
+	VThread::VThread()
+		: mExecutor()
+        , mIsYielded(false)
+        , mSleeping(false) {}
 
     Executor& VThread::getExecutor() {
         return mExecutor;
+    }
+
+    bool VThread::isSleeping() {
+        if (mSleeping && std::chrono::steady_clock::now() >= mWakeTime) {
+            mSleeping = false;
+        }
+
+        return mSleeping;
     }
 
     void VThread::run() {
@@ -23,15 +32,24 @@ namespace JesusVM {
         mIsYielded = true;
     }
 
+    void VThread::sleep(Long ms) {
+        mSleeping = true;
+        mWakeTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(ms);
+    }
+
 	void VThread::executeCycles(u32 cycles) {
+        mIsYielded = false;
+
 		for (u32 i = 0; i < cycles; i++) {
-            if (mIsYielded) break;
+            if (mIsYielded || isSleeping()) break;
 
 			mExecutor.executeInstruction();
 		}
 	}
 
 	void VThread::executeTime(u32 ms) {
+        mIsYielded = false;
+
 		auto start = std::chrono::high_resolution_clock::now();
 		auto end = start;
 		std::chrono::duration<double, std::milli> elapsed{};
@@ -40,7 +58,7 @@ namespace JesusVM {
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 
-			if (elapsed.count() >= ms || mIsYielded) {
+			if (elapsed.count() >= ms || mIsYielded || isSleeping()) {
 				break;
 			}
 

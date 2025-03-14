@@ -106,8 +106,6 @@ namespace JesusVM::Linker {
         Object* linker;
     };
 
-    JesusVM* globalVM;
-
     std::mutex mutex;
     std::mutex pluginMutex;
     std::condition_variable condition;
@@ -120,8 +118,7 @@ namespace JesusVM::Linker {
 
     static std::array<Class*, static_cast<u64>(Type::TYPE_COUNT)> primitiveCache;
 
-    void Init(JesusVM& vm) {
-        globalVM = &vm; // TODO: better solution. the framework is meant to be usable multiple times in the same runtime
+    void Init() {
     }
 
     void Destroy() {
@@ -314,7 +311,7 @@ namespace JesusVM::Linker {
             return nullptr;
         }
 
-        auto result = new Module(*globalVM, nullptr, moduleInfo);
+        auto result = new Module(nullptr, moduleInfo);
         return result;
     }
 

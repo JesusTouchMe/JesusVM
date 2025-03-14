@@ -7,13 +7,13 @@
 
 ///*
 int main(int argc, char** argv) {
-    JesusVM::JesusVM vm;
+    JesusVM::Init();
 
-    JesusVM::Linker::Init(vm);
+    JesusVM::Linker::Init();
     JesusVM::Linker::AddPath("."); // cwd i think
     JesusVM::Linker::AddPluginPath(".");
 
-    JesusVM::Threading::Init(vm);
+    JesusVM::Threading::Init();
 
     JesusVM::Preload::PreloadSystemModules();
 

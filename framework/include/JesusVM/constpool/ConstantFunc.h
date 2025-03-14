@@ -10,7 +10,7 @@ namespace JesusVM {
     public:
         static constexpr Type type = Type::FUNCTION;
 
-        ConstantFunc(JesusVM& vm, ConstPool& container, moduleweb_constant_function_ref_info* info);
+        ConstantFunc(ConstPool& container, moduleweb_constant_function_ref_info* info);
 
         Function* getFunction();
 

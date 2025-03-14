@@ -6,7 +6,7 @@
 #include "JesusVM/heap/Object.h"
 
 namespace JesusVM::Linker {
-    void Init(JesusVM& vm);
+    void Init();
     void Destroy();
 
     void AddPath(std::string_view path);

@@ -9,13 +9,12 @@
 #include "moduleweb/code_attribute.h"
 
 namespace JesusVM {
-    class JesusVM;
 	class VThread;
 
 	class Executor {
     friend class Function;
 	public:
-		explicit Executor(JesusVM& vm);
+		Executor();
 
         JValue getReturnValue() const;
 
@@ -26,7 +25,6 @@ namespace JesusVM {
 		void enterFunction(Function* function);
 
 	private:
-        JesusVM& mVM;
 		Stack mStack;
 		Stack::Frame* mFrame;
 

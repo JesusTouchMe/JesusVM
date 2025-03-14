@@ -8,7 +8,7 @@ namespace JesusVM {
     public:
         static constexpr Type type = Type::NAME;
 
-        ConstantName(JesusVM& vm, ConstPool& container, moduleweb_constant_name_info* info);
+        ConstantName(ConstPool& container, moduleweb_constant_name_info* info);
 
         std::string_view getName() const;
         std::string_view getDescriptor() const;

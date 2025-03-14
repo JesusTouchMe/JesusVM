@@ -5,7 +5,7 @@
 #include "JesusVM/constpool/ConstantName.h"
 
 namespace JesusVM {
-    ConstantFunc::ConstantFunc(JesusVM& vm, ConstPool& container, moduleweb_constant_function_ref_info* info)
+    ConstantFunc::ConstantFunc(ConstPool& container, moduleweb_constant_function_ref_info* info)
         : Constant(type)
         , mFunc(
                 container.get<ConstantModule>(info->module_index)

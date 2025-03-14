@@ -6,7 +6,7 @@
 #include "JesusVM/constpool/ConstPool.h"
 
 namespace JesusVM {
-    ConstantField::ConstantField(JesusVM& vm, ConstPool& container, moduleweb_constant_field_ref_info* info)
+    ConstantField::ConstantField(ConstPool& container, moduleweb_constant_field_ref_info* info)
         : Constant(type)
         , mField(
                 container.get<ConstantClass>(info->class_index)

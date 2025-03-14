@@ -92,7 +92,6 @@ namespace JesusVM {
         inline void processArgs(Stack::Frame*, u16&, u16&, std::vector<TypeInfo>::iterator) {}
 
         VMContext getNativeContext();
-        JesusVM& getVM();
 	};
 
     template<typename R, typename... Args>
@@ -123,14 +122,9 @@ namespace JesusVM {
     template<typename R, typename... Args>
     R Function::invokeNative(Args... args) {
         if (!isNative()) {
-            if constexpr (std::is_same_v<R, void>) {
-                return;
-            } else {
-                return static_cast<R>(0);
-            }
+            std::cout << "error: invokeNative on non-native function\n";
+            std::exit(1);
         }
-
-        std::array<JValue, sizeof...(args)> runtimeArgs{{args...}};
 
         if (mCodeAttribute.code == nullptr) {
             Linker::LinkNativeFunction(this);
@@ -138,11 +132,23 @@ namespace JesusVM {
 
         auto code = reinterpret_cast<NativeFunctionPtr<R>>(mCodeAttribute.code);
 
-        if constexpr (std::is_same_v<R, void>) {
-            code(getNativeContext(), runtimeArgs.data());
-            return;
+        if constexpr (sizeof...(args) == 0) {
+            if constexpr (std::is_same_v<R, void>) {
+                code(getNativeContext(), nullptr);
+                return;
+            } else {
+                return code(getNativeContext(), nullptr);
+            }
         } else {
-            return code(getNativeContext(), runtimeArgs.data());
+            static_assert(false, "Unimplemented");
+            std::array<JValue, sizeof...(args)> runtimeArgs{{args...}};
+
+            if constexpr (std::is_same_v<R, void>) {
+                code(getNativeContext(), runtimeArgs.data());
+                return;
+            } else {
+                return code(getNativeContext(), runtimeArgs.data());
+            }
         }
     }
 
