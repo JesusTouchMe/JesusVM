@@ -194,7 +194,7 @@ void moduleweb_insn_list_jump(moduleweb_insn_list* list, u8 opcode, moduleweb_la
         return;
     }
 
-    if (moduleweb_outstream_write_u16(&list->writer_stream, label->location - list->writer_stream.memory.pos)) {
+    if (moduleweb_outstream_write_u16(&list->writer_stream, label->location - list->writer_stream.memory.pos - 2)) {
         return;
     }
 
