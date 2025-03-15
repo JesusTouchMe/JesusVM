@@ -47,7 +47,7 @@ void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list) {
     for (u64 i = 0; i < list->forward_label_count; i++) {
         moduleweb_forward_label* label = &list->forward_labels[i];
 
-        u64 symbol = moduleweb_insn_list_get_label(list, label->name)->location - label->origin;
+        u64 symbol = label->label->location - label->origin;
 
         switch (label->size) {
             case 1:
@@ -78,7 +78,7 @@ void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list) {
                 break;
 
             default:
-                printf("warning: unsupported patch size %u for label: %s\n", label->size, label->name);
+                printf("warning: unsupported patch size %u for label: %s\n", label->size, label->label->name);
                 break;
         }
     }
@@ -177,7 +177,7 @@ void moduleweb_insn_list_add_label(moduleweb_insn_list* list, moduleweb_label* l
 static void moduleweb_insn_list_forward_label(moduleweb_insn_list* list, moduleweb_label* label, u8 size, i32 offset) {
     moduleweb_forward_label forward;
 
-    forward.name = label->name;
+    forward.label = label;
     forward.size = size;
     forward.location = list->writer_stream.memory.pos + offset;
     forward.origin = list->writer_stream.memory.pos;

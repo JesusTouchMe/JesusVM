@@ -18,10 +18,10 @@ typedef struct moduleweb_label {
 } moduleweb_label;
 
 typedef struct moduleweb_forward_label {
-    UNOWNED_OBJECT char* name;
+    UNOWNED_OBJECT moduleweb_label* label;
     u8 size;
     u64 location;
-    u64 origin;
+    i64 origin;
 } moduleweb_forward_label;
 
 typedef struct moduleweb_insn_list {
