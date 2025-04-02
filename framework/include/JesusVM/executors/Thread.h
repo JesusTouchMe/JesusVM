@@ -13,8 +13,11 @@
 #include <vector>
 
 namespace JesusVM {
+    class VThreadGroup;
+
     namespace Threading {
-        static inline void LaunchThreadInternal(Function*);
+        static void LaunchThreadInternal(Function*);
+        static VThreadGroup* LaunchVThreadGroup();
     }
 
     enum class ThreadState {
@@ -61,7 +64,7 @@ namespace JesusVM {
 
     class VThreadGroup {
     friend void Threading::Init();
-    friend void Threading::LaunchThread(Function*);
+    friend VThreadGroup* Threading::LaunchVThreadGroup();
     public:
         VThreadGroup();
 
@@ -96,70 +99,6 @@ namespace JesusVM {
         std::vector<std::unique_ptr<VThread>> mThreads;
         VThread* mCurrent;
     };
-
-    /*
-    struct SingleExecutor {
-        Executor executor;
-    };
-
-    struct VThreadExecutor {
-        std::vector<std::unique_ptr<VThread>> vThreads;
-        VThread* current;
-    };
-
-    using ThreadMode = std::variant<SingleExecutor, VThreadExecutor>;
-
-	class Thread {
-    friend void Threading::Init();
-    friend void Threading::LaunchThread(Function*);
-	public:
-        enum class State {
-            NEW,
-            RUNNABLE,
-            TERMINATED,
-            IDLE,
-        };
-
-        enum class Mode {
-            SINGLE_EXECUTOR, // runs a single thing of bytecode
-            VTHREAD_EXECUTOR, // runs a list of vthreads and stays idle if there are none
-        };
-
-		explicit Thread(Mode mode);
-
-        State getState() const;
-        Mode getMode() const;
-        std::thread::id getId() const;
-
-        Executor& getExecutor();
-
-        void setState(State state);
-        void setMode(Mode mode);
-
-        void setFunction(Function* function);
-
-        // Methods that will be called by a threading module eventually
-        void yield();
-        void sleep(Long ms);
-
-		void start();
-		void stop();
-
-	private:
-		std::mutex mMutex;
-        std::condition_variable mCondition;
-
-        Mode mMode;
-        ThreadMode mThreadMode;
-
-        std::atomic<State> mState;
-		bool mInterrupted;
-
-        std::thread::id mId;
-
-        bool mMainThread;
-	};
-    */
 }
 
 #endif // JESUSVM_THREAD_H

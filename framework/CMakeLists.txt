@@ -33,6 +33,7 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
     include/JesusVM/constpool/ConstantField.h
         include/JesusVM/runtime/std/Primitives.h
         include/JesusVM/Preload-Fields.h
+    include/JesusVM/Options.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

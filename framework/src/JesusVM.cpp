@@ -7,6 +7,10 @@
 namespace JesusVM {
     Context vmContext;
 
+    void Init() {
+
+    }
+
     VMContext GetContext() {
         return reinterpret_cast<VMContext>(&vmContext);
     }

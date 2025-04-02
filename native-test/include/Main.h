@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-JESUSVM_EXPORT void JESUSVM_CALL JesusVM_Main_print__I(VMContext ctx, JValue* args, Int value);
+JESUSVM_EXPORT void JESUSVM_CALL JesusVM_std_IO_print__I(VMContext ctx, JValue* args, Int value);
 
 #ifdef __cplusplus
 }

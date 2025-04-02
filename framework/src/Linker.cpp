@@ -90,7 +90,7 @@ namespace JesusVM::Linker {
             NOT_FOUND,
         };
 
-        LinkerModule(Status status, std::unique_ptr<Module> module, u32 threadsWaiting, Thread* loadingThread, Object* linker)
+        LinkerModule(Status status, std::unique_ptr<Module> module, u32 threadsWaiting, Handle loadingThread, Object* linker)
             : status(status)
             , module(std::move(module))
             , threadsWaiting(threadsWaiting)
@@ -101,7 +101,7 @@ namespace JesusVM::Linker {
         std::unique_ptr<Module> module;
 
         u32 threadsWaiting;
-        Thread* loadingThread;
+        Handle loadingThread;
 
         Object* linker;
     };
@@ -114,7 +114,7 @@ namespace JesusVM::Linker {
     std::unordered_map<ModuleKey, std::unique_ptr<LinkerModule>, ModuleKey::Hash, ModuleKey::Equals> modules;
 
     std::vector<std::string_view> pluginPath;
-    std::vector<Platform::NativePlugin> plugins;
+    std::unordered_map<std::string_view, Platform::NativePlugin> plugins;
 
     static std::array<Class*, static_cast<u64>(Type::TYPE_COUNT)> primitiveCache;
 
@@ -166,10 +166,9 @@ namespace JesusVM::Linker {
     }
 
     static Platform::NativePlugin* FindPlugin(std::string_view name) {
-        for (auto& plugin : plugins) {
-            if (plugin.getName() == name) {
-                return &plugin;
-            }
+        auto it = plugins.find(name);
+        if (it != plugins.end()) {
+            return &it->second;
         }
 
         return nullptr;
@@ -180,9 +179,16 @@ namespace JesusVM::Linker {
             return nullptr;
         }
 
-        plugins.emplace_back(StringPool::Intern(name), StringPool::Intern(fileName));
+        fileName = StringPool::Intern(fileName);
+        name = StringPool::Intern(name);
 
-        return &plugins.back();
+        auto [it, inserted] = plugins.emplace(
+                std::piecewise_construct,
+                std::forward_as_tuple(name),
+                std::forward_as_tuple(name, fileName)
+        );
+
+        return &it->second;
     }
 
     static Platform::NativePlugin* LoadPluginFromPath(std::string_view path, std::string_view name) {
@@ -236,7 +242,7 @@ namespace JesusVM::Linker {
     void LinkNativeFunction(Function* function) {
         std::string name = GetNativeFunctionName(function);
 
-        for (auto& plugin : plugins) {
+        for (auto& [_, plugin] : plugins) {
             auto func = plugin.getFunction<u8*>(name); // type doesn't matter for us here
             if (func == nullptr) continue;
 

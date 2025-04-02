@@ -1689,7 +1689,7 @@ namespace JesusVM {
         Function* func = funcRef->getFunction();
 
         if (func->isAsync()) {
-            Threading::LaunchThread(func);
+            Threading::Schedule(func);
             return;
         }
 

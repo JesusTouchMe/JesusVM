@@ -87,7 +87,7 @@ namespace JesusVM {
         Class* mSuperClass;
 
         u32 mWaitingThreads;
-        Thread* mLoadingThread; // used for artificial classes usually
+        Handle mLoadingThread; // used for artificial classes usually
 
         u64 mMemorySize;
 

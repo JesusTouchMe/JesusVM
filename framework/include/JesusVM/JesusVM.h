@@ -5,6 +5,7 @@
 
 #include "JesusVM/Linker.h"
 #include "JesusVM/Module.h"
+#include "JesusVM/Options.h"
 
 #include "JesusVM/executors/Thread.h"
 

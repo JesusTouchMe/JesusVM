@@ -3,8 +3,13 @@
 #include "JesusVM/executors/Thread.h"
 
 #include <algorithm>
+#include <queue>
 
 namespace JesusVM {
+    namespace Threading {
+        extern std::queue<Function*> eventQueue;
+    }
+
     Thread::Thread()
         : mState(ThreadState::NEW)
         , mInterrupted(false)
@@ -69,8 +74,9 @@ namespace JesusVM {
         } else {
             mExecutor.enterFunction(mFunction);
             mExecutor.run();
-            setState(ThreadState::IDLE);
         }
+
+        setState(ThreadState::IDLE);
     }
 
     void Thread::interrupt() {
@@ -157,7 +163,7 @@ namespace JesusVM {
                 if (!thread->isSleeping()) {
                     mCurrent = thread.get();
                     lock.unlock();
-                    thread->executeCycles(5);
+                    thread->executeCycles(10);
                     lock.lock();
                 }
 

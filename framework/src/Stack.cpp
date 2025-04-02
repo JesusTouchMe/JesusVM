@@ -138,7 +138,7 @@ namespace JesusVM {
         ElementType type = mStackTypes.back();
         i32 top = mStack[mStackTop - 1];
 
-        if (type == ElementType::REFERENCE) {
+        if (getTypeSize(type) > 1) {
             std::cout << "type mismatch: category 2 type found in category 1 dup\n";
             std::exit(1);
         }

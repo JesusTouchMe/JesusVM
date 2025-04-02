@@ -4,8 +4,8 @@
 
 #include <iostream>
 
-extern "C" JESUSVM_EXPORT void JESUSVM_CALL JesusVM_Main_print__I(VMContext ctx, JValue* args, Int value) {
-    EXTRACT_ARG(I, value);
+extern "C" JESUSVM_EXPORT void JESUSVM_CALL JesusVM_std_IO_print__I(VMContext ctx, JValue* args, Int value) {
+    value = args[0].I;
 
     std::cout << value << std::endl;
 }

@@ -15,6 +15,8 @@ namespace Platform {
 	}
 
 	bool NativePlugin::load() {
+        std::lock_guard<std::mutex> lock(mMutex);
+
 		if (mHandle != LIBTYPE_NULL) {
 			return true;
 		}
@@ -34,6 +36,8 @@ namespace Platform {
 	}
 
 	void NativePlugin::unload() {
+        std::lock_guard<std::mutex> lock(mMutex);
+
 		if (mHandle == LIBTYPE_NULL) return;
 
 #ifdef PLATFORM_WINDOWS

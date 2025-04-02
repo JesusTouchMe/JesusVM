@@ -99,11 +99,11 @@ namespace JesusVM {
         if (isNative()) return invokeNative<R>(std::forward<Args>(args)...);
 
         if (isAsync()) {
-            Threading::LaunchThread(this);
+            Threading::Schedule(this);
             return;
         }
 
-        Executor& executor = Threading::CurrentThread()->getExecutor();
+        Executor& executor = Threading::CurrentExecutor();
         executor.enterFunction(this);
 
         Stack::Frame* frame = executor.mFrame;
@@ -126,6 +126,11 @@ namespace JesusVM {
             std::exit(1);
         }
 
+        if (isAsync()) {
+            Threading::Schedule(this);
+            return;
+        }
+
         if (mCodeAttribute.code == nullptr) {
             Linker::LinkNativeFunction(this);
         }
@@ -140,7 +145,6 @@ namespace JesusVM {
                 return code(getNativeContext(), nullptr);
             }
         } else {
-            static_assert(false, "Unimplemented");
             std::array<JValue, sizeof...(args)> runtimeArgs{{args...}};
 
             if constexpr (std::is_same_v<R, void>) {

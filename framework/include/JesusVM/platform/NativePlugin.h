@@ -16,6 +16,7 @@
 #endif
 
 #include <iostream>
+#include <mutex>
 #include <string_view>
 
 namespace Platform {
@@ -66,6 +67,8 @@ namespace Platform {
 		std::string_view mName;
 		std::string_view mLibPath;
 		NativeLibType mHandle;
+
+        std::mutex mMutex;
 	};
 
     template <typename FuncT>
@@ -75,12 +78,15 @@ namespace Platform {
 
 	template <typename FuncT>
 	FuncT NativePlugin::getFunction(const std::string& name) {
+        std::unique_lock<std::mutex> lock(mMutex);
+
 		if (mHandle == LIBTYPE_NULL) {
-			bool loaded = load();
-			if (!loaded) {
+            lock.unlock();
+			if (!load()) {
 				std::cout << "failed to load lib " << mLibPath << " (" << mName << "). TODO: better error stuff\n";
 				std::exit(1);
 			}
+            lock.lock();
 		}
 
 #ifdef PLATFORM_WINDOWS

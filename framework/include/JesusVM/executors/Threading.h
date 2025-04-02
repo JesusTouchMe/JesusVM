@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+#include "JesusVM/executors/Executor.h"
+
 namespace JesusVM {
     class Function;
     class Thread;
@@ -20,6 +22,8 @@ namespace JesusVM::Threading {
     void Schedule(Function* function);
 
     Handle CurrentThread();
+
+    Executor& CurrentExecutor();
 
     u64 ThreadCount();
 
