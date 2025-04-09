@@ -84,6 +84,9 @@ typedef enum moduleweb_opcodes {
     GETFIELD,
     SETFIELD,
 
+    GETGLOBAL,
+    SETGLOBAL,
+
     JMP_ICMPEQ,
     JMP_ICMPNE,
     JMP_ICMPLT,

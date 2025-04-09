@@ -64,13 +64,32 @@ int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, u6
 
     classes_i = info->class_count;
 
-    if (moduleweb_instream_read_u16(stream, &info->function_count)) {
+    if (moduleweb_instream_read_u16(stream, &info->global_var_count)) {
         goto error_classes_init;
+    }
+
+    info->global_vars = malloc(sizeof(moduleweb_global_var_info) * info->global_var_count);
+    if (info->global_vars == NULL) {
+        goto error_classes_init;
+    }
+
+    u16 global_vars_i;
+    for (u16 i = 0; i < info->global_var_count; i++) {
+        if (moduleweb_global_var_info_init(&info->global_vars[i], stream)) {
+            global_vars_i = i;
+            goto error_global_vars_init;
+        }
+    }
+
+    global_vars_i = info->global_var_count;
+
+    if (moduleweb_instream_read_u16(stream, &info->function_count)) {
+        goto error_global_vars_init;
     }
 
     info->functions = malloc(sizeof(moduleweb_function_info) * info->function_count);
     if (info->functions == NULL) {
-        goto error_classes_init;
+        goto error_global_vars_init;
     }
 
     u16 functions_i;
@@ -103,6 +122,12 @@ int moduleweb_module_info_init(moduleweb_module_info* info, const char* name, u6
     for (u16 i = 0; i < functions_i; i++) {
         moduleweb_function_info* function = &info->functions[i];
         moduleweb_function_info_uninit(function);
+    }
+
+    error_global_vars_init:
+    for (u16 i = 0; i < global_vars_i; i++) {
+        moduleweb_global_var_info* global_var = &info->global_vars[i];
+        moduleweb_global_var_info_uninit(global_var);
     }
 
     error_classes_init:
@@ -144,6 +169,11 @@ void moduleweb_module_info_uninit(moduleweb_module_info* info) {
     }
     free(info->classes);
 
+    for (u16 i = 0; i < info->global_var_count; i++) {
+        moduleweb_global_var_info_uninit(&info->global_vars[i]);
+    }
+    free(info->global_vars);
+
     for (u16 i = 0; i < info->function_count; i++) {
         moduleweb_function_info_uninit(&info->functions[i]);
     }
@@ -183,6 +213,16 @@ int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outs
         }
     }
 
+    if (moduleweb_outstream_write_u16(stream, info->global_var_count)) {
+        return 1;
+    }
+
+    for (u16 i = 0; i < info->global_var_count; i++) {
+        if (moduleweb_global_var_info_emit_bytes(&info->global_vars[i], stream)) {
+            return 1;
+        }
+    }
+
     if (moduleweb_outstream_write_u16(stream, info->function_count)) {
         return 1;
     }
@@ -198,7 +238,6 @@ int moduleweb_module_info_emit_bytes(moduleweb_module_info* info, moduleweb_outs
 
 void moduleweb_module_info_print(moduleweb_module_info* info, u32 indent) {
     moduleweb_print_indents(indent);
-
 
     printf("module %s {\n", info->name);
 
@@ -229,6 +268,17 @@ void moduleweb_module_info_print(moduleweb_module_info* info, u32 indent) {
 
     for (u16 i = 0; i < info->class_count; i++) {
         moduleweb_class_info_print(&info->classes[i], info, element_indent);
+        moduleweb_print("\n");
+    }
+
+    moduleweb_print_indents(indent);
+    moduleweb_print("}\n\n");
+
+    moduleweb_print_indents(indent);
+    moduleweb_print("globals {\n");
+
+    for (u16 i = 0; i < info->global_var_count; i++) {
+        moduleweb_global_var_info_print(&info->global_vars[i], info, element_indent);
         moduleweb_print("\n");
     }
 
@@ -277,6 +327,7 @@ int moduleweb_module_constant_get_##union_member(const moduleweb_module_info* mo
 DEFINE_CONSTANT_GETTER(moduleweb_constant_ascii_info, MODULEWEB_CONSTANT_TYPE_ASCII, ascii)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_name_info, MODULEWEB_CONSTANT_TYPE_NAME, name)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_module_ref_info, MODULEWEB_CONSTANT_TYPE_MODULE_REF, module_ref)
+DEFINE_CONSTANT_GETTER(moduleweb_constant_global_var_ref_info, MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF, global_var_ref)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_function_ref_info, MODULEWEB_CONSTANT_TYPE_FUNCTION_REF, function_ref)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_class_ref_info, MODULEWEB_CONSTANT_TYPE_CLASS_REF, class_ref)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_field_ref_info, MODULEWEB_CONSTANT_TYPE_FIELD_REF, field_ref)
@@ -331,6 +382,27 @@ char* moduleweb_module_constant_to_string(const moduleweb_module_info* module, u
             memcpy(res, name_ascii->bytes, name_ascii->length);
 
             *length = name_ascii->length;
+
+            return res;
+        }
+
+        case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF: {
+            u64 module_length;
+            char* module_name = moduleweb_module_constant_to_string(module, info->global_var_ref_info.module_index, &module_length);
+
+            u64 name_length;
+            char* name = moduleweb_module_constant_to_string(module, info->global_var_ref_info.name_info_index, &name_length);
+
+            char* res = malloc(module_length + 2 + name_length);
+
+            memcpy(res, module_name, module_length);
+            memcpy(res + module_length, "::", 2);
+            memcpy(res + module_length + 2, name, name_length);
+
+            free(module_name);
+            free(name);
+
+            *length = module_length + 2 + name_length;
 
             return res;
         }

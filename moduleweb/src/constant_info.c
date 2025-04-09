@@ -39,6 +39,18 @@ static int moduleweb_constant_module_ref_info_init(moduleweb_constant_module_ref
     return 0;
 }
 
+static int moduleweb_constant_global_var_ref_info_init(moduleweb_constant_global_var_ref_info* info, moduleweb_instream* stream) {
+    if (moduleweb_instream_read_u16(stream, &info->module_index)) {
+        return 1;
+    }
+
+    if (moduleweb_instream_read_u16(stream, &info->name_info_index)) {
+        return 1;
+    }
+
+    return 0;
+}
+
 static int moduleweb_constant_function_ref_info_init(moduleweb_constant_function_ref_info* info, moduleweb_instream* stream) {
     if (moduleweb_instream_read_u16(stream, &info->module_index)) {
         return 1;
@@ -87,6 +99,10 @@ static void moduleweb_constant_module_ref_info_uninit(moduleweb_constant_module_
 
 }
 
+static void moduleweb_constant_global_var_ref_info_uninit(moduleweb_constant_global_var_ref_info* info) {
+
+}
+
 static void moduleweb_constant_function_ref_info_uninit(moduleweb_constant_function_ref_info* info) {
 
 }
@@ -125,6 +141,18 @@ static int moduleweb_constant_name_info_emit_bytes(moduleweb_constant_name_info*
 
 static int moduleweb_constant_module_ref_info_emit_bytes(moduleweb_constant_module_ref_info* info, moduleweb_outstream* stream) {
     if (moduleweb_outstream_write_u16(stream, info->name_index)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+static int moduleweb_constant_global_var_ref_info_emit_bytes(moduleweb_constant_global_var_ref_info* info, moduleweb_outstream* stream) {
+    if (moduleweb_outstream_write_u16(stream, info->module_index)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->name_info_index)) {
         return 1;
     }
 
@@ -205,6 +233,24 @@ static void moduleweb_constant_module_ref_info_print(moduleweb_constant_module_r
     fwrite(name, 1, name_length, stdout);
 }
 
+static void moduleweb_constant_global_var_ref_info_print(moduleweb_constant_global_var_ref_info* info, const moduleweb_module_info* module, u32 indent) {
+    moduleweb_print("global ");
+
+    u64 name_length;
+    char* name = moduleweb_module_constant_to_string(module, info->module_index, &name_length);
+
+    fwrite(name, 1, name_length, stdout);
+    moduleweb_print("::");
+
+    free(name);
+
+    name = moduleweb_module_constant_to_string(module, info->name_info_index, &name_length);
+
+    fwrite(name, 1, name_length, stdout);
+
+    free(name);
+}
+
 static void moduleweb_constant_function_ref_info_print(moduleweb_constant_function_ref_info* info, const moduleweb_module_info* module, u32 indent) {
     moduleweb_print("function ");
 
@@ -271,6 +317,8 @@ int moduleweb_constant_info_init(moduleweb_constant_info* info, moduleweb_instre
             return moduleweb_constant_name_info_init(&info->name_info, stream);
         case MODULEWEB_CONSTANT_TYPE_MODULE_REF:
             return moduleweb_constant_module_ref_info_init(&info->module_ref_info, stream);
+        case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF:
+            return moduleweb_constant_global_var_ref_info_init(&info->global_var_ref_info, stream);
         case MODULEWEB_CONSTANT_TYPE_FUNCTION_REF:
             return moduleweb_constant_function_ref_info_init(&info->function_ref_info, stream);
         case MODULEWEB_CONSTANT_TYPE_CLASS_REF:
@@ -295,6 +343,8 @@ void moduleweb_constant_info_uninit(moduleweb_constant_info* info) {
         case MODULEWEB_CONSTANT_TYPE_MODULE_REF:
             moduleweb_constant_module_ref_info_uninit(&info->module_ref_info);
             break;
+            case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF:
+            return moduleweb_constant_global_var_ref_info_uninit(&info->global_var_ref_info);
         case MODULEWEB_CONSTANT_TYPE_FUNCTION_REF:
             moduleweb_constant_function_ref_info_uninit(&info->function_ref_info);
             break;
@@ -323,6 +373,8 @@ int moduleweb_constant_info_emit_bytes(moduleweb_constant_info* info, moduleweb_
             return moduleweb_constant_name_info_emit_bytes(&info->name_info, stream);
         case MODULEWEB_CONSTANT_TYPE_MODULE_REF:
             return moduleweb_constant_module_ref_info_emit_bytes(&info->module_ref_info, stream);
+        case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF:
+            return moduleweb_constant_global_var_ref_info_emit_bytes(&info->global_var_ref_info, stream);
         case MODULEWEB_CONSTANT_TYPE_FUNCTION_REF:
             return moduleweb_constant_function_ref_info_emit_bytes(&info->function_ref_info, stream);
         case MODULEWEB_CONSTANT_TYPE_CLASS_REF:
@@ -354,6 +406,9 @@ void moduleweb_constant_info_print(moduleweb_constant_info* info, const modulewe
             break;
         case MODULEWEB_CONSTANT_TYPE_MODULE_REF:
             moduleweb_constant_module_ref_info_print(&info->module_ref_info, module, indent);
+            break;
+        case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF:
+            moduleweb_constant_global_var_ref_info_print(&info->global_var_ref_info, indent);
             break;
         case MODULEWEB_CONSTANT_TYPE_FUNCTION_REF:
             moduleweb_constant_function_ref_info_print(&info->function_ref_info, module, indent);

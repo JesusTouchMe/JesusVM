@@ -53,14 +53,15 @@ void moduleweb_insn_list_patch_labels(moduleweb_insn_list* list);
 
 moduleweb_label* moduleweb_insn_list_get_label(const moduleweb_insn_list* list, const char* name);
 
-void moduleweb_insn_list_insn(moduleweb_insn_list* list, u8 opcode);
-
-void moduleweb_insn_list_call(moduleweb_insn_list* list, u8 opcode, const char* module,
-                              const char* name, const char* descriptor);
-
 moduleweb_label* moduleweb_insn_list_create_label(moduleweb_insn_list* list, NULLABLE const char* name);
 
 void moduleweb_insn_list_add_label(moduleweb_insn_list* list, moduleweb_label* label);
+
+void moduleweb_insn_list_insn(moduleweb_insn_list* list, u8 opcode);
+
+void moduleweb_insn_list_global_var(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name, const char* descriptor);
+
+void moduleweb_insn_list_call(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name, const char* descriptor);
 
 void moduleweb_insn_list_jump(moduleweb_insn_list* list, u8 opcode, moduleweb_label* label);
 

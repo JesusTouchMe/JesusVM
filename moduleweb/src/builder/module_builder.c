@@ -77,6 +77,11 @@ void moduleweb_module_builder_add_class(moduleweb_module_builder* builder, PARAM
     memset(clas, 0, sizeof(moduleweb_class));
 }
 
+void moduleweb_module_builder_add_global_var(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_global_var* global_var) {
+    VECTOR_ADD(builder->global_var_count, builder->global_var_capacity, builder->global_vars, *global_var, moduleweb_global_var);
+    memset(global_var, 0, sizeof(moduleweb_global_var));
+}
+
 void moduleweb_module_builder_add_function(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_function* function) {
     VECTOR_ADD(builder->function_count, builder->function_capacity, builder->functions, *function, moduleweb_function);
     memset(function, 0, sizeof(moduleweb_function));
@@ -169,6 +174,33 @@ u16 moduleweb_module_builder_resolve_module_ref(moduleweb_module_builder* builde
     module->info.module_ref_info.name_index = name_index;
 
     return module->index;
+}
+
+u16 moduleweb_module_builder_resolve_global_var_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor) {
+    moduleweb_constant_vector* pool = GET_CONST_POOL(builder, MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF);
+
+    u16 module_index = moduleweb_module_builder_resolve_module_ref(builder, module_name);
+    u16 name_index = moduleweb_module_builder_resolve_name(builder, name, descriptor);
+
+    if (pool->pool != NULL) {
+        for (u16 i = 0; i < pool->size; i++) {
+            if (pool->pool[i].info.global_var_ref_info.module_index == module_index
+                && pool->pool[i].info.global_var_ref_info.name_info_index == name_index) {
+                return pool->pool[i].index;
+            }
+        }
+    }
+
+    ensure_const_pool_capacity(pool);
+
+    moduleweb_constant* global_var = &pool->pool[pool->size++];
+    global_var->index = builder->constant_pool_index++;
+
+    global_var->info.type = MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF;
+    global_var->info.global_var_ref_info.module_index = module_index;
+    global_var->info.global_var_ref_info.name_info_index = name_index;
+
+    return global_var->index;
 }
 
 u16 moduleweb_module_builder_resolve_function_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor) {

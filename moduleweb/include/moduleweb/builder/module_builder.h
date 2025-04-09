@@ -7,6 +7,7 @@
 
 #include "moduleweb/builder/class_builder.h"
 #include "moduleweb/builder/function_builder.h"
+#include "moduleweb/builder/global_var_builder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +38,10 @@ typedef struct moduleweb_module_builder {
     u16 class_capacity;
     OWNED_OBJECT moduleweb_class* classes;
 
+    u16 global_var_count;
+    u16 global_var_capacity;
+    OWNED_OBJECT moduleweb_global_var* global_vars;
+
     u16 function_count;
     u16 function_capacity;
     OWNED_OBJECT moduleweb_function* functions;
@@ -55,6 +60,8 @@ void moduleweb_module_builder_add_attribute(moduleweb_module_builder* builder, P
 
 void moduleweb_module_builder_add_class(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_class* clas);
 
+void moduleweb_module_builder_add_global_var(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_global_var* global_var);
+
 void moduleweb_module_builder_add_function(moduleweb_module_builder* builder, PARAM_MOVED moduleweb_function* function);
 
 void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUTATED moduleweb_module_info* info);
@@ -62,6 +69,7 @@ void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUT
 u16 moduleweb_module_builder_resolve_string(moduleweb_module_builder* builder, const char* string);
 u16 moduleweb_module_builder_resolve_name(moduleweb_module_builder* builder, const char* name, const char* descriptor);
 u16 moduleweb_module_builder_resolve_module_ref(moduleweb_module_builder* builder, const char* name);
+u16 moduleweb_module_builder_resolve_global_var_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor);
 u16 moduleweb_module_builder_resolve_function_ref(moduleweb_module_builder* builder, const char* module_name, const char* name, const char* descriptor);
 u16 moduleweb_module_builder_resolve_class_ref(moduleweb_module_builder* builder, const char* module_name, const char* name);
 u16 moduleweb_module_builder_resolve_field_ref(moduleweb_module_builder* builder, const char* owner_module, const char* owner,

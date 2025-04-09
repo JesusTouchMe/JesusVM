@@ -123,8 +123,23 @@ void moduleweb_insn_list_insn(moduleweb_insn_list* list, u8 opcode) {
     moduleweb_outstream_write_u8(&list->writer_stream, opcode);
 }
 
-void moduleweb_insn_list_call(moduleweb_insn_list* list, u8 opcode, const char* module,
-                              const char* name, const char* descriptor) {
+void moduleweb_insn_list_global_var(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name, const char* descriptor) {
+    if (moduleweb_insn_list_prepare(list, 3)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u8(&list->writer_stream, opcode)) {
+        return;
+    }
+
+    u16 index = moduleweb_module_builder_resolve_global_var_ref(list->module, module, name, descriptor);
+
+    if (moduleweb_outstream_write_u16(&list->writer_stream, index)) {
+        return;
+    }
+}
+
+void moduleweb_insn_list_call(moduleweb_insn_list* list, u8 opcode, const char* module, const char* name, const char* descriptor) {
     if (moduleweb_insn_list_prepare(list, 3)) {
         return;
     }
