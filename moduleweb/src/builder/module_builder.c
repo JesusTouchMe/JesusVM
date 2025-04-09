@@ -46,6 +46,18 @@ void moduleweb_module_builder_delete(moduleweb_module_builder* builder) {
     builder->class_count = 0;
     builder->class_capacity = 0;
 
+    if (builder->global_vars != NULL) {
+        for (u16 i = 0; i < builder->global_var_count; i++) {
+            moduleweb_global_var_delete(&builder->global_vars[i]);
+        }
+
+        free(builder->global_vars);
+        builder->global_vars = NULL;
+    }
+
+    builder->global_var_count = 0;
+    builder->global_var_capacity = 0;
+
     if (builder->functions != NULL) {
         for (u16 i = 0; i < builder->function_count; i++) {
             moduleweb_function_delete(&builder->functions[i]);
@@ -340,6 +352,20 @@ void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUT
         }
 
         moduleweb_class_delete(src);
+    }
+
+    info->global_var_count = builder->global_var_count;
+    info->global_vars = malloc(info->global_var_count * sizeof(moduleweb_global_var_info));
+
+    for (u16 i = 0; i < info->global_var_count; i++) {
+        moduleweb_global_var* src = &builder->global_vars[i];
+        moduleweb_global_var_info* dest = &info->global_vars[i];
+
+        dest->modifiers = src->modifiers;
+        dest->name_index = moduleweb_module_builder_resolve_name(builder, src->name, src->descriptor);
+        moduleweb_module_builder_transfer_attributes(builder, &src->attributes, &dest->attributes);
+
+        moduleweb_global_var_delete(src);
     }
 
     info->function_count = builder->function_count;
