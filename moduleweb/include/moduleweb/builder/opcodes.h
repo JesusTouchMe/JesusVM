@@ -33,6 +33,8 @@ typedef enum moduleweb_opcodes {
     LNOT,
     LNEG,
 
+    POP,
+
     DUP,
     DUP2,
 
