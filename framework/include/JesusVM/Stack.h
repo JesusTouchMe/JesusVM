@@ -38,6 +38,8 @@ namespace JesusVM {
             ObjectRef popObject();
             Object* popObjectWeak();
 
+            void popValue();
+
             void dup();
             void dup2();
 

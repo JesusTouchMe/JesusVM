@@ -129,6 +129,14 @@ namespace JesusVM {
         return obj;
     }
 
+    void Stack::Frame::popValue() {
+        ElementType type = popType();
+
+        for (u32 i = 0; i < getTypeSize(type); i++) {
+            pop1();
+        }
+    }
+
     void Stack::Frame::dup() {
         if (mStackTop < 1) {
             std::cout << "stackunderflow. todo: proper errors\n";

@@ -170,6 +170,9 @@ namespace JesusVM {
                 lnegInsn();
                 break;
 
+            case Opcodes::POP:
+                popInsn();
+
             case Opcodes::DUP:
                 dupInsn();
                 break;
@@ -703,6 +706,10 @@ namespace JesusVM {
 		i32 value = mFrame->popLong();
 		mFrame->pushLong(-value);
 	}
+
+    void Executor::popInsn() {
+        mFrame->popValue();
+    }
 
     void Executor::dupInsn() {
         mFrame->dup();

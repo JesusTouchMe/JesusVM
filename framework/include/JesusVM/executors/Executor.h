@@ -66,6 +66,8 @@ namespace JesusVM {
 		void lnotInsn();
 		void lnegInsn();
 
+        void popInsn();
+
         void dupInsn();
         void dup2Insn();
 
