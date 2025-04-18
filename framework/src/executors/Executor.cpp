@@ -171,7 +171,9 @@ namespace JesusVM {
                 break;
 
             case Opcodes::POP:
+            case Opcodes::POP2:
                 popInsn();
+                break;
 
             case Opcodes::DUP:
                 dupInsn();
