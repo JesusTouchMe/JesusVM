@@ -34,7 +34,6 @@ namespace JesusVM {
 
 	class Function {
 	friend class Module;
-    friend class StackMapEntry;
     friend bool ParseFunctionType(Function*);
     friend void Linker::LinkNativeFunction(Function*);
     friend void Preload::PreloadSystemModules();
