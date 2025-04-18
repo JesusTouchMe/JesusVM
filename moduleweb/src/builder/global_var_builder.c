@@ -6,7 +6,7 @@ void moduleweb_global_var_delete(moduleweb_global_var* global_var) {
     global_var->modifiers = 0;
 
     if (global_var->name != NULL) {
-        free(field->name);
+        free(global_var->name);
         global_var->name = NULL;
     }
 
