@@ -408,7 +408,7 @@ void moduleweb_constant_info_print(moduleweb_constant_info* info, const modulewe
             moduleweb_constant_module_ref_info_print(&info->module_ref_info, module, indent);
             break;
         case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF:
-            moduleweb_constant_global_var_ref_info_print(&info->global_var_ref_info, indent);
+            moduleweb_constant_global_var_ref_info_print(&info->global_var_ref_info, module, indent);
             break;
         case MODULEWEB_CONSTANT_TYPE_FUNCTION_REF:
             moduleweb_constant_function_ref_info_print(&info->function_ref_info, module, indent);
