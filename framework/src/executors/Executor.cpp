@@ -469,6 +469,7 @@ namespace JesusVM {
 
             case Opcodes::RCONST_NULL:
                 rconst_nullInsn();
+                break;
 
             case Opcodes::CALL:
                 callInsn(wide);
