@@ -26,7 +26,7 @@ namespace JesusVM {
 
             if (type == ElementType::REFERENCE) {
                 auto object = reinterpret_cast<Object*>(pop2());
-                object->removeReference(); // remove this stacks reference
+                if (object != nullptr) object->removeReference(); // remove this stacks reference
             } else {
                 if (getTypeSize(type) == 2) {
                     (void) pop2();
@@ -44,7 +44,7 @@ namespace JesusVM {
                 }
 
                 auto object = getLocalObjectWeak(i);
-                object->removeReference();
+                if (object != nullptr) object->removeReference();
             }
         }
     }
@@ -174,7 +174,7 @@ namespace JesusVM {
 
         if (type == ElementType::REFERENCE) {
             auto obj = reinterpret_cast<Object*>(top);
-            obj->addReference();
+            if (obj != nullptr) obj->addReference();
         }
 
         push2(top);
@@ -293,7 +293,7 @@ namespace JesusVM {
         setLocalType(index + 1, STACKMAP_TYPE_NONE);
         setLocal2(index, reinterpret_cast<i64>(object));
 
-        object->addReference();
+        if (object != nullptr) object->addReference();
     }
 
     ConstPool& Stack::Frame::getConstPool() const {
@@ -408,7 +408,7 @@ namespace JesusVM {
     void Stack::Frame::setLocalType(u16 index, moduleweb_stackmap_type_id type) {
         if (getLocalType(index) == STACKMAP_TYPE_REFERENCE && getLocalType(index + 1) == STACKMAP_TYPE_NONE) {
             Object* object = getLocalObjectWeak(index);
-            object->removeReference();
+            if (object != nullptr) object->removeReference();
         }
 
         mLocalTypes[index] = type;
