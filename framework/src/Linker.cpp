@@ -103,7 +103,7 @@ namespace JesusVM::Linker {
         u32 threadsWaiting;
         Handle loadingThread;
 
-        Object* linker;
+        ObjectRef linker;
     };
 
     std::mutex mutex;
@@ -116,7 +116,7 @@ namespace JesusVM::Linker {
     std::vector<std::string_view> pluginPath;
     std::unordered_map<std::string_view, Platform::NativePlugin> plugins;
 
-    static std::array<Class*, static_cast<u64>(Type::TYPE_COUNT)> primitiveCache;
+    static std::array<std::unique_ptr<Class>, static_cast<u64>(Type::TYPE_COUNT)> primitiveCache;
 
     void Init() {
     }
@@ -502,7 +502,7 @@ namespace JesusVM::Linker {
         Type type = StringToType(baseName);
 
         if (type != Type::REFERENCE) {
-            result = primitiveCache[static_cast<u64>(type)];
+            result = primitiveCache[static_cast<u64>(type)].get();
         } else {
             result = LoadClass(module, baseName);
         }
@@ -525,7 +525,7 @@ namespace JesusVM::Linker {
         Type type = StringToType(name.substr(1));
 
         if (type != Type::REFERENCE) {
-            baseClass = primitiveCache[static_cast<u64>(type)];
+            baseClass = primitiveCache[static_cast<u64>(type)].get();
         } else {
             baseClass = LoadClass(module, baseClassName);
         }
@@ -672,11 +672,11 @@ namespace JesusVM::Linker {
         }
 
         if (primitiveCache[static_cast<u64>(type)] != nullptr) {
-            return primitiveCache[static_cast<u64>(type)];
+            return primitiveCache[static_cast<u64>(type)].get();
         }
 
         Module* system = LoadSystemModule();
-        Class* clas = new Class(system, nullptr);
+        auto* clas = new Class(system, nullptr);
 
         clas->mRepresentedPrimitive = type;
 
@@ -684,7 +684,7 @@ namespace JesusVM::Linker {
             return nullptr;
         }
 
-        primitiveCache[static_cast<u64>(type)] = clas;
+        primitiveCache[static_cast<u64>(type)] = std::unique_ptr<Class>(clas);
 
         return clas;
     }

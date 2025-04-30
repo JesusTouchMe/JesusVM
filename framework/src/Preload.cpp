@@ -50,13 +50,13 @@ namespace JesusVM::Preload {
 
 #   define PRELOAD_MODULE(name, var, opt) { name, &var, opt },
     ModuleEntry entries[] = {
-#       include "JesusVM/Preload-Modules.h"
+#       include "JesusVM/preload/Preload-Modules.h"
     };
 #   undef PRELOAD_MODULE
 
 #   define PRELOAD_CLASS(module, name, var, opt) { &module, name, &var, opt },
     ClassEntry classEntries[] = {
-#       include "JesusVM/Preload-Classes.h"
+#       include "JesusVM/preload/Preload-Classes.h"
     };
 #   undef PRELOAD_CLASS
 
@@ -87,13 +87,13 @@ namespace JesusVM::Preload {
 
 #   define PRELOAD_FIELD(owner, name, desc, var, opt) { &owner, name, desc, &var, opt }
     FieldEntry fieldEntries[] = {
-#       include "JesusVM/Preload-Fields.h"
+#       include "JesusVM/preload/Preload-Fields.h"
     };
 #   undef PRELOAD_FIELD
 
 #   define PRELOAD_FUNCTION(module, name, desc, var, opt) { &module, name, desc, &var, opt },
     FunctionEntry functionEntries[] = {
-#       include "JesusVM/Preload-Functions.h"
+#       include "JesusVM/preload/Preload-Functions.h"
     };
 #   undef PRELOAD_FUNCTION
 

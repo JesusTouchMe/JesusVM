@@ -18,6 +18,7 @@ namespace JesusVM {
     class Module;
     class Object;
     class ObjectRef;
+    class NonNullObjectRef;
 
     class Stack {
     public:

@@ -16,7 +16,7 @@ namespace JesusVM {
     }
 
     std::string_view GetStringData(Object* object) {
-        if (object->getClass() != rt::std::Primitives::String::self) {
+        if (!object->getClass()->isAssignableTo(rt::std::Primitives::String::self)) {
             std::cout << "insert type mismatch error\n";
             std::exit(1);
         }

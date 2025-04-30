@@ -54,6 +54,10 @@ namespace JesusVM {
         return mReturnValue;
     }
 
+    Stack& Executor::getStack() {
+        return mStack;
+    }
+
     void Executor::run() {
         i32 savedDepth = mReturnDepth - 1;
 

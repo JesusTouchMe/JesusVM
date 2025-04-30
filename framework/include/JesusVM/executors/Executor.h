@@ -17,6 +17,7 @@ namespace JesusVM {
 		Executor();
 
         JValue getReturnValue() const;
+        Stack& getStack();
 
         void run(); // run until return
 

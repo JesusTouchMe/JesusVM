@@ -17,6 +17,7 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
     src/runtime/vm/System.cpp
     src/constpool/ConstantField.cpp
         src/runtime/std/Primitives.cpp
+    src/platform/Memory.cpp
 )
 
 set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/executors/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
@@ -26,15 +27,17 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
         include/JesusVM/Linker.h
         include/JesusVM/executors/Threading.h
     include/JesusVM/Preload.h
-    include/JesusVM/Preload-Modules.h
+    include/JesusVM/preload/Preload-Modules.h
     include/JesusVM/runtime/vm/System.h
-    include/JesusVM/Preload-Classes.h
-    include/JesusVM/Preload-Functions.h
+    include/JesusVM/preload/Preload-Classes.h
+    include/JesusVM/preload/Preload-Functions.h
     include/JesusVM/constpool/ConstantField.h
         include/JesusVM/runtime/std/Primitives.h
-        include/JesusVM/Preload-Fields.h
+    include/JesusVM/preload/Preload-Fields.h
     include/JesusVM/Options.h
     include/JesusVM/GlobalVar.h
+    include/JesusVM/platform/Memory.h
+    include/JesusVM/heap/gc/CycleCollector.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

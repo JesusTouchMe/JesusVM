@@ -29,7 +29,7 @@ namespace JesusVM {
         bool isInstance(Class* clas);
 
         void addReference();
-        void removeReference();
+        void removeReference(); // this function will LITERALLY std::free(this); if refcount reaches 0. always treat it as such
 
         void nullCheck();
 
@@ -63,11 +63,12 @@ namespace JesusVM {
         void setObject(Field* field, Object* value);
 
     private:
-        Object(Class* clas);
+        explicit Object(Class* clas);
 
         Class* mClass;
 
-        std::atomic<i32> mRefCount = 1;
+        std::atomic<i16> mRefCount = 1;
+        std::atomic<i16> mSuspicionLevel = 0;
 
         void freeThis();
     };
@@ -94,16 +95,19 @@ namespace JesusVM {
             other.mObject = nullptr;
         }
 
-        ~ObjectRef() {
+        virtual ~ObjectRef() {
             if (mObject != nullptr) {
                 mObject->removeReference();
             }
         }
 
-        ObjectRef& operator=(const ObjectRef& other) {
+        virtual ObjectRef& operator=(const ObjectRef& other) {
             if (&other != this) {
                 mObject = other.mObject;
-                mObject->addReference();
+
+                if (mObject != nullptr) {
+                    mObject->addReference();
+                }
             }
 
             return *this;
@@ -116,18 +120,21 @@ namespace JesusVM {
             return *this;
         }
 
-        ObjectRef& operator=(Object* obj) {
+        virtual ObjectRef& operator=(Object* obj) {
             if (mObject != nullptr) {
                 mObject->removeReference();
             }
 
             mObject = obj;
-            mObject->addReference();
+
+            if (obj != nullptr) {
+                obj->addReference();
+            }
 
             return *this;
         }
 
-        ObjectRef& operator=(std::nullptr_t) {
+        virtual ObjectRef& operator=(std::nullptr_t) {
             if (mObject != nullptr) {
                 mObject->removeReference();
             }
@@ -188,7 +195,7 @@ namespace JesusVM {
             return mObject != nullptr;
         }
 
-    private:
+    protected:
         Object* mObject;
     };
 
