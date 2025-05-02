@@ -269,7 +269,7 @@ namespace JesusVM::Linker {
             module = it->second.get();
 
             if (module->status == LinkerModule::Status::LOADING &&
-                module->loadingThread == Threading::CurrentThread()) {
+                module->loadingThread == Threading::CurrentThread::GetHandle()) {
                 return nullptr;
             }
 
@@ -366,7 +366,7 @@ namespace JesusVM::Linker {
         auto [it, success] = modules.emplace(
                 ModuleKey(name, linker),
                 std::make_unique<LinkerModule>(
-                        LinkerModule(LinkerModule::Status::LOADING, nullptr, 0, Threading::CurrentThread(), linker)));
+                        LinkerModule(LinkerModule::Status::LOADING, nullptr, 0, Threading::CurrentThread::GetHandle(), linker)));
 
         if (!success) {
             return nullptr;
@@ -428,7 +428,7 @@ namespace JesusVM::Linker {
         }
 
         if (clas->getState() == ClassState::LINKING
-            && clas->mLoadingThread == Threading::CurrentThread()) {
+            && clas->mLoadingThread == Threading::CurrentThread::GetHandle()) {
             return nullptr;
         }
 

@@ -5,6 +5,8 @@
 #include "JesusVM/executors/Threading.h"
 #include "JesusVM/executors/Thread.h"
 
+#include "JesusVM/heap/gc/GC-Daemon.h"
+
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -15,6 +17,7 @@
 namespace JesusVM::Threading {
     std::unordered_map<std::thread::id, std::unique_ptr<Thread>> threads;
     std::unordered_map<std::thread::id, std::unique_ptr<VThreadGroup>> vThreadGroups;
+    std::unordered_map<std::thread::id, std::unique_ptr<Daemon>> daemons;
 
     std::queue<Function*> eventQueue;
     std::mutex eventQueueMutex;
@@ -25,23 +28,27 @@ namespace JesusVM::Threading {
 
     u64 nonDaemonThreads = 0;
 
-    template<class T>
-    static void AttachThread(std::unique_ptr<T> thread) {
+    static void AttachThread(std::unique_ptr<Thread> thread) {
         if (!thread->isDaemon()) {
             nonDaemonThreads++;
         }
 
-        if constexpr (std::is_same_v<T, Thread>) {
-            threads[thread->getId()] = std::move(thread);
-        } else if constexpr (std::is_same_v<T, VThreadGroup>) {
-            vThreadGroups[thread->getId()] = std::move(thread);
-        } else {
-            static_assert(false, "Bad thread type");
-        }
+        threads[thread->getId()] = std::move(thread);
     }
 
-    template<class T>
-    static void DetachThread(T* thread) {
+    static void AttachThread(std::unique_ptr<VThreadGroup> thread) {
+        if (!thread->isDaemon()) {
+            nonDaemonThreads++;
+        }
+
+        vThreadGroups[thread->getId()] = std::move(thread);
+    }
+
+    static void AttachDaemon(std::unique_ptr<Daemon> thread) {
+        daemons[thread->getId()] = std::move(thread);
+    }
+
+    static void DetachThread(Thread* thread) {
         thread->setState(ThreadState::TERMINATED);
 
         threads.erase(thread->getId());
@@ -51,6 +58,22 @@ namespace JesusVM::Threading {
         }
 
         terminateCondition.notify_all();
+    }
+
+    static void DetachThread(VThreadGroup* thread) {
+        thread->setState(ThreadState::TERMINATED);
+
+        vThreadGroups.erase(thread->getId());
+
+        if (!thread->isDaemon()) {
+            nonDaemonThreads--;
+        }
+
+        terminateCondition.notify_all();
+    }
+
+    static void DetachDaemon(Daemon* daemon) {
+        daemons.erase(daemon->getId());
     }
 
     static void ThreadEntry(Thread* thread) {
@@ -95,6 +118,11 @@ namespace JesusVM::Threading {
         DetachThread(thread);
     }
 
+    static void DaemonEntry(Daemon* thread) {
+        thread->start();
+        DetachDaemon(thread);
+    }
+
     void Init() {
         auto mainThread = std::make_unique<Thread>();
         mainThread->mId = std::this_thread::get_id();
@@ -103,12 +131,14 @@ namespace JesusVM::Threading {
 
         AttachThread(std::move(mainThread));
         nonDaemonThreads--; // mainThread is NOT a daemon thread, but we don't increment nonDaemonThreads since it would cause the program to last forever (main thread is never detached)
+
+        // Launch system daemons. Most are paused at entry, but still need to be launched here
+        GC::Daemon::Launch();
     }
 
     static void LaunchThreadInternal(Function* function) {
         auto thread = std::make_unique<Thread>();
         Thread* tmpThread = thread.get();
-
 
         std::thread nativeThread(ThreadEntry, tmpThread);
         thread->mId = nativeThread.get_id();
@@ -147,7 +177,26 @@ namespace JesusVM::Threading {
 
         LaunchThreadInternal(function);
     }
-    
+
+    Daemon* LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry) {
+        auto thread = std::make_unique<Daemon>(name, std::move(entry));
+        auto* tmpThread = thread.get();
+        std::thread nativeThread(DaemonEntry, tmpThread);
+
+        thread->mId = nativeThread.get_id();
+
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            AttachDaemon(std::move(thread));
+        }
+
+        nativeThread.detach();
+
+        tmpThread->wake();
+
+        return tmpThread;
+    }
+
     static void EnqueueFunction(Function* function) {
         {
             std::lock_guard<std::mutex> lock(eventQueueMutex);
@@ -285,39 +334,6 @@ namespace JesusVM::Threading {
         }
     }
 
-    Handle CurrentThread() {
-        auto it = threads.find(std::this_thread::get_id());
-
-        if (it != threads.end()) {
-            return it->second.get();
-        }
-
-        auto it2 = vThreadGroups.find(std::this_thread::get_id());
-
-        if (it2 != vThreadGroups.end()) {
-            return it2->second.get();
-        }
-
-        return nullptr;
-    }
-
-    Executor& CurrentExecutor() {
-        auto it = threads.find(std::this_thread::get_id());
-
-        if (it != threads.end()) {
-            return it->second->getExecutor();
-        }
-
-        auto it2 = vThreadGroups.find(std::this_thread::get_id());
-
-        if (it2 != vThreadGroups.end()) {
-            return it2->second->getExecutor();
-        }
-
-        std::cout << "error: no active thread. make sure to never use jesusvm from a native thread in native code\n";
-        std::exit(1);
-    }
-
     u64 ThreadCount() {
         return threads.size() + vThreadGroups.size();
     }
@@ -328,5 +344,80 @@ namespace JesusVM::Threading {
         terminateCondition.wait(lock, [] {
             return nonDaemonThreads == 0;
         });
+    }
+
+    namespace CurrentThread {
+        static inline auto id() {
+            return std::this_thread::get_id();
+        }
+
+        Handle GetHandle() {
+            auto it = threads.find(id());
+            if (it != threads.end()) {
+                return it->second.get();
+            }
+
+            auto it2 = vThreadGroups.find(id());
+            if (it2 != vThreadGroups.end()) {
+                return it2->second.get();
+            }
+
+            auto it3 = daemons.find(id());
+            if (it3 != daemons.end()) {
+                return it3->second.get();
+            }
+
+            return nullptr;
+        }
+
+        Executor& GetExecutor() {
+            auto it = threads.find(id());
+
+            if (it != threads.end()) {
+                return it->second->getExecutor();
+            }
+
+            auto it2 = vThreadGroups.find(id());
+
+            if (it2 != vThreadGroups.end()) {
+                return it2->second->getExecutor();
+            }
+
+            std::cout << "error: no active thread. make sure to never use jesusvm from a native thread in native code\n";
+            std::exit(1);
+        }
+
+        ThreadType GetType() {
+            if (threads.contains(id())) return ThreadType::NORMAL;
+            if (vThreadGroups.contains(id())) return ThreadType::VTHREAD_GROUP;
+            if (daemons.contains(id())) return ThreadType::SYSTEM_DAEMON;
+            return ThreadType::ERROR_TYPE
+        }
+
+        bool IsNormalThread() {
+            return GetType() == ThreadType::NORMAL;
+        }
+
+        bool IsVThreadGroup() {
+            return GetType() == ThreadType::VTHREAD_GROUP;
+        }
+
+        bool IsSystemDaemon() {
+            return GetType() == ThreadType::SYSTEM_DAEMON;
+        }
+
+        bool IsDaemon() {
+            auto it = threads.find(id());
+            if (it != threads.end()) {
+                return it->second->isDaemon();
+            }
+
+            auto it2 = vThreadGroups.find(id());
+            if (it2 != vThreadGroups.end()) {
+                return it2->second->isDaemon();
+            }
+
+            return daemons.contains(id());
+        }
     }
 }

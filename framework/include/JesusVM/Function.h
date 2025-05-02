@@ -102,7 +102,7 @@ namespace JesusVM {
             return;
         }
 
-        Executor& executor = Threading::CurrentExecutor();
+        Executor& executor = Threading::CurrentThread::GetExecutor();
         executor.enterFunction(this);
 
         Stack::Frame* frame = executor.mFrame;

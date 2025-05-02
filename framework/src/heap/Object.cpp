@@ -13,8 +13,16 @@ namespace JesusVM {
         return mClass;
     }
 
-    i32 Object::getReferenceCount() const {
+    i16 Object::getReferenceCount() const {
         return mRefCount;
+    }
+
+    i16 Object::getCyclicReferenceCount() const {
+        return mCyclicRefCount;
+    }
+
+    Object::Color Object::getColor() const {
+        return mColor;
     }
     
     Array* Object::toArray() {
@@ -31,13 +39,16 @@ namespace JesusVM {
 
     void Object::addReference() {
         mRefCount += 1;
+        scanBlack();
     }
 
     void Object::removeReference() {
         mRefCount -= 1;
 
         if (mRefCount <= 0) {
-            freeThis();
+            release();
+        } else {
+            GC::AddPossibleCycleRoot(this);
         }
     }
 
@@ -163,46 +174,97 @@ namespace JesusVM {
     Object::Object(Class* clas)
         : mClass(clas) {}
 
-    void Object::freeThis() {
+    void Object::release() {
+        std::cout << "Finalizing instance of " << mClass->getName() << "\n";
+
+        // TODO: finalizer/destructor
+
+        forEachChild([](Object* object) {
+            object->removeReference();
+        });
+
+        mColor = BLACK;
+
+        if (!mBuffered) {
+            free();
+        }
+    }
+
+    void Object::free() {
         std::cout << "Freeing instance of " << mClass->getName() << "\n";
 
         if (mClass->getKind() == ClassKind::ARRAY) {
-            if (mClass->mArrayBaseClass->getKind() != ClassKind::PRIMITIVE) {
-                auto elements = getArrayElements<Object*>();
-                for (Int i = 0; i < getArrayLength(); i++) {
-                    elements[i]->removeReference();
-                }
-            }
+            toArray()->~Array(); // :tongue:
 
 #ifdef PLATFORM_WINDOWS
             _aligned_free(toArray());
 #else
             std::free(toArray());
 #endif
-
-            return;
-        }
-
-        // TODO: finalizer/destructor
-
-        for (auto& field : mClass->mFields) {
-            if (field.getType().getInternalType() != Type::REFERENCE) {
-                break; // fields are sorted so all references are first. in the weird cases where fields aren't sorted, that's on the guy pushing elements into a private vector (idiot)
-            }
-
-            Object* value = getObjectWeak(&field);
-            if (value != nullptr) {
-                value->removeReference();
-            }
-        }
-
-        this->~Object(); // :tongue:
+        } else {
+            this->~Object(); // :tongue:
 
 #ifdef PLATFORM_WINDOWS
-        _aligned_free(this);
+            _aligned_free(this);
 #else
-        std::free(this);
+            std::free(this);
 #endif
+        }
+    }
+
+    void Object::scanBlack() {
+        if (mColor != BLACK) {
+            mColor = BLACK;
+            forEachChild([](Object* object) {
+                object->scanBlack();
+            });
+        }
+    }
+
+    void Object::markGray() {
+        if (mColor != GRAY) {
+            mColor = GRAY;
+            mCyclicRefCount = mRefCount;
+            forEachChild([](Object* object) {
+                object->markGray();
+            });
+        } else if (mCyclicRefCount > 0) {
+            mCyclicRefCount -= 1;
+        }
+    }
+
+    void Object::scanRoot() {
+        if (mColor == GRAY && mCyclicRefCount <= 0) {
+            mColor = WHITE;
+            forEachChild([](Object* object) {
+                object->scanRoot();
+            });
+        } else {
+            scanBlack();
+        }
+    }
+
+    void Object::collectWhite(std::vector<Object*>& currentCycle) {
+        if (mColor == WHITE) {
+            mColor = ORANGE;
+            mBuffered = true;
+            currentCycle.push_back(this);
+
+            forEachChild([&currentCycle](Object* object) {
+                object->collectWhite(currentCycle);
+            });
+        }
+    }
+
+    void Object::cyclicDecrement() {
+        if (mColor != RED) {
+            if (mColor == ORANGE) {
+                mRefCount -= 1;
+                mCyclicRefCount -= 1;
+            } else {
+                removeReference();
+            }
+        }
     }
 
     Array::Array(Class* clas, Int size)

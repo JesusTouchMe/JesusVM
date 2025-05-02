@@ -172,7 +172,7 @@ namespace JesusVM {
     }
 
     bool Class::linkCommon() {
-        mLoadingThread = Threading::CurrentThread();
+        mLoadingThread = Threading::CurrentThread::GetHandle();
 
         return false; // TODO: reflection support here in future
     }

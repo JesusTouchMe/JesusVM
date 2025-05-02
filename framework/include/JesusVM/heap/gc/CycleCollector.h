@@ -6,10 +6,29 @@
 #ifndef JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_HEAP_GC_CYCLECOLLECTOR_H
 #define JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_HEAP_GC_CYCLECOLLECTOR_H 1
 
-#include "JesusVM/heap/Object.h"
+namespace JesusVM {
+    class Object;
+}
 
+// We need to expose every function of the collector so Object can make them friends
 namespace JesusVM::GC {
+    struct Cycle;
 
+    void AddPossibleCycleRoot(Object* object);
+
+    void MarkRoots();
+
+    void ScanRoots();
+
+    void CollectRoots();
+
+    void FreeCycles();
+
+    void CollectCycles();
+
+    void SigmaPreparation();
+
+    void ProcessCycles();
 }
 
 #endif // JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_HEAP_GC_CYCLECOLLECTOR_H

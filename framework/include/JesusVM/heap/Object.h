@@ -3,6 +3,8 @@
 
 #include "JesusVM/JesusNative.h"
 
+#include "JesusVM/heap/gc/CycleCollector.h"
+
 #include "JesusVM/heap/Class.h"
 
 #include "JesusVM/type/Type.h"
@@ -18,9 +20,30 @@ namespace JesusVM {
     friend struct Array;
     friend ObjectRef AllocObject(Class* clas);
     friend ObjectRef AllocArray(Class* clas, Int size);
+    // gc
+    friend struct GC::Cycle;
+    friend void GC::AddPossibleCycleRoot(Object* object);
+    friend void GC::MarkRoots();
+    friend void GC::ScanRoots();
+    friend void GC::CollectRoots();
+    friend void GC::FreeCycles();
+    friend void GC::SigmaPreparation();
     public:
+        using Color = u8;
+
+        static constexpr Color BLACK   = 0; // In use or free
+        static constexpr Color GRAY    = 1; // Possible member of cycle
+        static constexpr Color WHITE   = 2; // Member of garbage cycle
+        static constexpr Color PURPLE  = 3; // Possible root of cycle
+        static constexpr Color GREEN   = 4; // Acyclic
+        static constexpr Color RED     = 5; // Candidate cycle undergoing sigma-computation
+        static constexpr Color ORANGE  = 6; // Candidate cycle awaiting epoch boundary
+
         Class* getClass();
-        i32 getReferenceCount() const;
+        i16 getReferenceCount() const;
+        i16 getCyclicReferenceCount() const;
+
+        Color getColor() const;
 
         Array* toArray();
 
@@ -62,15 +85,48 @@ namespace JesusVM {
         void setHandle(Field* field, Handle value);
         void setObject(Field* field, Object* value);
 
+        template <class Consumer>
+        inline void forEachChild(Consumer consumer) {
+            if (mClass->getKind() == ClassKind::ARRAY) {
+                if (mClass->mArrayBaseClass->getKind() != ClassKind::PRIMITIVE) {
+                    auto elements = getArrayElements<Object*>();
+                    for (Int i = 0; i < getArrayLength(); i++) {
+                        if (elements[i] != nullptr) consumer(elements[i]);
+                    }
+                }
+            } else {
+                for (auto& field: mClass->mFields) {
+                    if (field.getType().getInternalType() != Type::REFERENCE) {
+                        break; // fields are sorted so all references are first. in the weird cases where fields aren't sorted, that's on the guy pushing elements into a private vector (idiot)
+                    }
+
+                    Object* value = getObjectWeak(&field);
+                    if (value != nullptr) {
+                        consumer(value);
+                    }
+                }
+            }
+        }
+
     private:
         explicit Object(Class* clas);
 
         Class* mClass;
 
         std::atomic<i16> mRefCount = 1;
-        std::atomic<i16> mSuspicionLevel = 0;
+        i16 mCyclicRefCount = 0;
+        std::atomic<bool> mBuffered = false;
+        Color mColor = BLACK;
 
-        void freeThis();
+        void release();
+        void free();
+
+        // gc functions
+        void scanBlack();
+        void markGray();
+        void scanRoot();
+        void collectWhite(std::vector<Object*>& currentCycle);
+        void cyclicDecrement();
     };
 
     class ObjectRef {
