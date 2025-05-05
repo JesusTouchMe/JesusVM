@@ -127,10 +127,12 @@ namespace JesusVM::Threading {
         auto mainThread = std::make_unique<Thread>();
         mainThread->mId = std::this_thread::get_id();
 
-        std::lock_guard<std::mutex> lock(mutex);
+        {
+            std::lock_guard<std::mutex> lock(mutex);
 
-        AttachThread(std::move(mainThread));
-        nonDaemonThreads--; // mainThread is NOT a daemon thread, but we don't increment nonDaemonThreads since it would cause the program to last forever (main thread is never detached)
+            AttachThread(std::move(mainThread));
+            nonDaemonThreads--; // mainThread is NOT a daemon thread, but we don't increment nonDaemonThreads since it would cause the program to last forever (main thread is never detached)
+        }
 
         // Launch system daemons. Most are paused at entry, but still need to be launched here
         GC::Daemon::Launch();
@@ -391,7 +393,7 @@ namespace JesusVM::Threading {
             if (threads.contains(id())) return ThreadType::NORMAL;
             if (vThreadGroups.contains(id())) return ThreadType::VTHREAD_GROUP;
             if (daemons.contains(id())) return ThreadType::SYSTEM_DAEMON;
-            return ThreadType::ERROR_TYPE
+            return ThreadType::ERROR_TYPE;
         }
 
         bool IsNormalThread() {
