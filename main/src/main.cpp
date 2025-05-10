@@ -5,8 +5,12 @@
 
 #include "JesusVM/executors/Threading.h"
 
+#include "JesusVM/heap/gc/GC-Daemon.h"
+
 ///*
 int main(int argc, char** argv) {
+    using namespace std::chrono_literals;
+
     JesusVM::Init();
 
     JesusVM::Linker::Init();
@@ -20,7 +24,14 @@ int main(int argc, char** argv) {
     JesusVM::Module* mainModule = JesusVM::Linker::LoadModule(nullptr, "Main");
 
     JesusVM::Function* mainFunction = mainModule->getFunction("main", "()V");
-    mainFunction->invoke<void>();
+    //mainFunction->invoke<void>();
+
+    JesusVM::Thread* mainThread = JesusVM::Threading::GetMainThread();
+
+    mainThread->setFunction(mainFunction);
+    mainThread->start();
+
+    JesusVM::Threading::Epoch::SyncAllEpochs();
 
     JesusVM::Threading::WaitForAllThreads();
 

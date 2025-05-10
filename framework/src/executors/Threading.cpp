@@ -14,6 +14,59 @@
 #undef VOID
 #undef BOOL
 
+namespace JesusVM {
+    void IncrementMutation::apply() const {
+        target->addReferenceReal();
+    }
+
+    void DecrementMutation::apply() const {
+        target->removeReferenceReal();
+    }
+
+    MutationBuffer::MutationBuffer() {
+        localEpoch = Threading::Epoch::GetGlobal();
+    }
+
+    void MutationBuffer::addReference(Object* object) {
+        incrementMutations.emplace_back(object, localEpoch);
+    }
+
+    void MutationBuffer::removeReference(Object* object) {
+        decrementMutations.emplace_back(object, localEpoch);
+    }
+
+    void MutationBuffer::advanceEpoch() {
+        localEpoch += 1;
+        Threading::Epoch::TryAdvanceGlobal();
+    }
+
+    void MutationBuffer::flush(u64 epoch) {
+        size_t writeIndex = 0;
+
+        for (auto & mutation : incrementMutations) {
+            if (mutation.epoch <= epoch) {
+                mutation.apply();
+            } else {
+                incrementMutations[writeIndex++] = std::move(mutation);
+            }
+        }
+
+        incrementMutations.resize(writeIndex);
+
+        writeIndex = 0;
+
+        for (auto & mutation : decrementMutations) {
+            if (mutation.epoch <= epoch) {
+                mutation.apply();
+            } else {
+                decrementMutations[writeIndex++] = std::move(mutation);
+            }
+        }
+
+        decrementMutations.resize(writeIndex);
+    }
+}
+
 namespace JesusVM::Threading {
     std::unordered_map<std::thread::id, std::unique_ptr<Thread>> threads;
     std::unordered_map<std::thread::id, std::unique_ptr<VThreadGroup>> vThreadGroups;
@@ -27,6 +80,8 @@ namespace JesusVM::Threading {
     std::condition_variable terminateCondition;
 
     u64 nonDaemonThreads = 0;
+
+    Thread* mainThread = nullptr;
 
     static void AttachThread(std::unique_ptr<Thread> thread) {
         if (!thread->isDaemon()) {
@@ -74,6 +129,7 @@ namespace JesusVM::Threading {
 
     static void DetachDaemon(Daemon* daemon) {
         daemons.erase(daemon->getId());
+        terminateCondition.notify_all();
     }
 
     static void ThreadEntry(Thread* thread) {
@@ -118,24 +174,29 @@ namespace JesusVM::Threading {
         DetachThread(thread);
     }
 
-    static void DaemonEntry(Daemon* thread) {
+    static void DaemonEntry(Daemon* thread, bool crucial) {
         thread->start();
+
+        std::lock_guard<std::mutex> lock(mutex);
+        if (crucial) nonDaemonThreads--;
         DetachDaemon(thread);
     }
 
     void Init() {
-        auto mainThread = std::make_unique<Thread>();
-        mainThread->mId = std::this_thread::get_id();
+        auto mainThreadPtr = std::make_unique<Thread>();
+        mainThreadPtr->mId = std::this_thread::get_id();
+
+        mainThread = mainThreadPtr.get();
 
         {
             std::lock_guard<std::mutex> lock(mutex);
 
-            AttachThread(std::move(mainThread));
+            AttachThread(std::move(mainThreadPtr));
             nonDaemonThreads--; // mainThread is NOT a daemon thread, but we don't increment nonDaemonThreads since it would cause the program to last forever (main thread is never detached)
         }
 
         // Launch system daemons. Most are paused at entry, but still need to be launched here
-        GC::Daemon::Launch();
+        //GC::Daemon::Launch();
     }
 
     static void LaunchThreadInternal(Function* function) {
@@ -180,16 +241,18 @@ namespace JesusVM::Threading {
         LaunchThreadInternal(function);
     }
 
-    Daemon* LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry) {
+    Daemon* LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry, bool crucial) {
         auto thread = std::make_unique<Daemon>(name, std::move(entry));
         auto* tmpThread = thread.get();
-        std::thread nativeThread(DaemonEntry, tmpThread);
+        std::thread nativeThread(DaemonEntry, tmpThread, crucial);
 
         thread->mId = nativeThread.get_id();
 
         {
             std::lock_guard<std::mutex> lock(mutex);
             AttachDaemon(std::move(thread));
+
+            if (crucial) nonDaemonThreads++;
         }
 
         nativeThread.detach();
@@ -336,8 +399,16 @@ namespace JesusVM::Threading {
         }
     }
 
-    u64 ThreadCount() {
+    Thread* GetMainThread() {
+        return mainThread;
+    }
+
+    u64 MutatorThreadCount() {
         return threads.size() + vThreadGroups.size();
+    }
+
+    u64 ThreadCount() {
+        return threads.size() + vThreadGroups.size() + daemons.size();
     }
 
     void WaitForAllThreads() {
@@ -346,6 +417,16 @@ namespace JesusVM::Threading {
         terminateCondition.wait(lock, [] {
             return nonDaemonThreads == 0;
         });
+    }
+
+    static inline void ForEachMutator(const auto& consumer) {
+        for (auto& thread : threads) {
+            consumer(thread.second->getMutationBuffer());
+        }
+
+        for (auto& thread : vThreadGroups) {
+            consumer(thread.second->getMutationBuffer());
+        }
     }
 
     namespace CurrentThread {
@@ -389,6 +470,12 @@ namespace JesusVM::Threading {
             std::exit(1);
         }
 
+        MutationBuffer& GetMutationBuffer() {
+            static thread_local MutationBuffer buffer;
+            //TODO: if GetType() == ERROR_TYPE throw error
+            return buffer;
+        }
+
         ThreadType GetType() {
             if (threads.contains(id())) return ThreadType::NORMAL;
             if (vThreadGroups.contains(id())) return ThreadType::VTHREAD_GROUP;
@@ -397,15 +484,15 @@ namespace JesusVM::Threading {
         }
 
         bool IsNormalThread() {
-            return GetType() == ThreadType::NORMAL;
+            return threads.contains(id());
         }
 
         bool IsVThreadGroup() {
-            return GetType() == ThreadType::VTHREAD_GROUP;
+            return vThreadGroups.contains(id());
         }
 
         bool IsSystemDaemon() {
-            return GetType() == ThreadType::SYSTEM_DAEMON;
+            return daemons.contains(id());
         }
 
         bool IsDaemon() {
@@ -420,6 +507,70 @@ namespace JesusVM::Threading {
             }
 
             return daemons.contains(id());
+        }
+    }
+
+    namespace Epoch {
+        std::atomic<u64> globalEpoch = 0;
+        constexpr double advanceThreshold = 0.9;
+
+        u64 GetGlobal() {
+            return globalEpoch;
+        }
+
+        void SyncAllEpochs() {
+            u64 maxEpoch = globalEpoch.load(std::memory_order_acquire);
+
+            ForEachMutator([&maxEpoch](MutationBuffer& buffer) {
+                if (buffer.localEpoch > maxEpoch) {
+                    maxEpoch = buffer.localEpoch;
+                }
+            });
+
+            for (u64 epoch = globalEpoch; epoch <= maxEpoch; epoch++) {
+                FlushGlobalEpoch(epoch);
+            }
+
+            //TODO: fix the daemon thread having weird behavior and not freeing stuff or running
+            //GC::Daemon::WaitUntilReady();
+            //GC::Daemon::Finalize(); // signal that it should finish after this final collection
+            //GC::Daemon::BeginCollection();
+
+            GC::ProcessCycles();
+        }
+
+        void TryAdvanceGlobal() {
+            u64 currentGlobal = globalEpoch.load(std::memory_order_acquire);
+            u64 readyThreads = 0;
+            u64 totalThreads = 0;
+
+            ForEachMutator([currentGlobal, &totalThreads, &readyThreads](MutationBuffer& buffer) {
+                totalThreads += 1;
+                if (buffer.localEpoch > currentGlobal) {
+                    readyThreads += 1;
+                }
+            });
+
+            if (totalThreads == 0) return;
+
+            double readiness = static_cast<double>(readyThreads) / totalThreads;
+            if (readiness >= advanceThreshold) {
+                if (globalEpoch.compare_exchange_strong(currentGlobal, currentGlobal + 1, std::memory_order_acq_rel)) {
+                    //TODO: fix the daemon thread having weird behavior and not freeing stuff or running
+                    //GC::Daemon::WaitUntilReady();
+
+                    FlushGlobalEpoch(currentGlobal);
+                    //GC::Daemon::BeginCollection();
+
+                    GC::ProcessCycles();
+                }
+            }
+        }
+
+        void FlushGlobalEpoch(u64 epoch) {
+            ForEachMutator([epoch](MutationBuffer& buffer) {
+                buffer.flush(epoch);
+            });
         }
     }
 }

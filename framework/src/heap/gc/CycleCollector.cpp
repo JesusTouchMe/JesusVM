@@ -79,7 +79,7 @@ namespace JesusVM::GC {
         for (auto it = cycleRoots.begin(); it != cycleRoots.end();) {
             Object* object = *it;
 
-            if (object->mColor == Object::PURPLE && object->getReferenceCount() > 0) {
+            if (object->mColor == Object::GRAY || (object->mColor == Object::PURPLE && object->getReferenceCount() > 0)) {
                 object->markGray();
                 ++it;
             } else {

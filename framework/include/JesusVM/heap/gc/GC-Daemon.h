@@ -5,8 +5,12 @@
 
 namespace JesusVM::GC::Daemon {
     void Launch();
+    void Finalize();
 
-    // Call every epoch after the mutation buffers have been processed
+    bool IsReady();
+    void WaitUntilReady();
+
+    // Call every globalEpoch after the mutation buffers have been processed
     void BeginCollection();
 }
 

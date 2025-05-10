@@ -37,7 +37,7 @@ namespace JesusVM {
         static constexpr Color PURPLE  = 3; // Possible root of cycle
         static constexpr Color GREEN   = 4; // Acyclic
         static constexpr Color RED     = 5; // Candidate cycle undergoing sigma-computation
-        static constexpr Color ORANGE  = 6; // Candidate cycle awaiting epoch boundary
+        static constexpr Color ORANGE  = 6; // Candidate cycle awaiting globalEpoch boundary
 
         Class* getClass();
         i16 getReferenceCount() const;
@@ -52,7 +52,9 @@ namespace JesusVM {
         bool isInstance(Class* clas);
 
         void addReference();
-        void removeReference(); // this function will LITERALLY std::free(this); if refcount reaches 0. always treat it as such
+        void addReferenceReal();
+        void removeReference();
+        void removeReferenceReal(); // this function will LITERALLY std::free(this); if refcount reaches 0. always treat it as such
 
         void nullCheck();
 
@@ -91,7 +93,9 @@ namespace JesusVM {
                 if (mClass->mArrayBaseClass->getKind() != ClassKind::PRIMITIVE) {
                     auto elements = getArrayElements<Object*>();
                     for (Int i = 0; i < getArrayLength(); i++) {
-                        if (elements[i] != nullptr) consumer(elements[i]);
+                        if (elements[i] != nullptr) {
+                            consumer(elements[i]);
+                        }
                     }
                 }
             } else {

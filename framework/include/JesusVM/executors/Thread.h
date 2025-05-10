@@ -40,6 +40,8 @@ namespace JesusVM {
 
         Executor& getExecutor();
 
+        MutationBuffer& getMutationBuffer();
+
         void setState(ThreadState state);
         void setFunction(Function* function);
 
@@ -60,6 +62,8 @@ namespace JesusVM {
 
         Executor mExecutor;
         Function* mFunction;
+
+        MutationBuffer* mMutationBuffer;
     };
 
     class VThreadGroup {
@@ -75,6 +79,8 @@ namespace JesusVM {
         u64 getThreadCount() const;
 
         Executor& getExecutor();
+
+        MutationBuffer& getMutationBuffer();
 
         void setState(ThreadState state);
         void runFunction(Function* function);
@@ -98,6 +104,8 @@ namespace JesusVM {
 
         std::vector<std::unique_ptr<VThread>> mThreads;
         VThread* mCurrent;
+
+        MutationBuffer* mMutationBuffer;
     };
 }
 

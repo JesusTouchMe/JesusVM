@@ -38,11 +38,21 @@ namespace JesusVM {
     }
 
     void Object::addReference() {
+        auto& buffer = Threading::CurrentThread::GetMutationBuffer();
+        buffer.addReference(this);
+    }
+
+    void Object::addReferenceReal() {
         mRefCount += 1;
         scanBlack();
     }
 
     void Object::removeReference() {
+        auto& buffer = Threading::CurrentThread::GetMutationBuffer();
+        buffer.removeReference(this);
+    }
+
+    void Object::removeReferenceReal() {
         mRefCount -= 1;
 
         if (mRefCount <= 0) {
@@ -239,7 +249,7 @@ namespace JesusVM {
             forEachChild([](Object* object) {
                 object->scanRoot();
             });
-        } else {
+        } else if (mColor != WHITE) {
             scanBlack();
         }
     }
@@ -262,7 +272,7 @@ namespace JesusVM {
                 mRefCount -= 1;
                 mCyclicRefCount -= 1;
             } else {
-                removeReference();
+                removeReferenceReal();
             }
         }
     }

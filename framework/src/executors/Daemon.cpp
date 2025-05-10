@@ -1,8 +1,9 @@
 // Copyright 2025 JesusTouchMe
 
-#include <utility>
-
 #include "JesusVM/executors/Daemon.h"
+#include "JesusVM/executors/Threading.h"
+
+#include <utility>
 
 namespace JesusVM {
     void DaemonContext::hibernate() {

@@ -15,6 +15,7 @@
 
 namespace JesusVM {
     class Daemon;
+    class MutationBuffer;
 
     struct DaemonContext {
         Daemon* thread;
@@ -25,13 +26,13 @@ namespace JesusVM {
     };
 
     namespace Threading {
-        Daemon* LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry);
+        Daemon* LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry, bool crucial);
     }
 
     // Daemon::start starts out asleep and will be automatically woken up by LaunchDaemon
     class Daemon {
     friend struct DaemonContext;
-    friend Daemon* Threading::LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry);
+    friend Daemon* Threading::LaunchDaemon(std::string_view name, std::function<void(DaemonContext)> entry, bool crucial);
     public:
         Daemon(std::string_view name, std::function<void(DaemonContext)> entry);
 

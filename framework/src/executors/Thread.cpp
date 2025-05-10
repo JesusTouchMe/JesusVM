@@ -37,6 +37,10 @@ namespace JesusVM {
         return mExecutor;
     }
 
+    MutationBuffer& Thread::getMutationBuffer() {
+        return *mMutationBuffer;
+    }
+
     void Thread::setState(ThreadState state) {
         {
             std::lock_guard<std::mutex> lock(mMutex);
@@ -52,6 +56,8 @@ namespace JesusVM {
         });
 
         mFunction = function;
+        lock.unlock();
+
         setState(ThreadState::RUNNABLE);
     }
 
@@ -67,6 +73,8 @@ namespace JesusVM {
         std::unique_lock<std::mutex> lock(mMutex);
         mCondition.wait(lock, [this] { return (mState == ThreadState::RUNNABLE && mFunction != nullptr) || mInterrupted; });
 
+        mMutationBuffer = &Threading::CurrentThread::GetMutationBuffer();
+
         if (mInterrupted) return;
 
         if (mFunction->isNative()) {
@@ -75,6 +83,8 @@ namespace JesusVM {
             mExecutor.enterFunction(mFunction);
             mExecutor.run();
         }
+
+        lock.unlock();
 
         setState(ThreadState::IDLE);
     }
@@ -115,6 +125,10 @@ namespace JesusVM {
         return mCurrent->getExecutor();
     }
 
+    MutationBuffer& VThreadGroup::getMutationBuffer() {
+        return *mMutationBuffer;
+    }
+
     void VThreadGroup::setState(ThreadState state) {
         {
             std::lock_guard<std::mutex> lock(mMutex);
@@ -147,6 +161,8 @@ namespace JesusVM {
 
     void VThreadGroup::start() {
         using namespace std::chrono_literals;
+
+        mMutationBuffer = &Threading::CurrentThread::GetMutationBuffer();
 
         while (!mInterrupted) {
             std::unique_lock<std::mutex> lock(mMutex);

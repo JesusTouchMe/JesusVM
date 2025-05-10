@@ -456,6 +456,10 @@ namespace JesusVM {
 
         mTop = std::move(oldFrame->mPrevious);
 
+        // TODO: this is not a permanent fix, just something to test epoch system
+        // marked as todo so i can find this whenever i decide to go through the todo comments
+        Threading::CurrentThread::GetMutationBuffer().advanceEpoch();
+
         return mTop.get();
     }
 }
