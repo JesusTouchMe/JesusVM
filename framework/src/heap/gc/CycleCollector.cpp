@@ -4,11 +4,24 @@
 
 #include "JesusVM/heap/Object.h"
 
+#include "JesusVM/util/Profiler.h"
+
 #include <algorithm>
+#include <fstream>
 #include <vector>
 
 namespace JesusVM::GC {
     std::vector<Object*> cycleRoots;
+
+    std::mutex mutex;
+
+    Profiler::GCProfiler<5> profiler {
+        "Free Cycles",
+        "Mark Roots",
+        "Scan Roots",
+        "Collect Roots",
+        "Sigma Preparation"
+    };
 
     struct Cycle {
         std::vector<Object*> cycle;
@@ -76,6 +89,8 @@ namespace JesusVM::GC {
     }
 
     void MarkRoots() {
+        profiler.startPhase(1);
+
         for (auto it = cycleRoots.begin(); it != cycleRoots.end();) {
             Object* object = *it;
 
@@ -91,15 +106,23 @@ namespace JesusVM::GC {
                 }
             }
         }
+
+        profiler.endPhase(1);
     }
 
     void ScanRoots() {
+        profiler.startPhase(2);
+
         for (Object* object : cycleRoots) {
             object->scanRoot();
         }
+
+        profiler.endPhase(2);
     }
 
     void CollectRoots() {
+        profiler.startPhase(3);
+
         for (auto it = cycleRoots.begin(); it != cycleRoots.end();) {
             Object* object = *it;
 
@@ -113,9 +136,13 @@ namespace JesusVM::GC {
 
             it = cycleRoots.erase(it);
         }
+
+        profiler.endPhase(3);
     }
 
     void FreeCycles() {
+        profiler.startPhase(0);
+
         i64 last = cycleBuffer.size() - 1;
         for (i64 i = last; i >= 0; i--) {
             auto& cycle = cycleBuffer[i];
@@ -127,6 +154,8 @@ namespace JesusVM::GC {
         }
 
         cycleBuffer.clear();
+
+        profiler.endPhase(0);
     }
 
     void CollectCycles() {
@@ -136,6 +165,8 @@ namespace JesusVM::GC {
     }
 
     void SigmaPreparation() {
+        profiler.startPhase(4);
+
         for (auto& cycle : cycleBuffer) {
             for (Object* object : cycle.cycle) {
                 object->mColor = Object::RED;
@@ -154,11 +185,22 @@ namespace JesusVM::GC {
                 object->mColor = Object::ORANGE;
             }
         }
+
+        profiler.endPhase(4);
     }
 
     void ProcessCycles() {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        profiler.reset();
+        profiler.start();
+
         FreeCycles();
         CollectCycles();
         SigmaPreparation();
+
+        profiler.end();
+
+        profiler.logStats();
     }
 }

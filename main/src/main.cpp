@@ -7,11 +7,22 @@
 
 #include "JesusVM/heap/gc/GC-Daemon.h"
 
+#include "JesusVM/util/Logging.h"
+
+#include <io.h>
+#include <fcntl.h>
+
 ///*
 int main(int argc, char** argv) {
     using namespace std::chrono_literals;
 
     JesusVM::Init();
+
+    FILE* logOut = fopen("jesusvm.log", "w");
+    fclose(logOut);
+    logOut = fopen("jesusvm.log", "a");
+
+    JesusVM::Logger::Init(logOut);
 
     JesusVM::Linker::Init();
     JesusVM::Linker::AddPath("."); // cwd i think
@@ -34,6 +45,8 @@ int main(int argc, char** argv) {
     JesusVM::Threading::Epoch::SyncAllEpochs();
 
     JesusVM::Threading::WaitForAllThreads();
+
+    JesusVM::Logger::Close();
 
     return 0;
 }

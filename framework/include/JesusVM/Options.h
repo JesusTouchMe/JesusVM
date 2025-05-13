@@ -6,6 +6,8 @@
 #include "types.h"
 
 namespace JesusVM::opt {
+    constexpr bool gcProfilerEnabled = true;
+
     constexpr u64 MIN_THREADS = 6;
     constexpr u64 MAX_CONCURRENT_THREADS = 50;
 
