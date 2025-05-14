@@ -21,6 +21,8 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
         src/heap/gc/CycleCollector.cpp
         src/heap/gc/GC-Daemon.cpp
         src/util/Profiler.cpp
+        src/GlobalVar.cpp
+        src/constpool/ConstantGlobalVar.cpp
 )
 
 set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/executors/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
@@ -46,6 +48,7 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
         include/JesusVM/heap/gc/GC-Daemon.h
         include/JesusVM/util/Logging.h
         include/JesusVM/util/Profiler.h
+        include/JesusVM/constpool/ConstantGlobalVar.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})

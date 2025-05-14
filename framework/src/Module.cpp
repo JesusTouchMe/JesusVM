@@ -43,6 +43,7 @@ namespace JesusVM {
         }
 
         mClasses.reserve(info->class_count);
+        mGlobalVars.reserve(info->global_var_count);
         mFunctions.reserve(info->function_count);
 
         for (u16 i = 0; i < info->class_count; i++) {
@@ -50,13 +51,13 @@ namespace JesusVM {
                     std::make_unique<Class>(this, &info->classes[i]);
         }
 
+        for (u16 i = 0; i < info->global_var_count; i++) {
+            mGlobalVars.emplace_back(this, i);
+        }
+
         for (u16 i = 0; i < info->function_count; i++) {
             mFunctions.emplace_back(this, &info->functions[i]);
         }
-
-		for (auto& function : mFunctions) {
-			function.mModule = this; // todo: better impl
-		}
 	}
 
     Module::~Module() {
@@ -85,6 +86,19 @@ namespace JesusVM {
 	Class* Module::getClass(std::string_view name) {
         return Linker::LoadClass(this, name);
 	}
+
+    GlobalVar* Module::getGlobalVar(std::string_view name, std::string_view descriptor) {
+        auto it = std::find_if(mGlobalVars.begin(), mGlobalVars.end(), [name, descriptor](GlobalVar& global) {
+            return global.getName() == name && global.getDescriptor() == descriptor;
+        });
+        if (it != mGlobalVars.end()) return &*it;
+
+        return nullptr;
+    }
+
+    GlobalVar* Module::getGlobalVar(ConstantName* name) {
+        return getGlobalVar(name->getName(), name->getDescriptor());
+    }
 
 	Function* Module::getFunction(std::string_view name, std::string_view descriptor) {
 		auto it = std::find_if(mFunctions.begin(), mFunctions.end(),[name, descriptor](Function& function) {

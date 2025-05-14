@@ -10,8 +10,7 @@ namespace JesusVM {
 	Function::Function(Module* module, moduleweb_function_info* info)
 		: mInfo(info)
         , mModule(module)
-        , mNeededLocalsForArgs(0)
-		, mModifiers(info->modifiers) {
+        , mNeededLocalsForArgs(0) {
         auto name = module->getConstPool().get<ConstantName>(info->name_index);
 
         mName = name->getName();
@@ -98,7 +97,7 @@ namespace JesusVM {
 	}
 	
 	Function::Modifiers Function::getModifiers() const {
-		return mModifiers;
+		return mInfo->modifiers;
 	}
 	
 	u16 Function::getLocalCount() const {
@@ -118,23 +117,23 @@ namespace JesusVM {
 	}
 
     bool Function::isPublic() const {
-        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PUBLIC) != 0;
+        return (getModifiers() & MODULEWEB_FUNCTION_MODIFIER_PUBLIC) != 0;
     }
 
     bool Function::isPrivate() const {
-        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PRIVATE) != 0;
+        return (getModifiers() & MODULEWEB_FUNCTION_MODIFIER_PRIVATE) != 0;
     }
 
     bool Function::isPure() const {
-        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_PURE) != 0;
+        return (getModifiers() & MODULEWEB_FUNCTION_MODIFIER_PURE) != 0;
     }
 
     bool Function::isAsync() const {
-        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_ASYNC) != 0;
+        return (getModifiers() & MODULEWEB_FUNCTION_MODIFIER_ASYNC) != 0;
     }
 
     bool Function::isNative() const {
-        return (mModifiers & MODULEWEB_FUNCTION_MODIFIER_NATIVE) != 0;
+        return (getModifiers() & MODULEWEB_FUNCTION_MODIFIER_NATIVE) != 0;
     }
 
     VMContext Function::getNativeContext() {

@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+#include "JesusVM/JesusNative.h"
+
 #include "JesusVM/type/Type.h"
 
 #include "moduleweb/global_var_info.h"
@@ -16,14 +18,28 @@ namespace JesusVM {
     public:
         using Modifiers = u16;
 
-        GlobalVar(Module* module, moduleweb_global_var_info* info);
+        GlobalVar(Module* module, u16 index);
 
-        moduleweb_global_var_info* getInfo() const;
         Module* getModule() const;
+        moduleweb_global_var_info* getInfo() const;
         const TypeInfo& getType() const;
         std::string_view getName() const;
         std::string_view getDescriptor() const;
         Modifiers getModifiers() const;
+        u16 getIndex() const;
+
+        JValue getValue() const;
+        void setValue(JValue value);
+
+    private:
+        Module* mModule;
+        u16 mIndex;
+
+        TypeInfo mType;
+        std::string_view mName;
+        std::string_view mDescriptor;
+
+        JValue mValue;
     };
 }
 

@@ -120,6 +120,9 @@ namespace JesusVM {
         void getfieldInsn(bool wide);
         void setfieldInsn(bool wide);
 
+        void getglobalInsn(bool wide);
+        void setglobalInsn(bool wide);
+
 		void jmp_icmpeqInsn();
 		void jmp_icmpneInsn();
 		void jmp_icmpltInsn();

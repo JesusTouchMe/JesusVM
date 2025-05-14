@@ -18,6 +18,7 @@ namespace JesusVM {
             ASCII,
             NAME,
             MODULE,
+            GLOBAL_VAR,
             FUNCTION,
             CLASS,
             FIELD,

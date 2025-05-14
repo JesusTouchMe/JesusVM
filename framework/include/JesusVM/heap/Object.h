@@ -155,13 +155,13 @@ namespace JesusVM {
             other.mObject = nullptr;
         }
 
-        virtual ~ObjectRef() {
+        ~ObjectRef() {
             if (mObject != nullptr) {
                 mObject->removeReference();
             }
         }
 
-        virtual ObjectRef& operator=(const ObjectRef& other) {
+        ObjectRef& operator=(const ObjectRef& other) {
             if (&other != this) {
                 mObject = other.mObject;
 
@@ -180,7 +180,7 @@ namespace JesusVM {
             return *this;
         }
 
-        virtual ObjectRef& operator=(Object* obj) {
+        ObjectRef& operator=(Object* obj) {
             if (mObject != nullptr) {
                 mObject->removeReference();
             }
@@ -194,7 +194,7 @@ namespace JesusVM {
             return *this;
         }
 
-        virtual ObjectRef& operator=(std::nullptr_t) {
+        ObjectRef& operator=(std::nullptr_t) {
             if (mObject != nullptr) {
                 mObject->removeReference();
             }

@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "JesusVM/Function.h"
+#include "JesusVM/GlobalVar.h"
 
 #include "JesusVM/constpool/ConstantName.h"
 #include "JesusVM/constpool/ConstPool.h"
@@ -39,6 +40,10 @@ namespace JesusVM {
 
         Class* findClass(std::string_view name);
 		Class* getClass(std::string_view name);
+
+        GlobalVar* getGlobalVar(std::string_view name, std::string_view descriptor);
+        GlobalVar* getGlobalVar(ConstantName* name);
+
 		Function* getFunction(std::string_view name, std::string_view descriptor);
         Function* getFunction(ConstantName* name);
 
@@ -52,6 +57,7 @@ namespace JesusVM {
 		ConstPool mConstPool;
 		
 		std::unordered_map<std::string_view, std::unique_ptr<Class>> mClasses;
+        std::vector<GlobalVar> mGlobalVars;
 		std::vector<Function> mFunctions;
 	};
 }

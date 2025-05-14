@@ -79,7 +79,6 @@ namespace JesusVM {
         u16 mNeededLocalsForArgs;
 		std::string_view mName;
 		std::string_view mDescriptor;
-		Modifiers mModifiers;
 
         moduleweb_code_attribute mCodeAttribute{};
 

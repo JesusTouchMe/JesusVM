@@ -5,6 +5,7 @@
 #include "JesusVM/constpool/ConstantClass.h"
 #include "JesusVM/constpool/ConstantField.h"
 #include "JesusVM/constpool/ConstantFunc.h"
+#include "JesusVM/constpool/ConstantGlobalVar.h"
 #include "JesusVM/constpool/ConstPool.h"
 
 #include "JesusVM/executors/Executor.h"
@@ -313,6 +314,14 @@ namespace JesusVM {
 
             case Opcodes::SETFIELD:
                 setfieldInsn(wide);
+                break;
+
+            case Opcodes::GETGLOBAL:
+                getglobalInsn(wide);
+                break;
+
+            case Opcodes::SETGLOBAL:
+                setglobalInsn(wide);
                 break;
 
             case Opcodes::JMP_ICMPEQ:
@@ -1379,6 +1388,109 @@ namespace JesusVM {
 
                 object->setBool(field, value);
                 break;
+            }
+        }
+    }
+
+    void Executor::getglobalInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto globalRef = mFrame->getConstPool().get<ConstantGlobalVar>(index);
+
+        if (globalRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        GlobalVar* global = globalRef->getGlobalVar();
+
+        switch (global->getType().getInternalType()) {
+            case Type::REFERENCE:
+                mFrame->pushObject(reinterpret_cast<Object*>(global->getValue().R));
+                break;
+            case Type::HANDLE:
+                mFrame->pushHandle(global->getValue().H);
+                break;
+            case Type::BYTE:
+                mFrame->push(global->getValue().B);
+                break;
+            case Type::SHORT:
+                mFrame->push(global->getValue().S);
+                break;
+            case Type::INT:
+                mFrame->push(global->getValue().I);
+                break;
+            case Type::LONG:
+                mFrame->pushLong(global->getValue().L);
+                break;
+            case Type::CHAR:
+                mFrame->push(global->getValue().C);
+                break;
+            case Type::FLOAT:
+                mFrame->push(global->getValue().F);
+                break;
+            case Type::DOUBLE:
+                mFrame->push(global->getValue().D);
+                break;
+            case Type::BOOL:
+                mFrame->push(global->getValue().Z);
+                break;
+        }
+    }
+
+    void Executor::setglobalInsn(bool wide) {
+        u32 index = wide ? getInt() : getShort();
+        auto globalRef = mFrame->getConstPool().get<ConstantGlobalVar>(index);
+
+        if (globalRef == nullptr) {
+            std::cout << "constant index out of bounds. todo: better errors\n";
+            std::exit(1);
+        }
+
+        GlobalVar* global = globalRef->getGlobalVar();
+
+        switch (global->getType().getInternalType()) {
+            case Type::REFERENCE: {
+                ObjectRef object = mFrame->popObject();
+                global->setValue(object);
+
+                if (object != nullptr) object->addReference();
+                break;
+            }
+            case Type::HANDLE: {
+                Handle handle = mFrame->popHandle();
+                global->setValue(handle);
+            }
+            case Type::BYTE: {
+                auto value = static_cast<Byte>(mFrame->pop());
+                global->setValue(value);
+            }
+            case Type::SHORT: {
+                auto value = static_cast<Short>(mFrame->pop());
+                global->setValue(value);
+            }
+            case Type::INT: {
+                auto value = static_cast<Int>(mFrame->pop());
+                global->setValue(value);
+            }
+            case Type::LONG: {
+                Long value = mFrame->popLong();
+                global->setValue(value);
+            }
+            case Type::CHAR: {
+                auto value = static_cast<Char>(mFrame->pop());
+                global->setValue(value);
+            }
+            case Type::FLOAT: {
+                auto value = static_cast<Float>(mFrame->pop());
+                global->setValue(value);
+            }
+            case Type::DOUBLE: {
+                auto value = static_cast<Double >(mFrame->popLong());
+                global->setValue(value);
+            }
+            case Type::BOOL: {
+                auto value = static_cast<Bool>(mFrame->pop());
+                    global->setValue(value);
             }
         }
     }
