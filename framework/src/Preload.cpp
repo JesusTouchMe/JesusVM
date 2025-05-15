@@ -180,7 +180,7 @@ namespace JesusVM::Preload {
         for (auto& entry : nativeOverrideEntries) {
             Function* func = *entry.function;
 
-            func->mModifiers |= MODULEWEB_FUNCTION_MODIFIER_NATIVE;
+            func->mInfo->modifiers |= MODULEWEB_FUNCTION_MODIFIER_NATIVE;
             func->mCodeAttribute.code = static_cast<u8*>(entry.entry);
         }
 
