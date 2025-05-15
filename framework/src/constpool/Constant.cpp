@@ -7,6 +7,7 @@
 #include "JesusVM/constpool/ConstantClass.h"
 #include "JesusVM/constpool/ConstantField.h"
 #include "JesusVM/constpool/ConstantFunc.h"
+#include "JesusVM/constpool/ConstantGlobalVar.h"
 #include "JesusVM/constpool/ConstantModule.h"
 #include "JesusVM/constpool/ConstantName.h"
 #include "JesusVM/constpool/ConstPool.h"
@@ -22,6 +23,8 @@ namespace JesusVM {
                 return std::make_unique<ConstantName>(container, &info->name_info);
             case MODULEWEB_CONSTANT_TYPE_MODULE_REF:
                 return std::make_unique<ConstantModule>(container, &info->module_ref_info);
+            case MODULEWEB_CONSTANT_TYPE_GLOBAL_VAR_REF:
+                return std::make_unique<ConstantGlobalVar>(container, &info->global_var_ref_info);
             case MODULEWEB_CONSTANT_TYPE_FUNCTION_REF:
                 return std::make_unique<ConstantFunc>(container, &info->function_ref_info);
             case MODULEWEB_CONSTANT_TYPE_CLASS_REF:
