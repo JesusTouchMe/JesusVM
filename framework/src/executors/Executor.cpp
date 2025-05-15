@@ -1459,38 +1459,56 @@ namespace JesusVM {
             case Type::HANDLE: {
                 Handle handle = mFrame->popHandle();
                 global->setValue(handle);
+
+                break;
             }
             case Type::BYTE: {
                 auto value = static_cast<Byte>(mFrame->pop());
                 global->setValue(value);
+
+                break;
             }
             case Type::SHORT: {
                 auto value = static_cast<Short>(mFrame->pop());
                 global->setValue(value);
+
+                break;
             }
             case Type::INT: {
                 auto value = static_cast<Int>(mFrame->pop());
                 global->setValue(value);
+
+                break;
             }
             case Type::LONG: {
                 Long value = mFrame->popLong();
                 global->setValue(value);
+
+                break;
             }
             case Type::CHAR: {
                 auto value = static_cast<Char>(mFrame->pop());
                 global->setValue(value);
+
+                break;
             }
             case Type::FLOAT: {
                 auto value = static_cast<Float>(mFrame->pop());
                 global->setValue(value);
+
+                break;
             }
             case Type::DOUBLE: {
                 auto value = static_cast<Double >(mFrame->popLong());
                 global->setValue(value);
+
+                break;
             }
             case Type::BOOL: {
                 auto value = static_cast<Bool>(mFrame->pop());
-                    global->setValue(value);
+                global->setValue(value);
+
+                break;
             }
         }
     }
