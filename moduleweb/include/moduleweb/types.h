@@ -38,7 +38,7 @@ typedef uint64_t u64;
 #define MOVE_S(dest, src, type) do { (dest) = (src); (src) = (type) {0}; } while(0)
 
 #define VECTOR_ADD(vec_size, vec_capacity, vec_data, item, type) do {           \
-    if ((vec_size) >= (vec_capacity)) {                                         \
+    if ((vec_size) >= (vec_capacity) || vec_data == NULL) {                     \
         (vec_capacity) = ((vec_capacity) == 0) ? 1 : (vec_capacity) * 2;        \
         void* new_data = realloc((vec_data), (vec_capacity) * sizeof(type));    \
         if (new_data == NULL) {                                                 \
