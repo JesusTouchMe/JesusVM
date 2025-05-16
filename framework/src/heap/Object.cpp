@@ -236,6 +236,7 @@ namespace JesusVM {
             mColor = GRAY;
             mCyclicRefCount = mRefCount;
             forEachChild([](Object* object) {
+                object->mCyclicRefCount -= 1;
                 object->markGray();
             });
         } else if (mCyclicRefCount > 0) {
