@@ -16,6 +16,24 @@
 #undef VOID
 #undef BOOL
 
+#ifdef JESUSVM_USE_JUMP_THREADING
+
+#define Dispatch(o) goto *jumptable[o];
+#define Case(o) L_ ## o
+#define Default L_default
+#define Break return
+
+#define Insn(opcode) [Opcodes::opcode] = &&L_##opcode
+
+#else
+
+#define Dispatch(o) switch (o)
+#define Case(o) case Opcodes::o
+#define Default default
+#define Break break
+
+#endif
+
 namespace JesusVM {
     constexpr u8 ReadU8(const u8* data, size_t index) {
         return data[index];
@@ -73,455 +91,578 @@ namespace JesusVM {
             std::exit(1);
         }
 
+        //<editor-fold desc="jumptable">
+#ifdef JESUSVM_USE_JUMP_THREADING
+            static void* jumptable[] = {
+                Insn(NOP),
+                Insn(ADD),
+                Insn(SUB),
+                Insn(MUL),
+                Insn(DIV),
+                Insn(REM),
+                Insn(LADD),
+                Insn(LSUB),
+                Insn(LMUL),
+                Insn(LDIV),
+                Insn(LREM),
+                Insn(AND),
+                Insn(OR),
+                Insn(XOR),
+                Insn(SHL),
+                Insn(SHR),
+                Insn(LAND),
+                Insn(LOR),
+                Insn(LXOR),
+                Insn(LSHL),
+                Insn(LSHR),
+                Insn(NOT),
+                Insn(NEG),
+                Insn(LNOT),
+                Insn(LNEG),
+                Insn(POP),
+                Insn(POP2),
+                Insn(DUP),
+                Insn(DUP2),
+                Insn(SWAP),
+                Insn(SWAP2),
+                Insn(ILOAD),
+                Insn(ISTORE),
+                Insn(LLOAD),
+                Insn(LSTORE),
+                Insn(HLOAD),
+                Insn(HSTORE),
+                Insn(RLOAD),
+                Insn(RSTORE),
+                Insn(RLOAD_0),
+                Insn(BALOAD),
+                Insn(BASTORE),
+                Insn(CALOAD),
+                Insn(CASTORE),
+                Insn(SALOAD),
+                Insn(SASTORE),
+                Insn(IALOAD),
+                Insn(IASTORE),
+                Insn(LALOAD),
+                Insn(LASTORE),
+                Insn(HALOAD),
+                Insn(HASTORE),
+                Insn(RALOAD),
+                Insn(RASTORE),
+                Insn(ARRAYLENGTH),
+                Insn(NEW),
+                Insn(NEWARRAY),
+                Insn(RNEWARRAY),
+                Insn(ISINSTANCE),
+                Insn(GETFIELD),
+                Insn(SETFIELD),
+                Insn(GETGLOBAL),
+                Insn(SETGLOBAL),
+                Insn(JMP_ICMPEQ),
+                Insn(JMP_ICMPNE),
+                Insn(JMP_ICMPLT),
+                Insn(JMP_ICMPGT),
+                Insn(JMP_ICMPLE),
+                Insn(JMP_ICMPGE),
+                Insn(JMP_HCMPEQ),
+                Insn(JMP_HCMPNE),
+                Insn(JMP_RCMPEQ),
+                Insn(JMP_RCMPNE),
+                Insn(JMP_HNULL),
+                Insn(JMP_HNONNULL),
+                Insn(JMP_RNULL),
+                Insn(JMP_RNONNULL),
+                Insn(JMPEQ),
+                Insn(JMPNE),
+                Insn(JMPLT),
+                Insn(JMPGT),
+                Insn(JMPLE),
+                Insn(JMPGE),
+                Insn(JMP),
+                Insn(ICMP),
+                Insn(LCMP),
+                Insn(HCMP),
+                Insn(RCMP),
+                Insn(BPUSH),
+                Insn(SPUSH),
+                Insn(IPUSH),
+                Insn(LPUSH),
+                Insn(I2B),
+                Insn(I2S),
+                Insn(I2L),
+                Insn(L2I),
+                Insn(CONST_M1),
+                Insn(CONST_0),
+                Insn(CONST_1),
+                Insn(LCONST_0),
+                Insn(LCONST_1),
+                Insn(HCONST_NULL),
+                Insn(RCONST_NULL),
+                Insn(CALL),
+                Insn(RETURN),
+                Insn(IRETURN),
+                Insn(LRETURN),
+                Insn(HRETURN),
+                Insn(RRETURN),
+                Insn(LDC),
+                Insn(WIDE),
+                Insn(BREAKPOINT),
+                Insn(RESERVE1),
+                Insn(RESERVE2),
+
+        };
+#endif
+        //</editor-fold>
+
 		u8 instruction = mCode[mPC++];
 
-		switch (instruction) {
-            case Opcodes::NOP:
-                break;
+        // TODO: Static analysis to find bad opcodes and shit
+		Dispatch(instruction) {
+            Case(NOP):
+                Break;
 
-			case Opcodes::ADD:
+            Case(ADD):
 				addInsn();
-				break;
+				Break;
 
-			case Opcodes::SUB:
+            Case(SUB):
 				subInsn();
-				break;
+				Break;
 
-            case Opcodes::MUL:
+            Case(MUL):
                 mulInsn();
-                break;
+                Break;
 
-            case Opcodes::DIV:
+            Case(DIV):
                 divInsn();
-                break;
+                Break;
 
-            case Opcodes::REM:
+            Case(REM):
                 remInsn();
-                break;
+                Break;
 
-            case Opcodes::LADD:
+            Case(LADD):
                 laddInsn();
-                break;
+                Break;
 
-            case Opcodes::LSUB:
+            Case(LSUB):
                 lsubInsn();
-                break;
+                Break;
 
-            case Opcodes::LMUL:
+            Case(LMUL):
                 lmulInsn();
-                break;
+                Break;
 
-            case Opcodes::LDIV:
+            Case(LDIV):
                 ldivInsn();
-                break;
+                Break;
 
-            case Opcodes::LREM:
+            Case(LREM):
                 lremInsn();
-                break;
+                Break;
 
-            case Opcodes::AND:
+            Case(AND):
                 andInsn();
-                break;
+                Break;
 
-            case Opcodes::OR:
+            Case(OR):
                 orInsn();
-                break;
+                Break;
 
-            case Opcodes::XOR:
+            Case(XOR):
                 xorInsn();
-                break;
+                Break;
 
-            case Opcodes::SHL:
+            Case(SHL):
                 shlInsn();
-                break;
+                Break;
 
-            case Opcodes::SHR:
+            Case(SHR):
                 shrInsn();
-                break;
+                Break;
 
-            case Opcodes::LAND:
+            Case(LAND):
                 landInsn();
-                break;
+                Break;
 
-            case Opcodes::LOR:
+            Case(LOR):
                 lorInsn();
-                break;
+                Break;
 
-            case Opcodes::LXOR:
+            Case(LXOR):
                 lxorInsn();
-                break;
+                Break;
 
-            case Opcodes::LSHL:
+            Case(LSHL):
                 lshlInsn();
-                break;
+                Break;
 
-            case Opcodes::LSHR:
+            Case(LSHR):
                 lshrInsn();
-                break;
+                Break;
 
-            case Opcodes::NOT:
+            Case(NOT):
                 notInsn();
-                break;
+                Break;
 
-            case Opcodes::NEG:
+            Case(NEG):
                 negInsn();
-                break;
+                Break;
 
-            case Opcodes::LNOT:
+            Case(LNOT):
                 lnotInsn();
-                break;
+                Break;
 
-            case Opcodes::LNEG:
+            Case(LNEG):
                 lnegInsn();
-                break;
+                Break;
 
-            case Opcodes::POP:
-            case Opcodes::POP2:
+            Case(POP):
+            Case(POP2):
                 popInsn();
-                break;
+                Break;
 
-            case Opcodes::DUP:
+            Case(DUP):
                 dupInsn();
-                break;
+                Break;
 
-            case Opcodes::DUP2:
+            Case(DUP2):
                 dup2Insn();
-                break;
+                Break;
 
-            case Opcodes::SWAP:
+            Case(SWAP):
                 swapInsn();
-                break;
+                Break;
 
-            case Opcodes::SWAP2:
+            Case(SWAP2):
                 swap2Insn();
-                break;
+                Break;
 
-            case Opcodes::ILOAD:
+            Case(ILOAD):
                 iloadInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::ISTORE:
+            Case(ISTORE):
                 istoreInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::LLOAD:
+            Case(LLOAD):
                 lloadInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::LSTORE:
+            Case(LSTORE):
                 lstoreInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::HLOAD:
+            Case(HLOAD):
                 hloadInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::HSTORE:
+            Case(HSTORE):
                 hstoreInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::RLOAD:
+            Case(RLOAD):
                 rloadInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::RSTORE:
+            Case(RSTORE):
                 rstoreInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::RLOAD_0:
+            Case(RLOAD_0):
                 rload_0Insn();
-                break;
+                Break;
 
-            case Opcodes::BALOAD:
+            Case(BALOAD):
                 baloadInsn();
-                break;
+                Break;
 
-            case Opcodes::BASTORE:
+            Case(BASTORE):
                 bastoreInsn();
-                break;
+                Break;
 
-            case Opcodes::CALOAD:
+            Case(CALOAD):
                 caloadInsn();
-                break;
+                Break;
 
-            case Opcodes::CASTORE:
+            Case(CASTORE):
                 castoreInsn();
-                break;
+                Break;
 
-            case Opcodes::SALOAD:
+            Case(SALOAD):
                 saloadInsn();
-                break;
+                Break;
 
-            case Opcodes::SASTORE:
+            Case(SASTORE):
                 sastoreInsn();
-                break;
+                Break;
 
-            case Opcodes::IALOAD:
+            Case(IALOAD):
                 ialoadInsn();
-                break;
+                Break;
 
-            case Opcodes::IASTORE:
+            Case(IASTORE):
                 iastoreInsn();
-                break;
+                Break;
 
-            case Opcodes::LALOAD:
+            Case(LALOAD):
                 laloadInsn();
-                break;
+                Break;
 
-            case Opcodes::LASTORE:
+            Case(LASTORE):
                 lastoreInsn();
-                break;
+                Break;
 
-            case Opcodes::HALOAD:
+            Case(HALOAD):
                 haloadInsn();
-                break;
+                Break;
 
-            case Opcodes::HASTORE:
+            Case(HASTORE):
                 hastoreInsn();
-                break;
+                Break;
 
-            case Opcodes::RALOAD:
+            Case(RALOAD):
                 raloadInsn();
-                break;
+                Break;
 
-            case Opcodes::RASTORE:
+            Case(RASTORE):
                 rastoreInsn();
-                break;
+                Break;
 
-            case Opcodes::ARRAYLENGTH:
+            Case(ARRAYLENGTH):
                 arraylengthInsn();
-                break;
+                Break;
 
-            case Opcodes::NEW:
+            Case(NEW):
                 newInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::NEWARRAY:
+            Case(NEWARRAY):
                 newarrayInsn();
-                break;
+                Break;
 
-            case Opcodes::RNEWARRAY:
+            Case(RNEWARRAY):
                 rnewarrayInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::ISINSTANCE:
+            Case(ISINSTANCE):
                 isinstanceInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::GETFIELD:
+            Case(GETFIELD):
                 getfieldInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::SETFIELD:
+            Case(SETFIELD):
                 setfieldInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::GETGLOBAL:
+            Case(GETGLOBAL):
                 getglobalInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::SETGLOBAL:
+            Case(SETGLOBAL):
                 setglobalInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::JMP_ICMPEQ:
+            Case(JMP_ICMPEQ):
                 jmp_icmpeqInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_ICMPNE:
+            Case(JMP_ICMPNE):
                 jmp_icmpneInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_ICMPLT:
+            Case(JMP_ICMPLT):
                 jmp_icmpltInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_ICMPGT:
+            Case(JMP_ICMPGT):
                 jmp_icmpgtInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_ICMPLE:
+            Case(JMP_ICMPLE):
                 jmp_icmpleInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_ICMPGE:
+            Case(JMP_ICMPGE):
                 jmp_icmpgeInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_HCMPEQ:
+            Case(JMP_HCMPEQ):
                 jmp_hcmpeqInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_HCMPNE:
+            Case(JMP_HCMPNE):
                 jmp_hcmpneInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_RCMPEQ:
+            Case(JMP_RCMPEQ):
                 jmp_rcmpeqInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_RCMPNE:
+            Case(JMP_RCMPNE):
                 jmp_rcmpneInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_HNULL:
+            Case(JMP_HNULL):
                 jmp_hnullInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_HNONNULL:
+            Case(JMP_HNONNULL):
                 jmp_hnonnullInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_RNULL:
+            Case(JMP_RNULL):
                 jmp_rnullInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP_RNONNULL:
+            Case(JMP_RNONNULL):
                 jmp_rnonnullInsn();
-                break;
+                Break;
 
-            case Opcodes::JMPEQ:
+            Case(JMPEQ):
                 jmpeqInsn();
-                break;
+                Break;
 
-            case Opcodes::JMPNE:
+            Case(JMPNE):
                 jmpneInsn();
-                break;
+                Break;
 
-            case Opcodes::JMPLT:
+            Case(JMPLT):
                 jmpltInsn();
-                break;
+                Break;
 
-            case Opcodes::JMPGT:
+            Case(JMPGT):
                 jmpgtInsn();
-                break;
+                Break;
 
-            case Opcodes::JMPLE:
+            Case(JMPLE):
                 jmpleInsn();
-                break;
+                Break;
 
-            case Opcodes::JMPGE:
+            Case(JMPGE):
                 jmpgeInsn();
-                break;
+                Break;
 
-            case Opcodes::JMP:
+            Case(JMP):
                 jmpInsn();
-                break;
+                Break;
 
-            case Opcodes::ICMP:
+            Case(ICMP):
                 icmpInsn();
-                break;
+                Break;
 
-            case Opcodes::LCMP:
+            Case(LCMP):
                 lcmpInsn();
-                break;
+                Break;
 
-            case Opcodes::HCMP:
+            Case(HCMP):
                 hcmpInsn();
-                break;
+                Break;
 
-            case Opcodes::RCMP:
+            Case(RCMP):
                 rcmpInsn();
-                break;
+                Break;
 
-            case Opcodes::BPUSH:
+            Case(BPUSH):
                 bpushInsn();
-                break;
+                Break;
 
-            case Opcodes::SPUSH:
+            Case(SPUSH):
                 spushInsn();
-                break;
+                Break;
 
-            case Opcodes::IPUSH:
+            Case(IPUSH):
                 ipushInsn();
-                break;
+                Break;
 
-            case Opcodes::LPUSH:
+            Case(LPUSH):
                 lpushInsn();
-                break;
+                Break;
 
-            case Opcodes::I2B:
+            Case(I2B):
                 i2bInsn();
-                break;
+                Break;
 
-            case Opcodes::I2S:
+            Case(I2S):
                 i2sInsn();
-                break;
+                Break;
 
-            case Opcodes::I2L:
+            Case(I2L):
                 i2lInsn();
-                break;
+                Break;
 
-            case Opcodes::L2I:
+            Case(L2I):
                 l2iInsn();
-                break;
+                Break;
 
-            case Opcodes::CONST_M1:
+            Case(CONST_M1):
                 constInsn(-1);
-                break;
+                Break;
 
-            case Opcodes::CONST_0:
+            Case(CONST_0):
                 constInsn(0);
-                break;
+                Break;
 
-            case Opcodes::CONST_1:
+            Case(CONST_1):
                 constInsn(1);
-                break;
+                Break;
 
-            case Opcodes::LCONST_0:
+            Case(LCONST_0):
                 lconstInsn(0);
-                break;
+                Break;
 
-            case Opcodes::LCONST_1:
+            Case(LCONST_1):
                 lconstInsn(1);
-                break;
+                Break;
 
-            case Opcodes::HCONST_NULL:
+            Case(HCONST_NULL):
                 hconst_nullInsn();
-                break;
+                Break;
 
-            case Opcodes::RCONST_NULL:
+            Case(RCONST_NULL):
                 rconst_nullInsn();
-                break;
+                Break;
 
-            case Opcodes::CALL:
+            Case(CALL):
                 callInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::RETURN:
+            Case(RETURN):
                 returnInsn();
-                break;
+                Break;
 
-            case Opcodes::IRETURN:
+            Case(IRETURN):
                 ireturnInsn();
-                break;
+                Break;
 
-            case Opcodes::LRETURN:
+            Case(LRETURN):
                 lreturnInsn();
-                break;
+                Break;
 
-            case Opcodes::HRETURN:
+            Case(HRETURN):
                 hreturnInsn();
-                break;
+                Break;
 
-            case Opcodes::RRETURN:
+            Case(RRETURN):
                 rreturnInsn();
-                break;
+                Break;
 
-            case Opcodes::LDC:
+            Case(LDC):
                 ldcInsn(wide);
-                break;
+                Break;
 
-            case Opcodes::WIDE:
+            Case(WIDE):
                 executeInstruction(true);
-                break;
+                Break;
 
-            case Opcodes::BREAKPOINT:
-            case Opcodes::RESERVE1:
-            case Opcodes::RESERVE2:
-                break; // these are official instructions that are meant for debuggers or other special vm stuff
+            Case(BREAKPOINT):
+            Case(RESERVE1):
+            Case(RESERVE2):
+                Break; // these are official instructions that are meant for debuggers or other special vm stuff
 
-			default:
+			Default:
 				std::cout << "Unknown instruction: " << static_cast<i32>(instruction) << ". TODO: proper error stuff\n";
 				std::exit(1);
 		}
@@ -556,7 +697,7 @@ namespace JesusVM {
 	}
 	
 	u64 Executor::getLong() {
-		u64 value = ReadU8(&mCode[mPC], 0);
+		u64 value = ReadU64(&mCode[mPC], 0);
 		mPC += 8;
 
 		return value;
@@ -1220,25 +1361,25 @@ namespace JesusVM {
         switch (field->getType().getInternalType()) {
             case Type::REFERENCE:
                 mFrame->pushObject(object->getObject(field));
-                break;
+                Break;
             case Type::HANDLE:
                 mFrame->pushHandle(object->getHandle(field));
-                break;
+                Break;
             case Type::BYTE:
                 mFrame->push(object->getByte(field));
-                break;
+                Break;
             case Type::SHORT:
                 mFrame->push(object->getShort(field));
-                break;
+                Break;
             case Type::INT:
                 mFrame->push(object->getInt(field));
-                break;
+                Break;
             case Type::LONG:
                 mFrame->pushLong(object->getLong(field));
-                break;
+                Break;
             case Type::CHAR:
                 mFrame->push(object->getChar(field));
-                break;
+                Break;
             case Type::FLOAT:
                 std::cout << "float is NOT supported yet\n";
                 std::exit(1);
@@ -1247,7 +1388,7 @@ namespace JesusVM {
                 std::exit(1);
             case Type::BOOL:
                 mFrame->push(object->getBool(field));
-                break;
+                Break;
         }
     }
 
@@ -1276,7 +1417,7 @@ namespace JesusVM {
                 }
 
                 object->setObject(field, value);
-                break;
+                Break;
             }
             case Type::HANDLE: {
                 Handle value = mFrame->popHandle();
@@ -1291,7 +1432,7 @@ namespace JesusVM {
                 }
 
                 object->setHandle(field, value);
-                break;
+                Break;
             }
             case Type::BYTE: {
                 auto value = static_cast<Byte>(mFrame->pop());
@@ -1306,7 +1447,7 @@ namespace JesusVM {
                 }
 
                 object->setByte(field, value);
-                break;
+                Break;
             }
             case Type::SHORT: {
                 auto value = static_cast<Short>(mFrame->pop());
@@ -1321,7 +1462,7 @@ namespace JesusVM {
                 }
 
                 object->setShort(field, value);
-                break;
+                Break;
             }
             case Type::INT: {
                 Int value = mFrame->pop();
@@ -1336,7 +1477,7 @@ namespace JesusVM {
                 }
 
                 object->setInt(field, value);
-                break;
+                Break;
             }
             case Type::LONG: {
                 Long value = mFrame->popLong();
@@ -1351,7 +1492,7 @@ namespace JesusVM {
                 }
 
                 object->setLong(field, value);
-                break;
+                Break;
             }
             case Type::CHAR: {
                 auto value = static_cast<Char>(mFrame->pop());
@@ -1366,7 +1507,7 @@ namespace JesusVM {
                 }
 
                 object->setChar(field, value);
-                break;
+                Break;
             }
             case Type::FLOAT:
                 std::cout << "float is NOT supported yet\n";
@@ -1387,7 +1528,7 @@ namespace JesusVM {
                 }
 
                 object->setBool(field, value);
-                break;
+                Break;
             }
         }
     }
@@ -1406,34 +1547,34 @@ namespace JesusVM {
         switch (global->getType().getInternalType()) {
             case Type::REFERENCE:
                 mFrame->pushObject(reinterpret_cast<Object*>(global->getValue().R));
-                break;
+                Break;
             case Type::HANDLE:
                 mFrame->pushHandle(global->getValue().H);
-                break;
+                Break;
             case Type::BYTE:
                 mFrame->push(global->getValue().B);
-                break;
+                Break;
             case Type::SHORT:
                 mFrame->push(global->getValue().S);
-                break;
+                Break;
             case Type::INT:
                 mFrame->push(global->getValue().I);
-                break;
+                Break;
             case Type::LONG:
                 mFrame->pushLong(global->getValue().L);
-                break;
+                Break;
             case Type::CHAR:
                 mFrame->push(global->getValue().C);
-                break;
+                Break;
             case Type::FLOAT:
                 mFrame->push(global->getValue().F);
-                break;
+                Break;
             case Type::DOUBLE:
                 mFrame->push(global->getValue().D);
-                break;
+                Break;
             case Type::BOOL:
                 mFrame->push(global->getValue().Z);
-                break;
+                Break;
         }
     }
 
@@ -1454,61 +1595,61 @@ namespace JesusVM {
                 global->setValue(object);
 
                 if (object != nullptr) object->addReference();
-                break;
+                Break;
             }
             case Type::HANDLE: {
                 Handle handle = mFrame->popHandle();
                 global->setValue(handle);
 
-                break;
+                Break;
             }
             case Type::BYTE: {
                 auto value = static_cast<Byte>(mFrame->pop());
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::SHORT: {
                 auto value = static_cast<Short>(mFrame->pop());
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::INT: {
                 auto value = static_cast<Int>(mFrame->pop());
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::LONG: {
                 Long value = mFrame->popLong();
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::CHAR: {
                 auto value = static_cast<Char>(mFrame->pop());
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::FLOAT: {
                 auto value = static_cast<Float>(mFrame->pop());
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::DOUBLE: {
                 auto value = static_cast<Double >(mFrame->popLong());
                 global->setValue(value);
 
-                break;
+                Break;
             }
             case Type::BOOL: {
                 auto value = static_cast<Bool>(mFrame->pop());
                 global->setValue(value);
 
-                break;
+                Break;
             }
         }
     }
@@ -1855,7 +1996,7 @@ namespace JesusVM {
                         nativeArgs[i].R = obj;
                         obj->addReference(); // the native arg needs its own explicit reference here
 
-                        break;
+                        Break;
                     }
 
                     case Type::HANDLE: {
@@ -1864,7 +2005,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].H = value;
 
-                        break;
+                        Break;
                     }
 
                     case Type::BYTE: {
@@ -1873,7 +2014,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].B = static_cast<Byte>(value);
 
-                        break;
+                        Break;
                     }
 
                     case Type::SHORT: {
@@ -1882,7 +2023,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].S = static_cast<Short>(value);
 
-                        break;
+                        Break;
                     }
 
                     case Type::INT: {
@@ -1891,7 +2032,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].I = static_cast<Int>(value);
 
-                        break;
+                        Break;
                     }
 
                     case Type::LONG: {
@@ -1900,7 +2041,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].L = static_cast<Long>(value);
 
-                        break;
+                        Break;
                     }
 
                     case Type::CHAR: {
@@ -1909,7 +2050,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].C = static_cast<Char>(value);
 
-                        break;
+                        Break;
                     }
 
                     case Type::FLOAT:
@@ -1921,7 +2062,7 @@ namespace JesusVM {
                         i -= 1;
                         nativeArgs[i].Z = (value != 0);
 
-                        break;
+                        Break;
                     }
                 }
             }
@@ -1935,49 +2076,49 @@ namespace JesusVM {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<JObject>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->pushObject(reinterpret_cast<Object*>(value));
-                        break;
+                        Break;
                     }
 
                     case Type::HANDLE: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Handle>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->pushHandle(value);
-                        break;
+                        Break;
                     }
 
                     case Type::BYTE: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Byte>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
-                        break;
+                        Break;
                     }
 
                     case Type::SHORT: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Short>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
-                        break;
+                        Break;
                     }
 
                     case Type::INT: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Int>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
-                        break;
+                        Break;
                     }
 
                     case Type::LONG: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Long>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->pushLong(value);
-                        break;
+                        Break;
                     }
 
                     case Type::CHAR: {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Char>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
-                        break;
+                        Break;
                     }
 
                     case Type::FLOAT:
@@ -1988,7 +2129,7 @@ namespace JesusVM {
                         auto ptr = reinterpret_cast<NativeFunctionPtr<Bool>>(func->getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
                         mFrame->push(value);
-                        break;
+                        Break;
                 }
             }
 
@@ -2015,7 +2156,7 @@ namespace JesusVM {
                     i -= 2;
                     mFrame->setLocalObject(i, obj);
 
-                    break;
+                    Break;
                 }
 
                 case Type::HANDLE: {
@@ -2024,7 +2165,7 @@ namespace JesusVM {
                     i -= 2;
                     mFrame->setLocalHandle(i, value);
 
-                    break;
+                    Break;
                 }
 
                 case Type::BYTE: {
@@ -2033,7 +2174,7 @@ namespace JesusVM {
                     i -= 1;
                     mFrame->setLocalInt(i, static_cast<Byte>(value));
 
-                    break;
+                    Break;
                 }
 
                 case Type::SHORT: {
@@ -2042,7 +2183,7 @@ namespace JesusVM {
                     i -= 1;
                     mFrame->setLocalInt(i, static_cast<Short>(value));
 
-                    break;
+                    Break;
                 }
 
                 case Type::INT: {
@@ -2051,7 +2192,7 @@ namespace JesusVM {
                     i -= 1;
                     mFrame->setLocalInt(i, static_cast<Int>(value));
 
-                    break;
+                    Break;
                 }
 
                 case Type::LONG: {
@@ -2060,7 +2201,7 @@ namespace JesusVM {
                     i -= 2;
                     mFrame->setLocalLong(i, static_cast<Long>(value));
 
-                    break;
+                    Break;
                 }
 
                 case Type::CHAR: {
@@ -2069,7 +2210,7 @@ namespace JesusVM {
                     i -= 1;
                     mFrame->setLocalInt(i, static_cast<Char>(value));
 
-                    break;
+                    Break;
                 }
 
                 case Type::FLOAT:
@@ -2081,7 +2222,7 @@ namespace JesusVM {
                     i -= 1;
                     mFrame->setLocalInt(i, value != 0);
 
-                    break;
+                    Break;
                 }
             }
         }

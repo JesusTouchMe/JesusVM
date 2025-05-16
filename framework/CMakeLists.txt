@@ -71,6 +71,8 @@ elseif(UNIX AND NOT APPLE)
     target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC PLATFORM_LINUX)
 endif()
 
+#target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC JESUSVM_USE_JUMP_THREADING)
+
 target_compile_features(jesusvm-framework-jesusvm-framework PUBLIC cxx_std_20)
 target_link_libraries(jesusvm-framework-jesusvm-framework JesusVM::native)
 target_link_libraries(jesusvm-framework-jesusvm-framework JesusVM::moduleweb)
