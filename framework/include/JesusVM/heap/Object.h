@@ -123,6 +123,7 @@ namespace JesusVM {
         Color mColor = BLACK;
 
         void release();
+        void finalize();
         void free();
 
         // gc functions

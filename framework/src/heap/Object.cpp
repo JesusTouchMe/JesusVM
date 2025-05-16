@@ -185,9 +185,9 @@ namespace JesusVM {
         : mClass(clas) {}
 
     void Object::release() {
-        std::cout << "Finalizing instance of " << mClass->getName() << "\n";
+        std::cout << "Releasing instance of " << mClass->getName() << "\n";
 
-        // TODO: finalizer/destructor
+        finalize();
 
         forEachChild([](Object* object) {
             object->removeReferenceReal();
@@ -198,6 +198,10 @@ namespace JesusVM {
         if (!mBuffered) {
             free();
         }
+    }
+
+    void Object::finalize() {
+        std::cout << "Finalizing instance of " << mClass->getName() << "\n";
     }
 
     void Object::free() {

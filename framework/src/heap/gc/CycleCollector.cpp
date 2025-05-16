@@ -47,6 +47,10 @@ namespace JesusVM::GC {
             }
 
             for (Object* object : cycle) {
+                object->finalize();
+            }
+
+            for (Object* object : cycle) {
                 object->forEachChild([](Object* child) {
                     child->cyclicDecrement();
                 });
