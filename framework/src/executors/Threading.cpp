@@ -556,11 +556,10 @@ namespace JesusVM::Threading {
             double readiness = static_cast<double>(readyThreads) / totalThreads;
             if (readiness >= advanceThreshold) {
                 if (globalEpoch.compare_exchange_strong(currentGlobal, currentGlobal + 1, std::memory_order_acq_rel)) {
-                    //TODO: fix the daemon thread having weird behavior and not freeing stuff or running
-                    //GC::Daemon::WaitUntilReady();
+                    static std::mutex mutex;
+                    std::lock_guard<std::mutex> lock(mutex);
 
                     FlushGlobalEpoch(currentGlobal);
-                    //GC::Daemon::BeginCollection();
 
                     GC::ProcessCycles();
                 }

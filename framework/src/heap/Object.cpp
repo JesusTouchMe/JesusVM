@@ -190,7 +190,7 @@ namespace JesusVM {
         // TODO: finalizer/destructor
 
         forEachChild([](Object* object) {
-            object->removeReference();
+            object->removeReferenceReal();
         });
 
         mColor = BLACK;
@@ -244,13 +244,15 @@ namespace JesusVM {
     }
 
     void Object::scanRoot() {
-        if (mColor == GRAY && mCyclicRefCount <= 0) {
-            mColor = WHITE;
-            forEachChild([](Object* object) {
-                object->scanRoot();
-            });
-        } else if (mColor != WHITE) {
-            scanBlack();
+        if (mColor == GRAY) {
+            if (mCyclicRefCount == 0) {
+                mColor = WHITE;
+                forEachChild([](Object* object) {
+                    object->scanRoot();
+                });
+            } else {
+                mColor = BLACK;
+            }
         }
     }
 
