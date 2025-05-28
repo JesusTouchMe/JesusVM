@@ -576,6 +576,8 @@ namespace JesusVM::Linker {
 
         Class* clas = FindClass(lock, module, name);
         if (clas != nullptr) {
+            lock.unlock();
+
             link_check:
             if (clas->getState() == ClassState::LINKED) {
                 return clas;
