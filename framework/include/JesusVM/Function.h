@@ -5,7 +5,7 @@
 
 #include "JesusVM/JesusNative.h"
 
-#include "JesusVM/executors/Executor.h"
+#include "JesusVM/bytecode/Executor.h"
 
 #include "JesusVM/heap/Object.h"
 

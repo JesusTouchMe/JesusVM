@@ -3,7 +3,13 @@
 #ifndef JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_BUILDER_OPCODES_H
 #define JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_BUILDER_OPCODES_H 1
 
+#include "moduleweb/types.h"
+
+#ifdef __cplusplus
+typedef enum moduleweb_opcodes : u8 {
+#else
 typedef enum moduleweb_opcodes {
+#endif
     NOP,
 
     ADD,
@@ -155,10 +161,22 @@ typedef enum moduleweb_opcodes {
 
     WIDE,
 
-    // reserved opcodes. usually for debugger use
-    BREAKPOINT = 253,
-    RESERVE1 = 254,
-    RESERVE2 = 255,
+    EXT0 = 0xF0,
+    EXT1 = 0xF1,
+    EXT2 = 0xF2,
+    EXT3 = 0xF3,
+    EXT4 = 0xF4,
+    EXT5 = 0xF5,
+    EXT6 = 0xF6,
+    EXT7 = 0xF7,
+    EXT8 = 0xF8,
+    EXT9 = 0xF9,
+    EXTA = 0xFA,
+    EXTB = 0xFB,
+    EXTC = 0xFC,
+    EXTD = 0xFD,
+    EXTE = 0xFE,
+    EXTF = 0xFF,
 } moduleweb_opcodes;
 
 #endif // JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_BUILDER_OPCODES_H

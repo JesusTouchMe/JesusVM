@@ -1,7 +1,7 @@
 #ifndef JESUSVM_VTHREAD_H
 #define JESUSVM_VTHREAD_H
 
-#include "JesusVM/executors/Executor.h"
+#include "JesusVM/bytecode/Executor.h"
 
 #include <chrono>
 

@@ -126,14 +126,15 @@ namespace JesusVM {
 
     constexpr Type MakeTypeMap(size_t index) {
         switch (index) {
-            case T_BYTE:   return Type::BYTE;
-            case T_SHORT:  return Type::SHORT;
-            case T_INT:    return Type::INT;
-            case T_LONG:   return Type::LONG;
-            case T_CHAR:   return Type::CHAR;
-            case T_FLOAT:  return Type::FLOAT;
-            case T_DOUBLE: return Type::DOUBLE;
-            case T_BOOL:   return Type::BOOL;
+            case T_BYTE:    return Type::BYTE;
+            case T_SHORT:   return Type::SHORT;
+            case T_INT:     return Type::INT;
+            case T_LONG:    return Type::LONG;
+            case T_CHAR:    return Type::CHAR;
+            case T_FLOAT:   return Type::FLOAT;
+            case T_DOUBLE:  return Type::DOUBLE;
+            case T_BOOL:    return Type::BOOL;
+            case T_HANDLE:  return Type::HANDLE;
             default:
                std::cout << "Unreachable\n";
                std::exit(1);

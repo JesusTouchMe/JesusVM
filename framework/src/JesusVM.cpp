@@ -1,5 +1,7 @@
 #include "JesusVM/JesusVM.h"
 
+#include "JesusVM/bytecode/Executor.h"
+
 #include "JesusVM/runtime/std/Primitives.h"
 
 #include <algorithm>
@@ -8,7 +10,7 @@ namespace JesusVM {
     Context vmContext;
 
     void Init() {
-
+        Executor::InitDispatch();
     }
 
     VMContext GetContext() {

@@ -22,6 +22,7 @@ namespace JesusVM {
         T_FLOAT,
         T_DOUBLE,
         T_BOOL,
+        T_HANDLE,
 
         T_MAX,
     };

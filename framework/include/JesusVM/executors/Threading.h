@@ -6,7 +6,7 @@
 #include "types.h"
 
 #include "JesusVM/executors/Daemon.h"
-#include "JesusVM/executors/Executor.h"
+#include "JesusVM/bytecode/Executor.h"
 
 namespace JesusVM {
     class Function;

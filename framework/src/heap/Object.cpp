@@ -62,13 +62,6 @@ namespace JesusVM {
         }
     }
 
-    void Object::nullCheck() {
-        if (this == nullptr) {
-            std::cout << "error: null dereference\n";
-            std::exit(1);
-        }
-    }
-
     u8* Object::getFieldsBuffer() {
         return reinterpret_cast<u8*>(std::launder(this + 1));
     }
@@ -388,4 +381,12 @@ namespace JesusVM {
 
         return {&array->object, false};
     }
+
+    void NullCheck(Object* obj) {
+        if (obj == nullptr) {
+            std::cout << "error: null reference\n";
+            std::exit(1);
+        }
+    }
+
 }

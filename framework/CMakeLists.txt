@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.26)
 
-set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/constpool/ConstPool.cpp" "src/Function.cpp" "src/executors/Executor.cpp" "src/executors/VThread.cpp" "src/executors/Thread.cpp" "src/heap/Class.cpp" "src/platform/NativePlugin.cpp"
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
+set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/constpool/ConstPool.cpp" "src/Function.cpp" "src/bytecode/Executor.cpp" "src/executors/VThread.cpp" "src/executors/Thread.cpp" "src/heap/Class.cpp" "src/platform/NativePlugin.cpp"
         src/Stack.cpp
         src/heap/Object.cpp
         src/type/Type.cpp
@@ -23,9 +26,10 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
         src/util/Profiler.cpp
         src/GlobalVar.cpp
         src/constpool/ConstantGlobalVar.cpp
+    src/bytecode/handlers/BaseHandler.cpp
 )
 
-set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/executors/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
+set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/bytecode/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
         include/JesusVM/heap/Object.h
         include/JesusVM/heap/Field.h
     include/JesusVM/constpool/ConstantClass.h
@@ -49,6 +53,7 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
         include/JesusVM/util/Logging.h
         include/JesusVM/util/Profiler.h
         include/JesusVM/constpool/ConstantGlobalVar.h
+    include/JesusVM/bytecode/handlers/BaseHandler.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
@@ -61,7 +66,20 @@ target_include_directories(jesusvm-framework-jesusvm-framework
 		include
 )
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native") #TODO: figure out why lto errors
+if(supported)
+    if (${CMAKE_BUILD_TYPE} MATCHES Release|RelWithDebInfo)
+        message(STATUS "enabling lto")
+        set_target_properties(jesusvm-framework-jesusvm-framework PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif()
+else()
+    message(STATUS "lto not supported :( <${error}>")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(jesusvm-framework-jesusvm-framework PRIVATE -O3 -march=native)
+elseif(MSVC)
+    target_compile_options(jesusvm-framework-jesusvm-framework PRIVATE /O2 /arch:AVX2)
+endif()
 
 if(WIN32)
     target_compile_definitions(jesusvm-framework-jesusvm-framework PUBLIC PLATFORM_WINDOWS)

@@ -56,8 +56,6 @@ namespace JesusVM {
         void removeReference();
         void removeReferenceReal(); // this function will LITERALLY std::free(this); if refcount reaches 0. always treat it as such
 
-        void nullCheck();
-
         u8* getFieldsBuffer();
         const u8* getFieldsBuffer() const;
 
@@ -88,7 +86,7 @@ namespace JesusVM {
         void setObject(Field* field, Object* value);
 
         template <class Consumer>
-        inline void forEachChild(Consumer consumer) {
+        void forEachChild(Consumer consumer) {
             if (mClass->getKind() == ClassKind::ARRAY) {
                 if (mClass->mArrayBaseClass->getKind() != ClassKind::PRIMITIVE) {
                     auto elements = getArrayElements<Object*>();
@@ -291,6 +289,8 @@ namespace JesusVM {
     ObjectRef AllocArray(Class* clas, Int size);
     ObjectRef AllocArrayOf(Class* base, Int size);
     ObjectRef AllocPrimitiveArray(u8 typeId, Int size);
+
+    void NullCheck(Object* obj);
 }
 
 #endif //JESUSVM_OBJECT_H
