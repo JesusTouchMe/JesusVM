@@ -153,7 +153,7 @@ int moduleweb_instream_skip(moduleweb_instream* stream, u64 amount) {
             stream->buffer_index += amount;
             stream->file.pos += amount;
 
-            if (moduleweb_file_seek(&stream->file, stream->file.pos)) {
+            if (moduleweb_file_seek(&stream->file.file, stream->file.pos)) {
                 stream->moduleweb_errno = MODULEWEB_ERROR_FILE_READ_FAIL;
                 return 1;
             }
@@ -165,7 +165,7 @@ int moduleweb_instream_skip(moduleweb_instream* stream, u64 amount) {
         stream->file.pos += buffer_remaining;
         stream->buffer_index = stream->buffer_size;
 
-        if (moduleweb_file_seek(&stream->file, stream->file.pos + amount)) {
+        if (moduleweb_file_seek(&stream->file.file, stream->file.pos + amount)) {
             stream->moduleweb_errno = MODULEWEB_ERROR_FILE_SEEK_FAIL;
             return 1;
         }
