@@ -66,19 +66,18 @@ target_include_directories(jesusvm-framework-jesusvm-framework
 		include
 )
 
-if(supported)
-    if (${CMAKE_BUILD_TYPE} MATCHES Release|RelWithDebInfo)
+
+if (${CMAKE_BUILD_TYPE} MATCHES Release|RelWithDebInfo)
+    if(supported)
         message(STATUS "enabling lto")
         set_target_properties(jesusvm-framework-jesusvm-framework PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
     endif()
-else()
-    message(STATUS "lto not supported :( <${error}>")
-endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(jesusvm-framework-jesusvm-framework PRIVATE -O3 -march=native)
-elseif(MSVC)
-    target_compile_options(jesusvm-framework-jesusvm-framework PRIVATE /O2 /arch:AVX2)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(jesusvm-framework-jesusvm-framework PRIVATE -O3 -march=native)
+    elseif(MSVC)
+        target_compile_options(jesusvm-framework-jesusvm-framework PRIVATE /O2 /arch:AVX2)
+    endif()
 endif()
 
 if(WIN32)
