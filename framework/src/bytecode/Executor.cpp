@@ -53,6 +53,7 @@ namespace JesusVM {
 		: mFrame(mStack.getTopFrame())
         , mCode(nullptr)
         , mPC(0)
+        , mWide(false)
 		, mReturnDepth(0)
         , mReturnValue(0) {}
 
