@@ -3,13 +3,7 @@
 #ifndef JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_BUILDER_OPCODES_H
 #define JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_BUILDER_OPCODES_H 1
 
-#include "moduleweb/types.h"
-
-#ifdef __cplusplus
-typedef enum moduleweb_opcodes : u8 {
-#else
 typedef enum moduleweb_opcodes {
-#endif
     NOP,
 
     ADD,
