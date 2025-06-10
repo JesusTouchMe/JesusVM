@@ -185,37 +185,6 @@ namespace JesusVM {
         }
     }
 
-    bool ParseFunctionType(Function* function) {
-        std::string_view descriptor = function->mDescriptor;
-        u32 index = 0;
-
-        if (descriptor[index++] != '(')
-            return true;
-
-        while (index < descriptor.length() && descriptor[index] != ')') {
-            function->mArgumentTypes.emplace_back();
-            TypeInfo& arg = function->mArgumentTypes.back();
-
-            if (arg.parse(descriptor, &index)) {
-                return true;
-            }
-        }
-
-        if (index >= descriptor.length() || descriptor[index++] != ')') {
-            return true;
-        }
-
-        if (function->mReturnType.parse(descriptor, &index)) {
-            return true;
-        }
-
-        if (index < descriptor.length()) {
-            return true;
-        }
-
-        return index != descriptor.length();
-    }
-
     bool ParseFieldType(Field* field) {
         std::string_view descriptor = field->mDescriptor;
         u32 index = 0;

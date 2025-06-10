@@ -37,13 +37,18 @@ namespace JesusVM {
         }
 
         mFields.reserve(mInfo->field_count);
-
         for (u16 i = 0; i < mInfo->field_count; i++) {
             mFields.emplace_back(this, i);
         }
 
+        mMethods.reserve(mInfo->method_count);
+        for (u16 i = 0; i < mInfo->method_count; i++) {
+            mMethods.emplace_back(this, i);
+        }
+
         if (mSuperClass != nullptr) {
             mMemorySize = mSuperClass->mMemorySize;
+            mVTable = mSuperClass->mVTable;
         } else {
             mMemorySize = 0;
         }
@@ -55,6 +60,18 @@ namespace JesusVM {
         }
 
         orderFieldBuckets(buckets);
+
+        for (auto& method : mMethods) {
+            auto it = std::find_if(mVTable.begin(), mVTable.end(), [&method](Method* method1) {
+                return method1->getName() == method.getName() && method1->getDescriptor() == method.getDescriptor();
+            });
+
+            if (it != mVTable.end()) {
+                mVTable[std::distance(mVTable.begin(), it)] = &method;
+            } else {
+                mVTable.push_back(&method);
+            }
+        }
 
         mState = ClassState::LINKED;
 
@@ -153,6 +170,19 @@ namespace JesusVM {
 
     Field* Class::getField(ConstantName* name) {
         return getField(name->getName(), name->getDescriptor());
+    }
+
+    Method* Class::getMethod(std::string_view name, std::string_view descriptor) {
+        auto it = std::find_if(mMethods.begin(), mMethods.end(), [name, descriptor](Method& method) {
+            return method.getName() == name && method.getDescriptor() == descriptor;
+        });
+        if (it != mMethods.end()) return &*it;
+
+        return nullptr;
+    }
+
+    Method* Class::getMethod(ConstantName* name) {
+        return getMethod(name->getName(), name->getDescriptor());
     }
 
     bool Class::isPublic() const {

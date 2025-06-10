@@ -121,6 +121,7 @@ namespace JesusVM::BaseOpHandler {
         table[Opcodes::HCONST_NULL] = ops::HConstNull;
         table[Opcodes::RCONST_NULL] = ops::RConstNull;
         table[Opcodes::CALL] = ops::Call;
+        table[Opcodes::CALLVIRTUAL] = ops::CallVirtual;
         table[Opcodes::RETURN] = ops::Return;
         table[Opcodes::IRETURN] = ops::IReturn;
         table[Opcodes::LRETURN] = ops::LReturn;
@@ -1578,6 +1579,11 @@ namespace JesusVM::BaseOpHandler {
                     }
                 }
             }
+        }
+
+        void CallVirtual(Executor& executor) {
+            auto wide = executor.getWideGuard();
+            u32 index = wide ? executor.fetchInt() : executor.fetchShort();
         }
 
         void Return(Executor& executor) {

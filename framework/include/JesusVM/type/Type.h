@@ -100,8 +100,39 @@ namespace JesusVM {
 
     Type StringToType(std::string_view descriptor);
 
-    bool ParseFunctionType(Function* function);
     bool ParseFieldType(Field* field);
+
+    template<class T>
+    bool ParseFunctionType(T* function) {
+        std::string_view descriptor = function->mDescriptor;
+        u32 index = 0;
+
+        if (descriptor[index++] != '(')
+            return true;
+
+        while (index < descriptor.length() && descriptor[index] != ')') {
+            function->mArgumentTypes.emplace_back();
+            TypeInfo& arg = function->mArgumentTypes.back();
+
+            if (arg.parse(descriptor, &index)) {
+                return true;
+            }
+        }
+
+        if (index >= descriptor.length() || descriptor[index++] != ')') {
+            return true;
+        }
+
+        if (function->mReturnType.parse(descriptor, &index)) {
+            return true;
+        }
+
+        if (index < descriptor.length()) {
+            return true;
+        }
+
+        return index != descriptor.length();
+    }
 }
 
 #endif // JESUSVM_TYPE_H

@@ -6,12 +6,14 @@
 #include "JesusVM/executors/Thread.h"
 
 #include "JesusVM/heap/Field.h"
+#include "JesusVM/heap/Method.h"
 
 #include "moduleweb/class_info.h"
 
 #include <array>
 #include <memory>
 #include <string_view>
+
 
 namespace JesusVM {
     class ConstantName;
@@ -64,6 +66,9 @@ namespace JesusVM {
         Field* getField(std::string_view name, std::string_view descriptor);
         Field* getField(ConstantName* name);
 
+        Method* getMethod(std::string_view name, std::string_view descriptor);
+        Method* getMethod(ConstantName* name);
+
         bool isAssignableTo(Class* other) const;
 
         bool isPublic() const;
@@ -92,6 +97,9 @@ namespace JesusVM {
         u64 mMemorySize;
 
         std::vector<Field> mFields;
+        std::vector<Method> mMethods;
+
+        std::vector<Method*> mVTable;
 
         bool linkCommon();
 

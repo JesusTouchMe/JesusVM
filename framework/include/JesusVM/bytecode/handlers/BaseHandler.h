@@ -150,6 +150,7 @@ namespace JesusVM::BaseOpHandler {
         void RConstNull(Executor& executor);
 
         void Call(Executor& executor);
+        void CallVirtual(Executor& executor);
 
         void Return(Executor& executor);
         void IReturn(Executor& executor);
