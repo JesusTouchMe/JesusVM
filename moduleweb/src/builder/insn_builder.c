@@ -243,7 +243,22 @@ void moduleweb_insn_list_field(moduleweb_insn_list* list, u8 opcode, const char*
     }
 
     if (moduleweb_outstream_write_u16(&list->writer_stream,
-                                      moduleweb_module_builder_resolve_field_ref(list->module, owner_module, owner, name, descriptor))) {
+    moduleweb_module_builder_resolve_field_ref(list->module, owner_module, owner, name, descriptor))) {
+        return;
+    }
+}
+
+void moduleweb_insn_list_method(moduleweb_insn_list* list, u8 opcode, const char* owner_module, const char* owner, const char* name, const char* descriptor) {
+    if (moduleweb_insn_list_prepare(list, 3)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u8(&list->writer_stream, opcode)) {
+        return;
+    }
+
+    if (moduleweb_outstream_write_u16(&list->writer_stream,
+        moduleweb_module_builder_resolve_method_ref(list->module, owner_module, owner, name, descriptor))) {
         return;
     }
 }

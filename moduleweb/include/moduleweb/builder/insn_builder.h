@@ -69,6 +69,8 @@ void moduleweb_insn_list_class(moduleweb_insn_list* list, u8 opcode, const char*
 
 void moduleweb_insn_list_field(moduleweb_insn_list* list, u8 opcode, const char* owner_module, const char* owner, const char* name, const char* descriptor);
 
+void moduleweb_insn_list_method(moduleweb_insn_list* list, u8 opcode, const char* owner_module, const char* owner, const char* name, const char* descriptor);
+
 void moduleweb_insn_list_ldc_str(moduleweb_insn_list* list, const char* value);
 
 void moduleweb_insn_list_var(moduleweb_insn_list* list, u8 opcode, u16 local);

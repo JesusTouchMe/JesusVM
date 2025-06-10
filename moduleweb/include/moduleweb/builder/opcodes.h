@@ -144,6 +144,7 @@ typedef enum moduleweb_opcodes {
     RCONST_NULL,
 
     CALL,
+    CALLVIRTUAL,
 
     RETURN,
     IRETURN,

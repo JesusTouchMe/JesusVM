@@ -87,6 +87,18 @@ static int moduleweb_constant_field_ref_info_init(moduleweb_constant_field_ref_i
     return 0;
 }
 
+static int moduleweb_constant_method_ref_info_init(moduleweb_constant_method_ref_info* info, moduleweb_instream* stream) {
+    if (moduleweb_instream_read_u16(stream, &info->class_index)) {
+        return 1;
+    }
+
+    if (moduleweb_instream_read_u16(stream, &info->name_info_index)) {
+        return 1;
+    }
+
+    return 0;
+}
+
 static void moduleweb_constant_ascii_info_uninit(moduleweb_constant_ascii_info* info) {
     free(info->bytes);
 }
@@ -112,6 +124,10 @@ static void moduleweb_constant_class_ref_info_uninit(moduleweb_constant_class_re
 }
 
 static void moduleweb_constant_field_ref_info_uninit(moduleweb_constant_field_ref_info* info) {
+
+}
+
+static void moduleweb_constant_method_ref_info_uninit(moduleweb_constant_method_ref_info* info) {
 
 }
 
@@ -184,6 +200,18 @@ static int moduleweb_constant_class_ref_info_emit_bytes(moduleweb_constant_class
 }
 
 static int moduleweb_constant_field_ref_info_emit_bytes(moduleweb_constant_field_ref_info* info, moduleweb_outstream* stream) {
+    if (moduleweb_outstream_write_u16(stream, info->class_index)) {
+        return 1;
+    }
+
+    if (moduleweb_outstream_write_u16(stream, info->name_info_index)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+static int moduleweb_constant_method_ref_info_emit_bytes(moduleweb_constant_method_ref_info* info, moduleweb_outstream* stream) {
     if (moduleweb_outstream_write_u16(stream, info->class_index)) {
         return 1;
     }
@@ -305,6 +333,24 @@ static void moduleweb_constant_field_ref_info_print(moduleweb_constant_field_ref
     free(name);
 }
 
+static void moduleweb_constant_method_ref_info_print(moduleweb_constant_method_ref_info* info, const moduleweb_module_info* module, u32 indent) {
+    moduleweb_print("method ");
+
+    u64 name_length;
+    char* name = moduleweb_module_constant_to_string(module, info->class_index, &name_length);
+
+    fwrite(name, 1, name_length, stdout);
+    moduleweb_print("::");
+
+    free(name);
+
+    name = moduleweb_module_constant_to_string(module, info->name_info_index, &name_length);
+
+    fwrite(name, 1, name_length, stdout);
+
+    free(name);
+}
+
 int moduleweb_constant_info_init(moduleweb_constant_info* info, moduleweb_instream* stream) {
     if (moduleweb_instream_read_u8(stream, &info->type)) {
         return 1;
@@ -325,6 +371,8 @@ int moduleweb_constant_info_init(moduleweb_constant_info* info, moduleweb_instre
             return moduleweb_constant_class_ref_info_init(&info->class_ref_info, stream);
         case MODULEWEB_CONSTANT_TYPE_FIELD_REF:
             return moduleweb_constant_field_ref_info_init(&info->field_ref_info, stream);
+        case MODULEWEB_CONSTANT_TYPE_METHOD_REF:
+            return moduleweb_constant_method_ref_info_init(&info->method_ref_info, stream);
 
         default:
             stream->moduleweb_errno = MODULEWEB_ERROR_BAD_CONSTANT_TYPE;
@@ -354,6 +402,9 @@ void moduleweb_constant_info_uninit(moduleweb_constant_info* info) {
         case MODULEWEB_CONSTANT_TYPE_FIELD_REF:
             moduleweb_constant_field_ref_info_uninit(&info->field_ref_info);
             break;
+        case MODULEWEB_CONSTANT_TYPE_METHOD_REF:
+            moduleweb_constant_method_ref_info_uninit(&info->method_ref_info);
+            break;
 
         default:
             fprintf(stderr, "Bad constant type in initialized info struct.");
@@ -381,6 +432,8 @@ int moduleweb_constant_info_emit_bytes(moduleweb_constant_info* info, moduleweb_
             return moduleweb_constant_class_ref_info_emit_bytes(&info->class_ref_info, stream);
         case MODULEWEB_CONSTANT_TYPE_FIELD_REF:
             return moduleweb_constant_field_ref_info_emit_bytes(&info->field_ref_info, stream);
+        case MODULEWEB_CONSTANT_TYPE_METHOD_REF:
+            return moduleweb_constant_method_ref_info_emit_bytes(&info->method_ref_info, stream);
 
         default:
             return 1;
@@ -418,6 +471,9 @@ void moduleweb_constant_info_print(moduleweb_constant_info* info, const modulewe
             break;
         case MODULEWEB_CONSTANT_TYPE_FIELD_REF:
             moduleweb_constant_field_ref_info_print(&info->field_ref_info, module, indent);
+            break;
+        case MODULEWEB_CONSTANT_TYPE_METHOD_REF:
+            moduleweb_constant_method_ref_info_print(&info->method_ref_info, module, indent);
             break;
 
         default:

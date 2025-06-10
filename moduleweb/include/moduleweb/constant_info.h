@@ -15,6 +15,7 @@ enum moduleweb_constant_type_e {
     MODULEWEB_CONSTANT_TYPE_FUNCTION_REF,
     MODULEWEB_CONSTANT_TYPE_CLASS_REF,
     MODULEWEB_CONSTANT_TYPE_FIELD_REF,
+    MODULEWEB_CONSTANT_TYPE_METHOD_REF,
 
     MODULEWEB_CONSTANT_TYPE_AMOUNT // amount of unique constant pool types. used in builder for fast search
 };
@@ -55,6 +56,11 @@ typedef struct moduleweb_constant_field_ref_info {
     u16 name_info_index; // name
 } moduleweb_constant_field_ref_info;
 
+typedef struct moduleweb_constant_method_ref_info {
+    u16 class_index; // class_ref
+    u16 name_info_index; // name
+} moduleweb_constant_method_ref_info;
+
 typedef struct moduleweb_constant_info {
     moduleweb_constant_type type;
     union {
@@ -65,6 +71,7 @@ typedef struct moduleweb_constant_info {
         moduleweb_constant_function_ref_info function_ref_info;
         moduleweb_constant_class_ref_info class_ref_info;
         moduleweb_constant_field_ref_info field_ref_info;
+        moduleweb_constant_method_ref_info method_ref_info;
     };
 } moduleweb_constant_info;
 

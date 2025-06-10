@@ -331,6 +331,7 @@ DEFINE_CONSTANT_GETTER(moduleweb_constant_global_var_ref_info, MODULEWEB_CONSTAN
 DEFINE_CONSTANT_GETTER(moduleweb_constant_function_ref_info, MODULEWEB_CONSTANT_TYPE_FUNCTION_REF, function_ref)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_class_ref_info, MODULEWEB_CONSTANT_TYPE_CLASS_REF, class_ref)
 DEFINE_CONSTANT_GETTER(moduleweb_constant_field_ref_info, MODULEWEB_CONSTANT_TYPE_FIELD_REF, field_ref)
+DEFINE_CONSTANT_GETTER(moduleweb_constant_method_ref_info, MODULEWEB_CONSTANT_TYPE_METHOD_REF, method_ref)
 
 char* moduleweb_module_constant_to_string(const moduleweb_module_info* module, u16 i, u64* length) {
     if (moduleweb_module_constant_check_bounds(module, i)) {
@@ -455,6 +456,27 @@ char* moduleweb_module_constant_to_string(const moduleweb_module_info* module, u
 
             u64 name_length;
             char* name = moduleweb_module_constant_to_string(module, info->field_ref_info.name_info_index, &name_length);
+
+            char* res = malloc(class_length + 2 + name_length);
+
+            memcpy(res, class_name, class_length);
+            memcpy(res + class_length, "::", 2);
+            memcpy(res + class_length + 2, name, name_length);
+
+            free(class_name);
+            free(name);
+
+            *length = class_length + 2 + name_length;
+
+            return res;
+        }
+
+        case MODULEWEB_CONSTANT_TYPE_METHOD_REF: {
+            u64 class_length;
+            char* class_name = moduleweb_module_constant_to_string(module, info->method_ref_info.class_index, &class_length);
+
+            u64 name_length;
+            char* name = moduleweb_module_constant_to_string(module, info->method_ref_info.name_info_index, &name_length);
 
             char* res = malloc(class_length + 2 + name_length);
 
