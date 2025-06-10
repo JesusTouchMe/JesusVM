@@ -4,19 +4,19 @@
 
 int moduleweb_class_info_init(moduleweb_class_info* info, moduleweb_instream* stream) {
     if (moduleweb_instream_read_u16(stream, &info->name_index)) {
-        return 1;
+        goto error;
     }
 
     if (moduleweb_instream_read_u16(stream, &info->modifiers)) {
-        return 1;
+        goto error;
     }
 
     if (moduleweb_instream_read_u16(stream, &info->super_class)) {
-        return 1;
+        goto error;
     }
 
     if (moduleweb_attribute_array_init(&info->attributes, stream)) {
-        return 1;
+        goto error;
     }
 
     if (moduleweb_instream_read_u16(stream, &info->field_count)) {
@@ -26,25 +26,51 @@ int moduleweb_class_info_init(moduleweb_class_info* info, moduleweb_instream* st
 
     info->fields = malloc(sizeof(moduleweb_field_info) * info->field_count);
     if (info->fields == NULL) {
-        moduleweb_attribute_array_uninit(&info->attributes);
-        return 1;
+        goto error_attributes;
     }
 
     for (u16 i = 0; i < info->field_count; i++) {
         if (moduleweb_field_info_init(&info->fields[i], stream)) {
-            moduleweb_attribute_array_uninit(&info->attributes);
+            info->field_count = i;
+            goto error_fields;
+        }
+    }
 
-            for (u16 j = 0; j < i; j++) {
-                moduleweb_field_info_uninit(&info->fields[j]);
-            }
+    if (moduleweb_instream_read_u16(stream, &info->method_count)) {
+        goto error_fields;
+    }
 
-            free(info->fields);
+    info->methods = malloc(sizeof(moduleweb_method_info) * info->method_count);
+    if (info->methods == NULL) {
+        goto error_fields;
+    }
 
-            return 1;
+    for (u16 i = 0; i < info->method_count; i++) {
+        if (moduleweb_method_info_init(&info->methods[i], stream)) {
+            info->method_count = i;
+            goto error_methods;
         }
     }
 
     return 0;
+
+    error_methods:
+    for (u16 i = 0; i < info->method_count; i++) {
+        moduleweb_method_info_uninit(&info->methods[i]);
+    }
+    free(info->methods);
+
+    error_fields:
+    for (u16 i = 0; i < info->field_count; i++) {
+        moduleweb_field_info_uninit(&info->fields[i]);
+    }
+    free(info->fields);
+
+    error_attributes:
+    moduleweb_attribute_array_uninit(&info->attributes);
+
+    error:
+    return 1;
 }
 
 void moduleweb_class_info_uninit(moduleweb_class_info* info) {
@@ -55,6 +81,12 @@ void moduleweb_class_info_uninit(moduleweb_class_info* info) {
     }
 
     free(info->fields);
+
+    for (u16 i = 0; i < info->method_count; i++) {
+        moduleweb_method_info_uninit(&info->methods[i]);
+    }
+
+    free(info->methods);
 }
 
 int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstream* stream) {
@@ -80,6 +112,12 @@ int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstr
 
     for (u16 i = 0; i < info->field_count; i++) {
         if (moduleweb_field_info_emit_bytes(&info->fields[i], stream)) {
+            return 1;
+        }
+    }
+
+    for (u16 i = 0; i < info->method_count; i++) {
+        if (moduleweb_method_info_emit_bytes(&info->methods[i], stream)) {
             return 1;
         }
     }
@@ -119,6 +157,13 @@ void moduleweb_class_info_print(moduleweb_class_info* info, const moduleweb_modu
 
     for (u16 i = 0; i < info->field_count; i++) {
         moduleweb_field_info_print(&info->fields[i], module, element_indent);
+        moduleweb_print("\n");
+    }
+
+    moduleweb_print("\n");
+
+    for (u16 i = 0; i < info->method_count; i++) {
+        moduleweb_method_info_print(&info->methods[i], module, element_indent);
         moduleweb_print("\n");
     }
 

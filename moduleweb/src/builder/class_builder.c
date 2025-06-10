@@ -90,6 +90,11 @@ void moduleweb_class_builder_add_field(moduleweb_class_builder* builder, PARAM_M
     memset(field, 0, sizeof(moduleweb_field));
 }
 
+void moduleweb_class_builder_add_method(moduleweb_class_builder* builder, PARAM_MOVED moduleweb_method* method) {
+    VECTOR_ADD(builder->method_count, builder->method_capacity, builder->methods, *method, moduleweb_method);
+    memset(method, 0, sizeof(moduleweb_method));
+}
+
 moduleweb_class* moduleweb_class_builder_build(moduleweb_class_builder* builder) {
     static moduleweb_class result; // TODO: better solution
 
@@ -100,6 +105,8 @@ moduleweb_class* moduleweb_class_builder_build(moduleweb_class_builder* builder)
     MOVE_S(result.attributes, builder->attributes, moduleweb_attribute_vector);
     MOVE(result.field_count, builder->field_count);
     MOVE(result.fields, builder->fields);
+    MOVE(result.method_count, builder->method_count);
+    MOVE(result.methods, builder->methods);
 
     return &result;
 }

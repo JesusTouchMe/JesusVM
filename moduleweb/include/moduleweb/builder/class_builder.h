@@ -7,6 +7,7 @@
 
 #include "moduleweb/builder/attribute_builder.h"
 #include "moduleweb/builder/field_builder.h"
+#include "moduleweb/builder/method_builder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +26,9 @@ typedef struct moduleweb_class {
 
     u16 field_count;
     OWNED_OBJECT moduleweb_field* fields;
+
+    u16 method_count;
+    OWNED_OBJECT moduleweb_method* methods;
 } moduleweb_class;
 
 typedef struct moduleweb_class_builder {
@@ -41,6 +45,10 @@ typedef struct moduleweb_class_builder {
     u16 field_count;
     u16 field_capacity;
     OWNED_OBJECT moduleweb_field* fields;
+
+    u16 method_count;
+    u16 method_capacity;
+    OWNED_OBJECT moduleweb_method* methods;
 } moduleweb_class_builder;
 
 void moduleweb_class_delete(moduleweb_class* clas);
@@ -59,6 +67,8 @@ void moduleweb_class_builder_super_class(moduleweb_class_builder* builder, PARAM
 void moduleweb_class_builder_add_attribute(moduleweb_class_builder* builder, PARAM_MOVED moduleweb_attribute* attribute);
 
 void moduleweb_class_builder_add_field(moduleweb_class_builder* builder, PARAM_MOVED moduleweb_field* field);
+
+void moduleweb_class_builder_add_method(moduleweb_class_builder* builder, PARAM_MOVED moduleweb_method* method);
 
 moduleweb_class* moduleweb_class_builder_build(moduleweb_class_builder* builder);
 

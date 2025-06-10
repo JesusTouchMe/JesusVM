@@ -4,6 +4,7 @@
 #define JESUSVM_MODULEWEB_INCLUDE_MODULEWEB_CLASS_INFO_H 1
 
 #include "moduleweb/field_info.h"
+#include "moduleweb/method_info.h"
 
 #define MODULEWEB_CLASS_MODIFIER_PUBLIC     0x0001
 #define MODULEWEB_CLASS_MODIFIER_PRIVATE    0x0002
@@ -24,6 +25,8 @@ typedef struct moduleweb_class_info {
 
     u16 field_count;
     OWNED_OBJECT moduleweb_field_info* fields; // [field_count]
+    u16 method_count;
+    OWNED_OBJECT moduleweb_method_info* methods; // [method_count]
 } moduleweb_class_info;
 
 int moduleweb_class_info_init(moduleweb_class_info* info, PARAM_MUTATED moduleweb_instream* stream);

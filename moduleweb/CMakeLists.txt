@@ -21,6 +21,8 @@ set(SOURCES "src/stream.c"
     src/stackmap_attribute.c
     src/global_var_info.c
     src/builder/global_var_builder.c
+        src/method_info.c
+        src/builder/method_builder.c
 )
 
 set(HEADERS "include/moduleweb/stream.h"
@@ -46,6 +48,8 @@ set(HEADERS "include/moduleweb/stream.h"
         include/moduleweb/stackmap_attribute.h
     include/moduleweb/global_var_info.h
     include/moduleweb/builder/global_var_builder.h
+        include/moduleweb/method_info.h
+        include/moduleweb/builder/method_builder.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
