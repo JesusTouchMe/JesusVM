@@ -116,6 +116,10 @@ int moduleweb_class_info_emit_bytes(moduleweb_class_info* info, moduleweb_outstr
         }
     }
 
+    if (moduleweb_outstream_write_u16(stream, info->method_count)) {
+        return 1;
+    }
+
     for (u16 i = 0; i < info->method_count; i++) {
         if (moduleweb_method_info_emit_bytes(&info->methods[i], stream)) {
             return 1;
