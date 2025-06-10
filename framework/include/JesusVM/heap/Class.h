@@ -69,6 +69,8 @@ namespace JesusVM {
         Method* getMethod(std::string_view name, std::string_view descriptor);
         Method* getMethod(ConstantName* name);
 
+        Function* dispatchMethod(Method* method) const;
+
         bool isAssignableTo(Class* other) const;
 
         bool isPublic() const;

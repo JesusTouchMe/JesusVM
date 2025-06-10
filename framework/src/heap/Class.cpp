@@ -67,9 +67,12 @@ namespace JesusVM {
             });
 
             if (it != mVTable.end()) {
-                mVTable[std::distance(mVTable.begin(), it)] = &method;
+                auto index = std::distance(mVTable.begin(), it);
+                mVTable[index] = &method;
+                method.mVTableIndex = index;
             } else {
                 mVTable.push_back(&method);
+                method.mVTableIndex = mVTable.size() - 1;
             }
         }
 
@@ -183,6 +186,10 @@ namespace JesusVM {
 
     Method* Class::getMethod(ConstantName* name) {
         return getMethod(name->getName(), name->getDescriptor());
+    }
+
+    Function* Class::dispatchMethod(Method* method) const {
+        return mVTable[method->mVTableIndex]->mFunction;
     }
 
     bool Class::isPublic() const {
