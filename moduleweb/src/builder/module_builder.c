@@ -387,7 +387,7 @@ void moduleweb_module_builder_build(moduleweb_module_builder* builder, PARAM_MUT
 
             dest_method->modifiers = src_method->modifiers;
             dest_method->name_index = moduleweb_module_builder_resolve_name(builder, src_method->name, src_method->descriptor);
-            dest_method->function_index = moduleweb_module_builder_resolve_function_ref(builder, info->name, src_method->function->name, src_method->function->descriptor);
+            dest_method->function_index = moduleweb_module_builder_resolve_function_ref(builder, src_method->function_module, src_method->function_name, src_method->function_descriptor);
             moduleweb_module_builder_transfer_attributes(builder, &src_method->attributes, &dest_method->attributes);
 
             moduleweb_method_delete(src_method);

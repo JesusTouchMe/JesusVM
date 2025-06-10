@@ -16,7 +16,9 @@ typedef struct moduleweb_method {
     OWNED_OBJECT char* name;
     OWNED_OBJECT char* descriptor;
 
-    UNOWNED_OBJECT moduleweb_function* function;
+    OWNED_OBJECT char* function_module;
+    OWNED_OBJECT char* function_name;
+    OWNED_OBJECT char* function_descriptor;
 
     moduleweb_attribute_vector attributes;
 } moduleweb_method;
@@ -28,7 +30,9 @@ typedef struct moduleweb_method_builder {
     OWNED_OBJECT char* name;
     OWNED_OBJECT char* descriptor;
 
-   UNOWNED_OBJECT moduleweb_function* function;
+    OWNED_OBJECT char* function_module;
+    OWNED_OBJECT char* function_name;
+    OWNED_OBJECT char* function_descriptor;
 
     moduleweb_attribute_vector attributes;
 } moduleweb_method_builder;
@@ -44,7 +48,7 @@ void moduleweb_method_builder_modifiers(moduleweb_method_builder* builder, u16 m
 
 void moduleweb_method_builder_descriptor(moduleweb_method_builder* builder, PARAM_COPIED const char* name, PARAM_COPIED const char* descriptor);
 
-void moduleweb_method_builder_function(moduleweb_method_builder* builder, moduleweb_function* function);
+void moduleweb_method_builder_function(moduleweb_method_builder* builder, PARAM_COPIED const char* module_name, PARAM_COPIED const char* name, PARAM_COPIED const char* descriptor);
 
 void moduleweb_method_builder_add_attribute(moduleweb_method_builder* builder, moduleweb_attribute* attribute);
 
