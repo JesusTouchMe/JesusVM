@@ -22,6 +22,7 @@ namespace JesusVM {
             FUNCTION,
             CLASS,
             FIELD,
+            METHOD,
         };
 
         static std::unique_ptr<Constant> Create(ConstPool& container, moduleweb_constant_info* info);
