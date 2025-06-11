@@ -6,6 +6,9 @@
 
 #include "moduleweb/module_info.h"
 
+#undef BOOL
+#undef VOID
+
 namespace JesusVM {
 	Function::Function(Module* module, moduleweb_function_info* info)
 		: mInfo(info)
