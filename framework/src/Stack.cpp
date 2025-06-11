@@ -137,6 +137,16 @@ namespace JesusVM {
         }
     }
 
+    Object* Stack::Frame::extractThis(Method* method) { // TODO: safety
+        u32 baseIndex = mStackTop - method->getFunction()->getNeededLocalsForArgs();
+
+        u32 high = mStack[baseIndex];
+        u32 low = mStack[baseIndex + 1];
+        u64 value = (static_cast<u64>(high) << 32) | (static_cast<u64>(low) & 0xFFFFFFFF);
+
+        return reinterpret_cast<Object*>(value);
+    }
+
     void Stack::Frame::dup() {
         if (mStackTop < 1) {
             std::cout << "stackunderflow. todo: proper errors\n";

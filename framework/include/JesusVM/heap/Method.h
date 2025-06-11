@@ -27,6 +27,7 @@ namespace JesusVM {
         std::string_view getName() const;
         std::string_view getDescriptor() const;
         u32 getIndex() const;
+        Function* getFunction() const;
 
     private:
         Class* mClass;

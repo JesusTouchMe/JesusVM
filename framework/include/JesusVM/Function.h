@@ -63,6 +63,10 @@ namespace JesusVM {
         bool isAsync() const;
         bool isNative() const;
 
+        // Calls function on the given executor by popping args and allat
+        // This is technically closer to a "enter"
+        void call(Executor& executor);
+
         template<typename R, typename... Args>
         R invoke(Args... args);
 

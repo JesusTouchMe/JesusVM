@@ -56,4 +56,8 @@ namespace JesusVM {
     u32 Method::getIndex() const {
         return mIndex;
     }
+
+    Function* Method::getFunction() const {
+        return mFunction;
+    }
 }

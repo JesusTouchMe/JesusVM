@@ -5,6 +5,8 @@
 
 #include "JesusVM/JesusNative.h"
 
+#include "JesusVM/heap/Method.h"
+
 #include "moduleweb/stackmap_attribute.h"
 
 #include <concepts>
@@ -40,6 +42,8 @@ namespace JesusVM {
             Object* popObjectWeak();
 
             void popValue();
+
+            Object* extractThis(Method* method);
 
             void dup();
             void dup2();
