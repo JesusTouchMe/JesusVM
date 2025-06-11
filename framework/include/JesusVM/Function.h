@@ -5,8 +5,6 @@
 
 #include "JesusVM/JesusNative.h"
 
-#include "JesusVM/bytecode/Executor.h"
-
 #include "JesusVM/heap/Object.h"
 
 #include "JesusVM/type/Type.h"
@@ -21,6 +19,7 @@ namespace JesusVM {
 	template <typename ReturnType>
 	using NativeFunctionPtr = ReturnType(JESUSVM_CALL *)(VMContext, JValue*);
 
+    class Executor;
     class Function;
 	class Module;
 
@@ -34,7 +33,7 @@ namespace JesusVM {
 
 	class Function {
 	friend class Module;
-    friend bool ParseFunctionType(Function*);
+    friend bool ParseFunctionType<Function>(Function*);
     friend void Linker::LinkNativeFunction(Function*);
     friend void Preload::PreloadSystemModules();
 	public:

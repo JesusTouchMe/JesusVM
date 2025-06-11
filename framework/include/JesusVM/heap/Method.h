@@ -5,18 +5,17 @@
 
 #include "JesusVM/type/Type.h"
 
-#include "JesusVM/Function.h"
-
 #include "moduleweb/method_info.h"
 
 #include <string_view>
 
 namespace JesusVM {
     class Class;
+    class Function;
 
     class Method {
     friend class Class;
-    friend bool ParseFunctionType(Method*);
+    friend bool ParseFunctionType<Method>(Method*);
     public:
         Method(Class* clas, u32 index);
 

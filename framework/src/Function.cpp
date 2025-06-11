@@ -1,6 +1,8 @@
 #include "JesusVM/Function.h"
 #include "JesusVM/JesusVM.h"
 
+#include "JesusVM/bytecode/Executor.h"
+
 #include "JesusVM/constpool/ConstantAscii.h"
 #include "JesusVM/constpool/ConstantName.h"
 
