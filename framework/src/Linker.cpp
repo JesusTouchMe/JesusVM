@@ -251,7 +251,7 @@ namespace JesusVM::Linker {
         }
 
         if (Preload::finished) { // only error if preloading has failed since preload could override the function entry
-            std::cout << "error: unable to link native function " << function->getName() << function->getDescriptor() << "\n";
+            std::cout << "error: unable to link native function " << function->getName() << function->getDescriptor() << " (" << name << ")\n";
             std::exit(1);
         }
     }
