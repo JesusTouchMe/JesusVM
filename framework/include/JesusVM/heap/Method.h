@@ -23,10 +23,17 @@ namespace JesusVM {
         moduleweb_method_info* getInfo() const;
         const TypeInfo& getReturnType() const;
         const std::vector<TypeInfo>& getArgumentTypes() const;
+        u16 getModifiers() const;
         std::string_view getName() const;
         std::string_view getDescriptor() const;
         u32 getIndex() const;
         Function* getFunction() const;
+
+        bool isPublic() const;
+        bool isPrivate() const;
+        bool isProtected() const;
+        bool isAbstract() const;
+        bool isFinal() const;
 
     private:
         Class* mClass;

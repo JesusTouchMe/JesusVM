@@ -5,6 +5,10 @@
 namespace JesusVM::rt::std::Primitives {
     Module* self;
 
+    namespace Object {
+        Class* self;
+    }
+
     namespace String {
         Class* self;
 

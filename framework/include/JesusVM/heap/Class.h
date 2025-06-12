@@ -103,7 +103,7 @@ namespace JesusVM {
 
         std::vector<Method*> mVTable;
 
-        bool linkCommon();
+        void linkCommon();
 
         void orderFieldBuckets(std::array<FieldBucket, static_cast<u64>(Type::TYPE_COUNT)>& buckets);
         static void orderFieldBucket(FieldBucket* bucket, u32 size, u64& offset);

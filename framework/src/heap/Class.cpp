@@ -5,6 +5,8 @@
 
 #include "JesusVM/heap/Class.h"
 
+#include "JesusVM/runtime/std/Primitives.h"
+
 #include <algorithm>
 
 namespace JesusVM {
@@ -21,9 +23,7 @@ namespace JesusVM {
     bool Class::link() {
         mState = ClassState::LINKING;
 
-        if (linkCommon()) {
-            return true;
-        }
+        linkCommon();
 
         mKind = ClassKind::REGULAR;
         mModifiers = mInfo->modifiers;
@@ -84,9 +84,7 @@ namespace JesusVM {
     bool Class::linkPrimitive(std::string_view name) {
         mState = ClassState::LINKING;
 
-        if (linkCommon()) {
-            return true;
-        }
+        linkCommon();
 
         mInfo = nullptr;
         mKind = ClassKind::PRIMITIVE;
@@ -103,9 +101,7 @@ namespace JesusVM {
     bool Class::linkArray(Class* base, std::string_view name) {
         mState = ClassState::LINKING;
 
-        if (linkCommon()) {
-            return true;
-        }
+        linkCommon();
 
         mInfo = nullptr;
         mKind = ClassKind::ARRAY;
@@ -114,7 +110,9 @@ namespace JesusVM {
         mName = name;
         mArrayBaseClass = base;
 
-        mSuperClass = nullptr;
+        mSuperClass = rt::std::Primitives::Object::self;
+        mVTable = rt::std::Primitives::Object::self->mVTable;
+
         mMemorySize = 0;
 
         mState = ClassState::LINKED;
@@ -208,10 +206,8 @@ namespace JesusVM {
         return mModifiers & MODULEWEB_CLASS_MODIFIER_FINAL;
     }
 
-    bool Class::linkCommon() {
+    void Class::linkCommon() {
         mLoadingThread = Threading::CurrentThread::GetHandle();
-
-        return false; // TODO: reflection support here in future
     }
 
     void Class::orderFieldBuckets(std::array<FieldBucket, static_cast<u64>(Type::TYPE_COUNT)>& buckets) {

@@ -23,6 +23,11 @@ namespace JesusVM {
             std::exit(1);
         }
 
+        if (isAbstract()) {
+            initAbstract();
+            return;
+        }
+
         auto func = clas->getModule()->getConstPool().get<ConstantFunc>(info->function_index);
         mFunction = func->getFunction();
 
@@ -45,6 +50,10 @@ namespace JesusVM {
         return mArgumentTypes;
     }
 
+    u16 Method::getModifiers() const {
+        return getInfo()->modifiers;
+    }
+
     std::string_view Method::getName() const {
         return mName;
     }
@@ -59,5 +68,25 @@ namespace JesusVM {
 
     Function* Method::getFunction() const {
         return mFunction;
+    }
+
+    bool Method::isPublic() const {
+        return getModifiers() & MODULEWEB_METHOD_MODIFIER_PUBLIC;
+    }
+
+    bool Method::isPrivate() const {
+        return getModifiers() & MODULEWEB_METHOD_MODIFIER_PRIVATE;
+    }
+
+    bool Method::isProtected() const {
+        return getModifiers() & MODULEWEB_METHOD_MODIFIER_PROTECTED;
+    }
+
+    bool Method::isAbstract() const {
+        return getModifiers() & MODULEWEB_METHOD_MODIFIER_ABSTRACT;
+    }
+
+    bool Method::isFinal() const {
+        return getModifiers() & MODULEWEB_METHOD_MODIFIER_FINAL;
     }
 }

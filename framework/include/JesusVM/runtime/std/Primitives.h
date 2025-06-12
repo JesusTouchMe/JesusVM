@@ -8,6 +8,10 @@
 namespace JesusVM::rt::std::Primitives {
     extern Module* self;
 
+    namespace Object {
+        extern Class* self;
+    }
+
     namespace String {
         extern Class* self;
 
