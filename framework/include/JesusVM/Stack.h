@@ -62,6 +62,9 @@ namespace JesusVM {
             void setLocalHandle(u16 index, Handle value);
             void setLocalObject(u16 index, Object* object);
 
+            void incLocalInt(u16 index, i16 increment);
+            void incLocalLong(u16 index, i16 increment);
+
             ConstPool& getConstPool() const;
             Module* getCurrentModule() const;
             Function* getCurrentFunction() const;

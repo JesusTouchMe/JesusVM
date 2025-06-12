@@ -309,6 +309,48 @@ void moduleweb_insn_list_var(moduleweb_insn_list* list, u8 opcode, u16 local) {
     }
 }
 
+void moduleweb_insn_list_inc(moduleweb_insn_list* list, u8 opcode, u16 local, i16 increment) {
+    bool wide = false;
+    if (local > 0xFF || (increment < -128 || increment > 127)) {
+        wide = true;
+        if (moduleweb_insn_list_prepare(list, 5)) {
+            return;
+        }
+    } else {
+        if (moduleweb_insn_list_prepare(list, 3)) {
+            return;
+        }
+    }
+
+    if (wide) {
+        if (moduleweb_outstream_write_u8(&list->writer_stream, WIDE)) {
+            return;
+        }
+    }
+
+    if (moduleweb_outstream_write_u8(&list->writer_stream, opcode)) {
+        return;
+    }
+
+    if (wide) {
+        if (moduleweb_outstream_write_u16(&list->writer_stream, local)) {
+            return;
+        }
+
+        if (moduleweb_outstream_write_u16(&list->writer_stream, increment)) {
+            return;
+        }
+    } else {
+        if (moduleweb_outstream_write_u8(&list->writer_stream, local)) {
+            return;
+        }
+
+        if (moduleweb_outstream_write_u8(&list->writer_stream, increment)) {
+            return;
+        }
+    }
+}
+
 void moduleweb_insn_list_byte(moduleweb_insn_list* list, u8 opcode, i8 operand) {
     if (moduleweb_insn_list_prepare(list, 2)) {
         return;

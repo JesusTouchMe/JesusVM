@@ -306,6 +306,16 @@ namespace JesusVM {
         if (object != nullptr) object->addReference();
     }
 
+    void Stack::Frame::incLocalInt(u16 index, i16 increment) {
+        i32 current = getLocal1(index);
+        setLocal1(index, current + increment);
+    }
+
+    void Stack::Frame::incLocalLong(u16 index, i16 increment) {
+        i64 current = getLocal2(index);
+        setLocal2(index, current + increment);
+    }
+
     ConstPool& Stack::Frame::getConstPool() const {
         return mConstPool;
     }

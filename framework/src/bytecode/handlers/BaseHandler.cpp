@@ -49,6 +49,8 @@ namespace JesusVM::BaseOpHandler {
         table[Opcodes::DUP2] = ops::Dup2;
         table[Opcodes::SWAP] = ops::Swap;
         table[Opcodes::SWAP2] = ops::Swap2;
+        table[Opcodes::INC] = ops::Inc;
+        table[Opcodes::LINC] = ops::LInc;
         table[Opcodes::ILOAD] = ops::ILoad;
         table[Opcodes::ISTORE] = ops::IStore;
         table[Opcodes::LLOAD] = ops::LLoad;
@@ -315,6 +317,22 @@ namespace JesusVM::BaseOpHandler {
 
         void Swap2(Executor& executor) {
             executor.getFrame()->swap2();
+        }
+
+        void Inc(Executor& executor) {
+            auto wide = executor.getWideGuard();
+            u16 index = wide ? executor.fetchShort() : executor.fetch();
+            i16 increment = wide ? executor.fetchShort() : executor.fetch();
+
+            executor.getFrame()->incLocalInt(index, increment);
+        }
+
+        void LInc(Executor& executor) {
+            auto wide = executor.getWideGuard();
+            u16 index = wide ? executor.fetchShort() : executor.fetch();
+            i16 increment = wide ? executor.fetchShort() : executor.fetch();
+
+            executor.getFrame()->incLocalLong(index, increment);
         }
 
         void ILoad(Executor& executor) {

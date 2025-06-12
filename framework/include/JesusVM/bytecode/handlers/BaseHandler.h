@@ -48,6 +48,9 @@ namespace JesusVM::BaseOpHandler {
         void Swap(Executor& executor);
         void Swap2(Executor& executor);
 
+        void Inc(Executor& executor);
+        void LInc(Executor& executor);
+
         void ILoad(Executor& executor);
         void IStore(Executor& executor);
 

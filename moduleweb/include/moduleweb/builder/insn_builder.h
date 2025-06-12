@@ -75,6 +75,8 @@ void moduleweb_insn_list_ldc_str(moduleweb_insn_list* list, const char* value);
 
 void moduleweb_insn_list_var(moduleweb_insn_list* list, u8 opcode, u16 local);
 
+void moduleweb_insn_list_inc(moduleweb_insn_list* list, u8 opcode, u16 local, i16 increment);
+
 void moduleweb_insn_list_byte(moduleweb_insn_list* list, u8 opcode, i8 operand);
 
 void moduleweb_insn_list_short(moduleweb_insn_list* list, u8 opcode, i16 operand);

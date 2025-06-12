@@ -42,6 +42,9 @@ typedef enum moduleweb_opcodes {
     SWAP,
     SWAP2,
 
+    INC,
+    LINC,
+
     ILOAD,
     ISTORE,
 
