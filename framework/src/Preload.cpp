@@ -184,6 +184,11 @@ namespace JesusVM::Preload {
             func->mCodeAttribute.code = static_cast<u8*>(entry.entry);
         }
 
+        Module* initializer = Linker::LoadModule(nullptr, "vm/Initalizer");
+        if (initializer == nullptr) {
+            std::cout << "warning: system initializer module was not found\n";
+        }
+
         finished = true;
     }
 }
