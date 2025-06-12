@@ -24,7 +24,6 @@ namespace JesusVM {
         }
 
         if (isAbstract()) {
-            initAbstract();
             return;
         }
 
