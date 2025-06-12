@@ -185,6 +185,7 @@ namespace JesusVM::Threading {
     void Init() {
         auto mainThreadPtr = std::make_unique<Thread>();
         mainThreadPtr->mId = std::this_thread::get_id();
+        mainThreadPtr->mMutationBuffer = &CurrentThread::GetMutationBuffer();
 
         mainThread = mainThreadPtr.get();
 
