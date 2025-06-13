@@ -207,7 +207,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void Dup2(Executor& executor) {
-            executor.getFrame()->dup2()
+            executor.getFrame()->dup2();
         }
 
         void DupX1(Executor& executor) {
