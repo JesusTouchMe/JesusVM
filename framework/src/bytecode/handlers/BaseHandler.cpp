@@ -33,7 +33,9 @@ namespace JesusVM::BaseOpHandler {
         table[Opcodes::NEG] = ops::Neg;
         table[Opcodes::POP] = ops::Pop;
         table[Opcodes::DUP] = ops::Dup;
+        table[Opcodes::DUP2] = ops::Dup2;
         table[Opcodes::DUP_X1] = ops::DupX1;
+        table[Opcodes::DUP_X2] = ops::DupX2;
         table[Opcodes::SWAP] = ops::Swap;
         table[Opcodes::INC] = ops::Inc;
         table[Opcodes::LOAD] = ops::Load;
@@ -204,8 +206,16 @@ namespace JesusVM::BaseOpHandler {
             executor.getFrame()->dup();
         }
 
+        void Dup2(Executor& executor) {
+            executor.getFrame()->dup2()
+        }
+
         void DupX1(Executor& executor) {
             executor.getFrame()->dupx1();
+        }
+
+        void DupX2(Executor& executor) {
+            executor.getFrame()->dupx2();
         }
 
         void Swap(Executor& executor) {

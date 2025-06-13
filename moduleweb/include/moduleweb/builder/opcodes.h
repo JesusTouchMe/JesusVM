@@ -24,7 +24,9 @@ typedef enum moduleweb_opcodes {
     POP,
 
     DUP,
+    DUP2,
     DUP_X1, // straight out of java
+    DUP_X2, // this too
 
     SWAP,
 

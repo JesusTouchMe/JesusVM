@@ -27,7 +27,9 @@ namespace JesusVM::BaseOpHandler {
         void Pop(Executor& executor);
 
         void Dup(Executor& executor);
+        void Dup2(Executor& executor);
         void DupX1(Executor& executor);
+        void DupX2(Executor& executor);
 
         void Swap(Executor& executor);
 

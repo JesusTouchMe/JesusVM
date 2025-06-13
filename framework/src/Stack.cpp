@@ -190,29 +190,58 @@ namespace JesusVM {
         mStackTop++;
     }
 
+    void Stack::Frame::dup2() {
+        if (mStackTop < 2)
+            ThrowStackUnderflow();
+        if (mStackTop + 2 > mStackSize)
+            ThrowStackOverflow();
+
+        i64 value1 = mStack[mStackTop - 2];
+        u8 type1 = mStackTypes[mStackTop - 2];
+
+        i64 value2 = mStack[mStackTop - 1];
+        u8 type2 = mStackTypes[mStackTop - 1];
+
+        if (type1 == STACKMAP_TYPE_REFERENCE) reinterpret_cast<Object*>(value1)->addReference();
+        if (type2 == STACKMAP_TYPE_REFERENCE) reinterpret_cast<Object*>(value2)->addReference();
+
+        mStack[mStackTop] = value1;
+        mStackTypes[mStackTop] = type1;
+        mStackTop++;
+
+        mStack[mStackTop] = value2;
+        mStackTypes[mStackTop] = type2;
+        mStackTop++;
+    }
+
     void Stack::Frame::dupx1() {
         if (mStackTop < 2)
             ThrowStackUnderflow();
-        if (mStackTop + 1 >= mStackSize)
+        if (mStackTop + 1 > mStackSize)
             ThrowStackOverflow();
 
         i64 topValue = mStack[mStackTop - 1];
-        i64 belowValue = mStack[mStackTop - 2];
         u8 topType = mStack[mStackTop - 1];
-        u8 belowType = mStack[mStackTop - 2];
 
         if (topType == STACKMAP_TYPE_REFERENCE)
             reinterpret_cast<Object*>(topValue)->addReference();
 
-        mStack[mStackTop] = belowValue;
-        mStackTypes[mStackTop] = belowType;
+        mStack[mStackTop] = mStack[mStackTop - 2];
+        mStackTypes[mStackTop] = mStack[mStackTop - 2];
+        mStack[mStackTop - 2] = mStack[mStackTop - 3];
+        mStackTypes[mStackTop - 2] = mStack[mStackTop - 3];
 
-        mStack[mStackTop - 2] = topValue;
-        mStackTypes[mStackTop - 2] = topType;
-        mStack[mStackTop - 1] = belowType;
-        mStackTypes[mStackTop - 1] = belowType;
+        mStack[mStackTop - 3] = topValue;
+        mStackTypes[mStackTop - 3] = topType;
 
         mStackTop++;
+    }
+
+    void Stack::Frame::dupx2() {
+        if (mStackTop < 3)
+            ThrowStackUnderflow();
+        if (mStackTop + 1 > mStackSize)
+            ThrowStackOverflow();
     }
 
     void Stack::Frame::swap() {

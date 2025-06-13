@@ -50,7 +50,9 @@ namespace JesusVM {
             Object* extractThis(Method* method);
 
             void dup();
+            void dup2();
             void dupx1();
+            void dupx2();
 
             void swap();
 
