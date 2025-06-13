@@ -58,17 +58,7 @@ namespace JesusVM {
 
         bool parse(std::string_view descriptor, u32* index);
 
-        bool is64Bit() const {
-            return mType == Type::LONG || mType == Type::REFERENCE || mType == Type::DOUBLE || mType == Type::HANDLE;
-        }
-
         bool isFloat() const { return mType == Type::FLOAT || mType == Type::DOUBLE; }
-
-        u32 getSlotCount() const { // stack slot count. each slot is 4 bytes
-            if (is64Bit())
-                return 2;
-            return 1;
-        }
 
         u32 getByteSize() const {
             return GetTypeSize(mType);
