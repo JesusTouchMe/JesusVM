@@ -296,32 +296,38 @@ namespace JesusVM {
         if (index >= mLocalCount)
             ThrowOutOfBounds();
 
-        if (mLocalTypes[index] != STACKMAP_TYPE_LONG)
-            ThrowTypeMismatch(STACKMAP_TYPE_LONG, mLocalTypes[index]);
+        if (mLocalTypes[index] == STACKMAP_TYPE_REFERENCE) {
+            reinterpret_cast<Object*>(mLocals[index])->removeReference();
+        }
 
         mLocals[index] = value;
+        mLocalTypes[index] = STACKMAP_TYPE_LONG;
     }
 
     void Stack::Frame::setLocalHandle(u16 index, Handle value) {
         if (index >= mLocalCount)
             ThrowOutOfBounds();
 
-        if (mLocalTypes[index] != STACKMAP_TYPE_HANDLE)
-            ThrowTypeMismatch(STACKMAP_TYPE_HANDLE, mLocalTypes[index]);
+        if (mLocalTypes[index] == STACKMAP_TYPE_REFERENCE) {
+            reinterpret_cast<Object*>(mLocals[index])->removeReference();
+        }
 
         mLocals[index] = reinterpret_cast<Long>(value);
+        mLocalTypes[index] = STACKMAP_TYPE_HANDLE;
     }
 
     void Stack::Frame::setLocalObject(u16 index, Object* object) {
         if (index >= mLocalCount)
             ThrowOutOfBounds();
 
-        if (mLocalTypes[index] != STACKMAP_TYPE_REFERENCE)
-            ThrowTypeMismatch(STACKMAP_TYPE_REFERENCE, mLocalTypes[index]);
+        if (mLocalTypes[index] == STACKMAP_TYPE_REFERENCE) {
+            reinterpret_cast<Object*>(mLocals[index])->removeReference();
+        }
 
         if (object != nullptr) object->addReference();
 
         mLocals[index] = reinterpret_cast<Long>(object);
+        mLocalTypes[index] = STACKMAP_TYPE_REFERENCE;
     }
 
     void Stack::Frame::incLocal(u16 index, i16 increment) {
