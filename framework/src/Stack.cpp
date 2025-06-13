@@ -335,7 +335,7 @@ namespace JesusVM {
     }
 
     void Stack::Frame::ThrowTypeMismatch(u8 expectedType, u8 receivedType) {
-        std::cout << "Type mismatch: expected (" << expectedType << "), but received (" << receivedType << ")" << std::endl;
+        std::cout << "Type mismatch: expected (" << static_cast<i32>(expectedType) << "), but received (" << static_cast<i32>(receivedType) << ")" << std::endl;
         std::exit(1);
     }
 
