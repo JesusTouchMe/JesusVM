@@ -259,10 +259,10 @@ namespace JesusVM {
     };
 
     struct Array {
-        Array(Class* clas, Int size); // use the artificial array class. NOT a base class
+        Array(Class* clas, Long size); // use the artificial array class. NOT a base class
 
         Object object;
-        const Int size;
+        const Long size;
     };
 
     // the famous container_of macro (c++ edition) !!!
@@ -286,7 +286,7 @@ namespace JesusVM {
     }
 
     ObjectRef AllocObject(Class* clas);
-    ObjectRef AllocArray(Class* clas, Int size);
+    ObjectRef AllocArray(Class* clas, Long size);
     ObjectRef AllocArrayOf(Class* base, Int size);
     ObjectRef AllocPrimitiveArray(u8 typeId, Int size);
 

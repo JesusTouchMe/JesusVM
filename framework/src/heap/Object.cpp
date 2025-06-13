@@ -277,7 +277,7 @@ namespace JesusVM {
         }
     }
 
-    Array::Array(Class* clas, Int size)
+    Array::Array(Class* clas, Long size)
         : object(clas)
         , size(size) {}
 
@@ -298,7 +298,7 @@ namespace JesusVM {
         return {object, false};
     }
 
-    ObjectRef AllocArray(Class* clas, Int size) {
+    ObjectRef AllocArray(Class* clas, Long size) {
         u64 totalSize = sizeof(Array) + sizeof(Object*) * size;
 #ifdef PLATFORM_WINDOWS
         u8* memory = static_cast<u8*>(_aligned_malloc(totalSize, alignof(Array)));

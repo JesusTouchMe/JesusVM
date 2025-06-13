@@ -205,7 +205,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void DupX1(Executor& executor) {
-
+            executor.getFrame()->dupx1();
         }
 
         void Swap(Executor& executor) {
@@ -270,7 +270,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void BALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -292,7 +292,7 @@ namespace JesusVM::BaseOpHandler {
 
         void BAStore(Executor& executor) {
             auto value = static_cast<Byte>(executor.getFrame()->pop());
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -313,7 +313,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void CALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -335,7 +335,7 @@ namespace JesusVM::BaseOpHandler {
 
         void CAStore(Executor& executor) {
             auto value = static_cast<Char>(executor.getFrame()->pop());
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -356,7 +356,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void SALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -378,7 +378,7 @@ namespace JesusVM::BaseOpHandler {
 
         void SAStore(Executor& executor) {
             auto value = static_cast<Short>(executor.getFrame()->pop());
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -399,7 +399,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void IALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -421,7 +421,7 @@ namespace JesusVM::BaseOpHandler {
 
         void IAStore(Executor& executor) {
             auto value = static_cast<Int>(executor.getFrame()->pop());
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -442,7 +442,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void LALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -464,7 +464,7 @@ namespace JesusVM::BaseOpHandler {
 
         void LAStore(Executor& executor) {
             auto value = executor.getFrame()->pop();
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -485,7 +485,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void HALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -507,7 +507,7 @@ namespace JesusVM::BaseOpHandler {
 
         void HAStore(Executor& executor) {
             auto value = executor.getFrame()->popHandle();
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -528,7 +528,7 @@ namespace JesusVM::BaseOpHandler {
         }
 
         void RALoad(Executor& executor) {
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -550,7 +550,7 @@ namespace JesusVM::BaseOpHandler {
 
         void RAStore(Executor& executor) {
             auto value = executor.getFrame()->popObject();
-            Int index = executor.getFrame()->pop();
+            Long index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
             NullCheck(array);
@@ -601,7 +601,7 @@ namespace JesusVM::BaseOpHandler {
 
         void NewArray(Executor& executor) {
             u8 typeId = executor.fetch();
-            Int size = executor.getFrame()->pop();
+            Long size = executor.getFrame()->pop();
 
             ObjectRef array = AllocPrimitiveArray(typeId, size);
 
@@ -618,7 +618,7 @@ namespace JesusVM::BaseOpHandler {
                 std::exit(1);
             }
 
-            Int size = executor.getFrame()->pop();
+            Long size = executor.getFrame()->pop();
 
             ObjectRef array = AllocArrayOf(classRef->getClass(), size);
 
