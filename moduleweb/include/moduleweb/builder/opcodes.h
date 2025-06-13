@@ -11,45 +11,27 @@ typedef enum moduleweb_opcodes {
     MUL,
     DIV,
     REM,
-    LADD,
-    LSUB,
-    LMUL,
-    LDIV,
-    LREM,
 
     AND,
     OR,
     XOR,
     SHL,
     SHR,
-    LAND,
-    LOR,
-    LXOR,
-    LSHL,
-    LSHR,
 
     NOT,
     NEG,
-    LNOT,
-    LNEG,
 
     POP,
-    POP2,
 
     DUP,
-    DUP2,
+    DUP_X1, // straight out of java
 
     SWAP,
-    SWAP2,
 
     INC,
-    LINC,
 
-    ILOAD,
-    ISTORE,
-
-    LLOAD,
-    LSTORE,
+    LOAD,
+    STORE,
 
     HLOAD,
     HSTORE,
@@ -93,12 +75,12 @@ typedef enum moduleweb_opcodes {
     GETGLOBAL,
     SETGLOBAL,
 
-    JMP_ICMPEQ,
-    JMP_ICMPNE,
-    JMP_ICMPLT,
-    JMP_ICMPGT,
-    JMP_ICMPLE,
-    JMP_ICMPGE,
+    JMP_CMPEQ,
+    JMP_CMPNE,
+    JMP_CMPLT,
+    JMP_CMPGT,
+    JMP_CMPLE,
+    JMP_CMPGE,
 
     JMP_HCMPEQ,
     JMP_HCMPNE,
@@ -120,8 +102,7 @@ typedef enum moduleweb_opcodes {
     JMPGE,
     JMP,
 
-    ICMP,
-    LCMP,
+    CMP,
     HCMP,
     RCMP,
 
@@ -130,17 +111,16 @@ typedef enum moduleweb_opcodes {
     IPUSH,
     LPUSH,
 
-    I2B,
-    I2S,
-    I2L,
+    L2B,
+    L2S,
     L2I,
 
     CONST_M1,
     CONST_0,
     CONST_1,
-
-    LCONST_0,
-    LCONST_1,
+    CONST_2,
+    CONST_3,
+    CONST_4,
 
     HCONST_NULL,
 
@@ -150,7 +130,6 @@ typedef enum moduleweb_opcodes {
     CALLVIRTUAL,
 
     RETURN,
-    IRETURN,
     LRETURN,
     HRETURN,
     RRETURN,

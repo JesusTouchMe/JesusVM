@@ -14,8 +14,7 @@
 namespace JesusVM {
 	Function::Function(Module* module, moduleweb_function_info* info)
 		: mInfo(info)
-        , mModule(module)
-        , mNeededLocalsForArgs(0) {
+        , mModule(module) {
         auto name = module->getConstPool().get<ConstantName>(info->name_index);
 
         mName = name->getName();
@@ -27,10 +26,6 @@ namespace JesusVM {
         }
 
         mArgumentTypes.shrink_to_fit();
-
-        for (const auto& arg: mArgumentTypes) {
-            mNeededLocalsForArgs += arg.getSlotCount();
-        }
 
         if (isNative()) {
             return;
@@ -90,7 +85,7 @@ namespace JesusVM {
     }
 
     u16 Function::getNeededLocalsForArgs() const {
-        return mNeededLocalsForArgs;
+        return mArgumentTypes.size();
     }
 
 	std::string_view Function::getName() const {
@@ -205,7 +200,7 @@ namespace JesusVM {
                     }
 
                     case Type::LONG: {
-                        auto value = frame->popLong();
+                        auto value = frame->pop();
 
                         i -= 1;
                         nativeArgs[i].L = static_cast <Long>(value);
@@ -279,7 +274,7 @@ namespace JesusVM {
                     case Type::LONG: {
                         auto ptr = reinterpret_cast <NativeFunctionPtr <Long>>(getEntry());
                         auto value = ptr(GetContext(), nativeArgs.get());
-                        frame->pushLong(value);
+                        frame->push(value);
                         break;
                     }
 
@@ -344,7 +339,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocalInt(i, static_cast <Byte>(value));
+                    frame->setLocal(i, static_cast <Byte>(value));
 
                     break;
                 }
@@ -353,7 +348,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocalInt(i, static_cast <Short>(value));
+                    frame->setLocal(i, static_cast <Short>(value));
 
                     break;
                 }
@@ -362,16 +357,16 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocalInt(i, static_cast <Int>(value));
+                    frame->setLocal(i, static_cast <Int>(value));
 
                     break;
                 }
 
                 case Type::LONG: {
-                    auto value = oldFrame->popLong();
+                    auto value = oldFrame->pop();
 
                     i -= 2;
-                    frame->setLocalLong(i, static_cast <Long>(value));
+                    frame->setLocal(i, static_cast <Long>(value));
 
                     break;
                 }
@@ -380,7 +375,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocalInt(i, static_cast <Char>(value));
+                    frame->setLocal(i, static_cast <Char>(value));
 
                     break;
                 }
@@ -392,7 +387,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocalInt(i, value != 0);
+                    frame->setLocal(i, value != 0);
 
                     break;
                 }

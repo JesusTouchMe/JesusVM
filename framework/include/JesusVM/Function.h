@@ -79,7 +79,6 @@ namespace JesusVM {
 		
 		TypeInfo mReturnType;
         std::vector<TypeInfo> mArgumentTypes;
-        u16 mNeededLocalsForArgs;
 		std::string_view mName;
 		std::string_view mDescriptor;
 
@@ -182,7 +181,7 @@ namespace JesusVM {
 
             case Type::BYTE: {
                 if constexpr (std::is_integral_v<T>) {
-                    frame->setLocalInt(localIndex, static_cast<Byte>(arg));
+                    frame->setLocal(localIndex, static_cast<Byte>(arg));
                 } else {
                     std::cerr << "Type mismatch: Expected Byte at arg " << argIndex << std::endl;
                     std::exit(1);
@@ -192,7 +191,7 @@ namespace JesusVM {
 
             case Type::SHORT: {
                 if constexpr (std::is_integral_v<T>) {
-                    frame->setLocalInt(localIndex, static_cast<Short>(arg));
+                    frame->setLocal(localIndex, static_cast<Short>(arg));
                 } else {
                     std::cerr << "Type mismatch: Expected Short at arg " << argIndex << std::endl;
                     std::exit(1);
@@ -202,7 +201,7 @@ namespace JesusVM {
 
             case Type::INT: {
                 if constexpr (std::is_integral_v<T>) {
-                    frame->setLocalInt(localIndex, static_cast<Int>(arg));
+                    frame->setLocal(localIndex, static_cast<Int>(arg));
                 } else {
                     std::cerr << "Type mismatch: Expected Int at arg " << argIndex << std::endl;
                     std::exit(1);
@@ -212,7 +211,7 @@ namespace JesusVM {
 
             case Type::LONG: {
                 if constexpr (std::is_same_v<T, Long>) {
-                    frame->setLocalLong(localIndex, arg);
+                    frame->setLocal(localIndex, arg);
                 } else {
                     std::cerr << "Type mismatch: Expected Long at arg " << argIndex << std::endl;
                     std::exit(1);
@@ -222,7 +221,7 @@ namespace JesusVM {
 
             case Type::CHAR: {
                 if constexpr (std::is_integral_v<T>) {
-                    frame->setLocalInt(localIndex, static_cast<Char>(arg));
+                    frame->setLocal(localIndex, static_cast<Char>(arg));
                 } else {
                     std::cerr << "Type mismatch: Expected Char at arg " << argIndex << std::endl;
                     std::exit(1);
@@ -232,7 +231,7 @@ namespace JesusVM {
 
             case Type::BOOL: {
                 if constexpr (std::is_same_v<T, Bool>) {
-                    frame->setLocalInt(localIndex, arg != 0);
+                    frame->setLocal(localIndex, arg != 0);
                 } else {
                     std::cerr << "Type mismatch: Expected Bool at arg " << argIndex << std::endl;
                     std::exit(1);
@@ -256,7 +255,7 @@ namespace JesusVM {
         if (typeIt == mArgumentTypes.end()) return;
 
         processArg(arg, frame, localIndex, argIndex);
-        localIndex += typeIt->getSlotCount();
+        localIndex++;
         argIndex++;
 
         processArgs(frame, localIndex, argIndex, std::next(typeIt), std::forward<Rest>(rest)...);

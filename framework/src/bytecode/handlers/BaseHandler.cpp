@@ -24,37 +24,20 @@ namespace JesusVM::BaseOpHandler {
         table[Opcodes::MUL] = ops::Mul;
         table[Opcodes::DIV] = ops::Div;
         table[Opcodes::REM] = ops::Rem;
-        table[Opcodes::LADD] = ops::LAdd;
-        table[Opcodes::LSUB] = ops::LSub;
-        table[Opcodes::LMUL] = ops::LMul;
-        table[Opcodes::LDIV] = ops::LDiv;
-        table[Opcodes::LREM] = ops::LRem;
         table[Opcodes::AND] = ops::And;
         table[Opcodes::OR] = ops::Or;
         table[Opcodes::XOR] = ops::Xor;
         table[Opcodes::SHL] = ops::Shl;
         table[Opcodes::SHR] = ops::Shr;
-        table[Opcodes::LAND] = ops::LAnd;
-        table[Opcodes::LOR] = ops::LOr;
-        table[Opcodes::LXOR] = ops::LXor;
-        table[Opcodes::LSHL] = ops::LShl;
-        table[Opcodes::LSHR] = ops::LShr;
         table[Opcodes::NOT] = ops::Not;
         table[Opcodes::NEG] = ops::Neg;
-        table[Opcodes::LNOT] = ops::LNot;
-        table[Opcodes::LNEG] = ops::LNeg;
         table[Opcodes::POP] = ops::Pop;
-        table[Opcodes::POP2] = ops::Pop2;
         table[Opcodes::DUP] = ops::Dup;
-        table[Opcodes::DUP2] = ops::Dup2;
+        table[Opcodes::DUP_X1] = ops::DupX1;
         table[Opcodes::SWAP] = ops::Swap;
-        table[Opcodes::SWAP2] = ops::Swap2;
         table[Opcodes::INC] = ops::Inc;
-        table[Opcodes::LINC] = ops::LInc;
-        table[Opcodes::ILOAD] = ops::ILoad;
-        table[Opcodes::ISTORE] = ops::IStore;
-        table[Opcodes::LLOAD] = ops::LLoad;
-        table[Opcodes::LSTORE] = ops::LStore;
+        table[Opcodes::LOAD] = ops::Load;
+        table[Opcodes::STORE] = ops::Store;
         table[Opcodes::HLOAD] = ops::HLoad;
         table[Opcodes::HSTORE] = ops::HStore;
         table[Opcodes::RLOAD] = ops::RLoad;
@@ -83,12 +66,12 @@ namespace JesusVM::BaseOpHandler {
         table[Opcodes::SETFIELD] = ops::SetField;
         table[Opcodes::GETGLOBAL] = ops::GetGlobal;
         table[Opcodes::SETGLOBAL] = ops::SetGlobal;
-        table[Opcodes::JMP_ICMPEQ] = ops::JmpICmpEq;
-        table[Opcodes::JMP_ICMPNE] = ops::JmpICmpNe;
-        table[Opcodes::JMP_ICMPLT] = ops::JmpICmpLt;
-        table[Opcodes::JMP_ICMPGT] = ops::JmpICmpGt;
-        table[Opcodes::JMP_ICMPLE] = ops::JmpICmpLe;
-        table[Opcodes::JMP_ICMPGE] = ops::JmpICmpGe;
+        table[Opcodes::JMP_CMPEQ] = ops::JmpCmpEq;
+        table[Opcodes::JMP_CMPNE] = ops::JmpCmpNe;
+        table[Opcodes::JMP_CMPLT] = ops::JmpCmpLt;
+        table[Opcodes::JMP_CMPGT] = ops::JmpCmpGt;
+        table[Opcodes::JMP_CMPLE] = ops::JmpCmpLe;
+        table[Opcodes::JMP_CMPGE] = ops::JmpCmpGe;
         table[Opcodes::JMP_HCMPEQ] = ops::JmpHCmpEq;
         table[Opcodes::JMP_HCMPNE] = ops::JmpHCmpNe;
         table[Opcodes::JMP_RCMPEQ] = ops::JmpRCmpEq;
@@ -104,29 +87,27 @@ namespace JesusVM::BaseOpHandler {
         table[Opcodes::JMPLE] = ops::JmpLe;
         table[Opcodes::JMPGE] = ops::JmpGe;
         table[Opcodes::JMP] = ops::Jmp;
-        table[Opcodes::ICMP] = ops::ICmp;
-        table[Opcodes::LCMP] = ops::LCmp;
+        table[Opcodes::CMP] = ops::Cmp;
         table[Opcodes::HCMP] = ops::HCmp;
         table[Opcodes::RCMP] = ops::RCmp;
         table[Opcodes::BPUSH] = ops::BPush;
         table[Opcodes::SPUSH] = ops::SPush;
         table[Opcodes::IPUSH] = ops::IPush;
         table[Opcodes::LPUSH] = ops::LPush;
-        table[Opcodes::I2B] = ops::I2B;
-        table[Opcodes::I2S] = ops::I2S;
-        table[Opcodes::I2L] = ops::I2L;
+        table[Opcodes::L2B] = ops::L2B;
+        table[Opcodes::L2S] = ops::L2S;
         table[Opcodes::L2I] = ops::L2I;
         table[Opcodes::CONST_M1] = ops::ConstM1;
         table[Opcodes::CONST_0] = ops::Const0;
         table[Opcodes::CONST_1] = ops::Const1;
-        table[Opcodes::LCONST_0] = ops::LConst0;
-        table[Opcodes::LCONST_1] = ops::LConst1;
+        table[Opcodes::CONST_2] = ops::Const2;
+        table[Opcodes::CONST_3] = ops::Const3;
+        table[Opcodes::CONST_4] = ops::Const4;
         table[Opcodes::HCONST_NULL] = ops::HConstNull;
         table[Opcodes::RCONST_NULL] = ops::RConstNull;
         table[Opcodes::CALL] = ops::Call;
         table[Opcodes::CALLVIRTUAL] = ops::CallVirtual;
         table[Opcodes::RETURN] = ops::Return;
-        table[Opcodes::IRETURN] = ops::IReturn;
         table[Opcodes::LRETURN] = ops::LReturn;
         table[Opcodes::HRETURN] = ops::HReturn;
         table[Opcodes::RRETURN] = ops::RReturn;
@@ -170,41 +151,6 @@ namespace JesusVM::BaseOpHandler {
             executor.getFrame()->push(lhs % rhs);
         }
 
-        void LAdd(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs + rhs);
-        }
-
-        void LSub(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs - rhs);
-        }
-
-        void LMul(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs * rhs);
-        }
-
-        void LDiv(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs / rhs);
-        }
-
-        void LRem(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs % rhs);
-        }
-
         void And(Executor& executor) {
             i32 rhs = executor.getFrame()->pop();
             i32 lhs = executor.getFrame()->pop();
@@ -240,41 +186,6 @@ namespace JesusVM::BaseOpHandler {
             executor.getFrame()->push(lhs >> rhs);
         }
 
-        void LAnd(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs + rhs);
-        }
-
-        void LOr(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs | rhs);
-        }
-
-        void LXor(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs ^ rhs);
-        }
-
-        void LShl(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs << rhs);
-        }
-
-        void LShr(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
-
-            executor.getFrame()->pushLong(lhs >> rhs);
-        }
-
         void Not(Executor& executor) {
             i32 value = executor.getFrame()->pop();
             executor.getFrame()->push(~value);
@@ -285,38 +196,20 @@ namespace JesusVM::BaseOpHandler {
             executor.getFrame()->push(-value);
         }
 
-        void LNot(Executor& executor) {
-            i64 value = executor.getFrame()->popLong();
-            executor.getFrame()->pushLong(~value);
-        }
-
-        void LNeg(Executor& executor) {
-            i64 value = executor.getFrame()->popLong();
-            executor.getFrame()->pushLong(-value);
-        }
-
         void Pop(Executor& executor) {
-            executor.getFrame()->popValue();
-        }
-
-        void Pop2(Executor& executor) {
-            executor.getFrame()->popValue();
+            executor.getFrame()->popGeneric();
         }
 
         void Dup(Executor& executor) {
             executor.getFrame()->dup();
         }
 
-        void Dup2(Executor& executor) {
-            executor.getFrame()->dup2();
+        void DupX1(Executor& executor) {
+
         }
 
         void Swap(Executor& executor) {
             executor.getFrame()->swap();
-        }
-
-        void Swap2(Executor& executor) {
-            executor.getFrame()->swap2();
         }
 
         void Inc(Executor& executor) {
@@ -324,45 +217,22 @@ namespace JesusVM::BaseOpHandler {
             u16 index = wide ? executor.fetchShort() : executor.fetch();
             i16 increment = wide ? executor.fetchShort() : executor.fetch();
 
-            executor.getFrame()->incLocalInt(index, increment);
+            executor.getFrame()->incLocal(index, increment);
         }
 
-        void LInc(Executor& executor) {
-            auto wide = executor.getWideGuard();
-            u16 index = wide ? executor.fetchShort() : executor.fetch();
-            i16 increment = wide ? executor.fetchShort() : executor.fetch();
-
-            executor.getFrame()->incLocalLong(index, increment);
-        }
-
-        void ILoad(Executor& executor) {
+        void Load(Executor& executor) {
             auto wide = executor.getWideGuard();
             u16 index = wide ? executor.fetchShort() : executor.fetch();
 
-            executor.getFrame()->push(executor.getFrame()->getLocalInt(index));
+            executor.getFrame()->push(executor.getFrame()->getLocal(index));
         }
 
-        void IStore(Executor& executor) {
+        void Store(Executor& executor) {
             auto wide = executor.getWideGuard();
             u16 index = wide ? executor.fetchShort() : executor.fetch();
             auto value = executor.getFrame()->pop();
 
-            executor.getFrame()->setLocalInt(index, value);
-        }
-
-        void LLoad(Executor& executor) {
-            auto wide = executor.getWideGuard();
-            u16 index = wide ? executor.fetchShort() : executor.fetch();
-
-            executor.getFrame()->pushLong(executor.getFrame()->getLocalLong(index));
-        }
-
-        void LStore(Executor& executor) {
-            auto wide = executor.getWideGuard();
-            u16 index = wide ? executor.fetchShort() : executor.fetch();
-            auto value = executor.getFrame()->popLong();
-
-            executor.getFrame()->setLocalLong(index, value);
+            executor.getFrame()->setLocal(index, value);
         }
 
         void HLoad(Executor& executor) {
@@ -589,11 +459,11 @@ namespace JesusVM::BaseOpHandler {
 
             auto elements = array->getArrayElements<Long>();
 
-            executor.getFrame()->pushLong(elements[index]);
+            executor.getFrame()->push(elements[index]);
         }
 
         void LAStore(Executor& executor) {
-            auto value = executor.getFrame()->popLong();
+            auto value = executor.getFrame()->pop();
             Int index = executor.getFrame()->pop();
             ObjectRef array = executor.getFrame()->popObject();
 
@@ -811,7 +681,7 @@ namespace JesusVM::BaseOpHandler {
                     frame->push(object->getInt(field));
                     break;
                 case Type::LONG:
-                    frame->pushLong(object->getLong(field));
+                    frame->push(object->getLong(field));
                     break;
                 case Type::CHAR:
                     frame->push(object->getChar(field));
@@ -839,7 +709,7 @@ namespace JesusVM::BaseOpHandler {
             ObjectRef object;
             Field* field = fieldRef->getField();
 
-            auto GetObject = [&executor, &object, field]() {
+            auto getObject = [&executor, &object, field]() {
                 object = executor.getFrame()->popObject();
                 NullCheck(object);
 
@@ -855,49 +725,49 @@ namespace JesusVM::BaseOpHandler {
             switch (field->getType().getInternalType()) {
                 case Type::REFERENCE: {
                     ObjectRef value = frame->popObject();
-                    GetObject();
+                    getObject();
 
                     object->setObject(field, value);
                     break;
                 }
                 case Type::HANDLE: {
                     Handle value = frame->popHandle();
-                    GetObject();
+                    getObject();
 
                     object->setHandle(field, value);
                     break;
                 }
                 case Type::BYTE: {
                     Byte value = static_cast<Byte>(frame->pop());
-                    GetObject();
+                    getObject();
 
                     object->setByte(field, value);
                     break;
                 }
                 case Type::SHORT: {
                     Short value = static_cast<Short>(frame->pop());
-                    GetObject();
+                    getObject();
 
                     object->setShort(field, value);
                     break;
                 }
                 case Type::INT: {
                     Int value = frame->pop();
-                    GetObject();
+                    getObject();
 
                     object->setInt(field, value);
                     break;
                 }
                 case Type::LONG: {
-                    Long value = frame->popLong();
-                    GetObject();
+                    Long value = frame->pop();
+                    getObject();
 
                     object->setLong(field, value);
                     break;
                 }
                 case Type::CHAR: {
                     Char value = static_cast<Char>(frame->pop());
-                    GetObject();
+                    getObject();
 
                     object->setChar(field, value);
                     break;
@@ -908,7 +778,7 @@ namespace JesusVM::BaseOpHandler {
                     break;
                 case Type::BOOL: {
                     Bool value = static_cast<Bool>(frame->pop());
-                    GetObject();
+                    getObject();
 
                     object->setBool(field, value);
                     break;
@@ -946,7 +816,7 @@ namespace JesusVM::BaseOpHandler {
                     frame->push(global->getValue().I);
                     break;
                 case Type::LONG:
-                    frame->pushLong(global->getValue().L);
+                    frame->push(global->getValue().L);
                     break;
                 case Type::CHAR:
                     frame->push(global->getValue().C);
@@ -1010,7 +880,7 @@ namespace JesusVM::BaseOpHandler {
                     break;
                 }
                 case Type::LONG: {
-                    Long value = frame->popLong();
+                    Long value = frame->pop();
                     global->setValue(value);
                     break;
                 }
@@ -1031,60 +901,60 @@ namespace JesusVM::BaseOpHandler {
             }
         }
 
-        void JmpICmpEq(Executor& executor) {
+        void JmpCmpEq(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs == rhs) {
                 executor.branch(branch);
             }
         }
 
-        void JmpICmpNe(Executor& executor) {
+        void JmpCmpNe(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs != rhs) {
                 executor.branch(branch);
             }
         }
 
-        void JmpICmpLt(Executor& executor) {
+        void JmpCmpLt(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs < rhs) {
                 executor.branch(branch);
             }
         }
 
-        void JmpICmpGt(Executor& executor) {
+        void JmpCmpGt(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs > rhs) {
                 executor.branch(branch);
             }
         }
 
-        void JmpICmpLe(Executor& executor) {
+        void JmpCmpLe(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs <= rhs) {
                 executor.branch(branch);
             }
         }
 
-        void JmpICmpGe(Executor& executor) {
+        void JmpCmpGe(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs >= rhs) {
                 executor.branch(branch);
@@ -1169,7 +1039,7 @@ namespace JesusVM::BaseOpHandler {
 
         void JmpEq(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 value = executor.getFrame()->pop();
+            Long value = executor.getFrame()->pop();
 
             if (value == 0) {
                 executor.branch(branch);
@@ -1178,7 +1048,7 @@ namespace JesusVM::BaseOpHandler {
 
         void JmpNe(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 value = executor.getFrame()->pop();
+            Long value = executor.getFrame()->pop();
 
             if (value != 0) {
                 executor.branch(branch);
@@ -1187,7 +1057,7 @@ namespace JesusVM::BaseOpHandler {
 
         void JmpLt(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 value = executor.getFrame()->pop();
+            Long value = executor.getFrame()->pop();
 
             if (value < 0) {
                 executor.branch(branch);
@@ -1196,7 +1066,7 @@ namespace JesusVM::BaseOpHandler {
 
         void JmpGt(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 value = executor.getFrame()->pop();
+            Long value = executor.getFrame()->pop();
 
             if (value > 0) {
                 executor.branch(branch);
@@ -1205,7 +1075,7 @@ namespace JesusVM::BaseOpHandler {
 
         void JmpLe(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 value = executor.getFrame()->pop();
+            Long value = executor.getFrame()->pop();
 
             if (value <= 0) {
                 executor.branch(branch);
@@ -1214,7 +1084,7 @@ namespace JesusVM::BaseOpHandler {
 
         void JmpGe(Executor& executor) {
             i16 branch = executor.fetchShort();
-            i32 value = executor.getFrame()->pop();
+            Long value = executor.getFrame()->pop();
 
             if (value >= 0) {
                 executor.branch(branch);
@@ -1226,18 +1096,9 @@ namespace JesusVM::BaseOpHandler {
             executor.branch(branch);
         }
 
-        void ICmp(Executor& executor) {
-            i32 rhs = executor.getFrame()->pop();
-            i32 lhs = executor.getFrame()->pop();
-
-            if (lhs < rhs) executor.getFrame()->push(-1);
-            else if (lhs > rhs) executor.getFrame()->push(1);
-            else executor.getFrame()->push(0);
-        }
-
-        void LCmp(Executor& executor) {
-            i64 rhs = executor.getFrame()->popLong();
-            i64 lhs = executor.getFrame()->popLong();
+        void Cmp(Executor& executor) {
+            Long rhs = executor.getFrame()->pop();
+            Long lhs = executor.getFrame()->pop();
 
             if (lhs < rhs) executor.getFrame()->push(-1);
             else if (lhs > rhs) executor.getFrame()->push(1);
@@ -1279,26 +1140,21 @@ namespace JesusVM::BaseOpHandler {
 
         void LPush(Executor& executor) {
             i64 value = executor.fetchLong();
-            executor.getFrame()->pushLong(value);
+            executor.getFrame()->push(value);
         }
 
-        void I2B(Executor& executor) {
-            Int value = executor.getFrame()->pop();
+        void L2B(Executor& executor) {
+            Long value = executor.getFrame()->pop();
             executor.getFrame()->push(static_cast<Byte>(value));
         }
 
-        void I2S(Executor& executor) {
-            Int value = executor.getFrame()->pop();
+        void L2S(Executor& executor) {
+            Long value = executor.getFrame()->pop();
             executor.getFrame()->push(static_cast<Short>(value));
         }
 
-        void I2L(Executor& executor) {
-            Int value = executor.getFrame()->pop();
-            executor.getFrame()->pushLong(static_cast<Long>(value));
-        }
-
         void L2I(Executor& executor) {
-            Long value = executor.getFrame()->popLong();
+            Long value = executor.getFrame()->pop();
             executor.getFrame()->push(static_cast<Int>(value));
         }
 
@@ -1314,12 +1170,16 @@ namespace JesusVM::BaseOpHandler {
             executor.getFrame()->push(1);
         }
 
-        void LConst0(Executor& executor) {
-            executor.getFrame()->pushLong(0);
+        void Const2(Executor& executor) {
+            executor.getFrame()->push(2);
         }
 
-        void LConst1(Executor& executor) {
-            executor.getFrame()->pushLong(1);
+        void Const3(Executor& executor) {
+            executor.getFrame()->push(3);
+        }
+
+        void Const4(Executor& executor) {
+            executor.getFrame()->push(4);
         }
 
         void HConstNull(Executor& executor) {
@@ -1371,25 +1231,14 @@ namespace JesusVM::BaseOpHandler {
             executor.leaveFunction();
         }
 
-        void IReturn(Executor& executor) {
-            Int value = executor.getFrame()->pop();
-
-            executor.leaveFunction();
-            executor.returnValue().I = value;
-
-            if (Stack::Frame* frame = executor.getFrame(); frame != nullptr) {
-                frame->push(value);
-            }
-        }
-
         void LReturn(Executor& executor) {
-            Long value = executor.getFrame()->popLong();
+            Long value = executor.getFrame()->pop();
 
             executor.leaveFunction();
             executor.returnValue().L = value;
 
             if (Stack::Frame* frame = executor.getFrame(); frame != nullptr) {
-                frame->pushLong(value);
+                frame->push(value);
             }
         }
 

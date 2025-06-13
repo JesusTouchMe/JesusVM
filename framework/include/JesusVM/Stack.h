@@ -27,43 +27,8 @@ namespace JesusVM {
         class Frame {
         friend class Stack;
         public:
-            Frame(u16 localCount, u16 maxFrameSize, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc);
+            Frame(u16 stackSize, u16 localCount, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc);
             ~Frame();
-
-            void push(i32 value);
-            void pushLong(i64 value);
-            void pushHandle(Handle handle);
-            void pushObject(Object* object);
-
-            i32 pop();
-            i64 popLong();
-            Handle popHandle();
-            ObjectRef popObject();
-            Object* popObjectWeak();
-
-            void popValue();
-
-            Object* extractThis(Method* method);
-
-            void dup();
-            void dup2();
-
-            void swap();
-            void swap2();
-
-            Int getLocalInt(u16 index);
-            Long getLocalLong(u16 index);
-            Handle getLocalHandle(u16 index);
-            ObjectRef getLocalObject(u16 index);
-            Object* getLocalObjectWeak(u16 index);
-
-            void setLocalInt(u16 index, Int value);
-            void setLocalLong(u16 index, Long value);
-            void setLocalHandle(u16 index, Handle value);
-            void setLocalObject(u16 index, Object* object);
-
-            void incLocalInt(u16 index, i16 increment);
-            void incLocalLong(u16 index, i16 increment);
 
             ConstPool& getConstPool() const;
             Module* getCurrentModule() const;
@@ -71,24 +36,46 @@ namespace JesusVM {
             u8* getReturnCode() const;
             u32 getReturnPC() const;
 
-        private:
-            enum class ElementType : u8 {
-                INT,
-                LONG,
-                HANDLE,
-                REFERENCE,
-            };
+            void push(Long value);
+            void pushHandle(Handle handle);
+            void pushObject(Object* object);
 
+            Long pop();
+            Handle popHandle();
+            ObjectRef popObject();
+            Object* popObjectWeak();
+
+            void popGeneric();
+
+            Object* extractThis(Method* method);
+
+            void dup();
+            void dupx1();
+
+            void swap();
+
+            Long getLocal(u16 index);
+            Handle getLocalHandle(u16 index);
+            ObjectRef getLocalObject(u16 index);
+            Object* getLocalObjectWeak(u16 index);
+
+            void setLocal(u16 index, Long value);
+            void setLocalHandle(u16 index, Handle value);
+            void setLocalObject(u16 index, Object* object);
+
+            void incLocal(u16 index, i16 increment);
+
+        private:
             std::unique_ptr<Frame> mPrevious;
 
-            u16 mLocalCount;
             u16 mStackSize;
             u16 mStackTop;
+            u16 mLocalCount;
 
-            std::unique_ptr<i32[]> mLocals;
-            std::unique_ptr<u8[]> mLocalTypes;
-            std::unique_ptr<i32[]> mStack;
-            std::vector<ElementType> mStackTypes;
+            i64* mStack;
+            u8* mStackTypes;
+            i64* mLocals;
+            u8* mLocalTypes;
 
             ConstPool& mConstPool;
 
@@ -98,32 +85,17 @@ namespace JesusVM {
             u8* mReturnCode;
             u32 mReturnPC;
 
-            void push1(i32 value);
-            void push2(i64 value);
-
-            i32 pop1();
-            i64 pop2();
-
-            void pushType(ElementType type);
-            ElementType popType();
-
-            i32 getLocal1(u16 index);
-            i64 getLocal2(u16 index);
-
-            void setLocal1(u16 index, i32 value);
-            void setLocal2(u16 index, i64 value);
-
-            moduleweb_stackmap_type_id getLocalType(u16 index);
-            void setLocalType(u16 index, moduleweb_stackmap_type_id type);
-
-            u32 getTypeSize(ElementType type);
+            static void ThrowTypeMismatch(u8 expectedType, u8 receivedType);
+            static void ThrowStackUnderflow();
+            static void ThrowStackOverflow();
+            static void ThrowOutOfBounds();
         };
 
     public:
         Stack();
 
         Frame* getTopFrame() const;
-        Frame* enterFrame(u16 localCount, u16 maxFrameSize, Function* function, u8* returnCode, u32 returnPc);
+        Frame* enterFrame(u16 stackSize, u16 localCount, Function* function, u8* returnCode, u32 returnPc);
         Frame* leaveFrame();
 
     private:

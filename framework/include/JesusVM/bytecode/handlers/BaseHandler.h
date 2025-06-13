@@ -15,47 +15,26 @@ namespace JesusVM::BaseOpHandler {
         void Div(Executor& executor);
         void Rem(Executor& executor);
 
-        void LAdd(Executor& executor);
-        void LSub(Executor& executor);
-        void LMul(Executor& executor);
-        void LDiv(Executor& executor);
-        void LRem(Executor& executor);
-
         void And(Executor& executor);
         void Or(Executor& executor);
         void Xor(Executor& executor);
         void Shl(Executor& executor);
         void Shr(Executor& executor);
 
-        void LAnd(Executor& executor);
-        void LOr(Executor& executor);
-        void LXor(Executor& executor);
-        void LShl(Executor& executor);
-        void LShr(Executor& executor);
-
         void Not(Executor& executor);
         void Neg(Executor& executor);
 
-        void LNot(Executor& executor);
-        void LNeg(Executor& executor);
-
         void Pop(Executor& executor);
-        void Pop2(Executor& executor);
 
         void Dup(Executor& executor);
-        void Dup2(Executor& executor);
+        void DupX1(Executor& executor);
 
         void Swap(Executor& executor);
-        void Swap2(Executor& executor);
 
         void Inc(Executor& executor);
-        void LInc(Executor& executor);
 
-        void ILoad(Executor& executor);
-        void IStore(Executor& executor);
-
-        void LLoad(Executor& executor);
-        void LStore(Executor& executor);
+        void Load(Executor& executor);
+        void Store(Executor& executor);
 
         void HLoad(Executor& executor);
         void HStore(Executor& executor);
@@ -99,12 +78,12 @@ namespace JesusVM::BaseOpHandler {
         void GetGlobal(Executor& executor);
         void SetGlobal(Executor& executor);
 
-        void JmpICmpEq(Executor& executor);
-        void JmpICmpNe(Executor& executor);
-        void JmpICmpLt(Executor& executor);
-        void JmpICmpGt(Executor& executor);
-        void JmpICmpLe(Executor& executor);
-        void JmpICmpGe(Executor& executor);
+        void JmpCmpEq(Executor& executor);
+        void JmpCmpNe(Executor& executor);
+        void JmpCmpLt(Executor& executor);
+        void JmpCmpGt(Executor& executor);
+        void JmpCmpLe(Executor& executor);
+        void JmpCmpGe(Executor& executor);
 
         void JmpHCmpEq(Executor& executor);
         void JmpHCmpNe(Executor& executor);
@@ -126,8 +105,7 @@ namespace JesusVM::BaseOpHandler {
         void JmpGe(Executor& executor);
         void Jmp(Executor& executor);
 
-        void ICmp(Executor& executor);
-        void LCmp(Executor& executor);
+        void Cmp(Executor& executor);
         void HCmp(Executor& executor);
         void RCmp(Executor& executor);
 
@@ -136,17 +114,16 @@ namespace JesusVM::BaseOpHandler {
         void IPush(Executor& executor);
         void LPush(Executor& executor);
 
-        void I2B(Executor& executor);
-        void I2S(Executor& executor);
-        void I2L(Executor& executor);
+        void L2B(Executor& executor);
+        void L2S(Executor& executor);
         void L2I(Executor& executor);
 
         void ConstM1(Executor& executor);
         void Const0(Executor& executor);
         void Const1(Executor& executor);
-
-        void LConst0(Executor& executor);
-        void LConst1(Executor& executor);
+        void Const2(Executor& executor);
+        void Const3(Executor& executor);
+        void Const4(Executor& executor);
 
         void HConstNull(Executor& executor);
 
@@ -156,7 +133,6 @@ namespace JesusVM::BaseOpHandler {
         void CallVirtual(Executor& executor);
 
         void Return(Executor& executor);
-        void IReturn(Executor& executor);
         void LReturn(Executor& executor);
         void HReturn(Executor& executor);
         void RReturn(Executor& executor);

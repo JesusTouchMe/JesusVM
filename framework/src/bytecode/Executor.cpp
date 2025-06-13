@@ -114,7 +114,7 @@ namespace JesusVM {
 	}
 
 	void Executor::enterFunction(Function* function) {
-		mFrame = mStack.enterFrame(function->getLocalCount(), function->getStackSize(), function, mCode, mPC);
+		mFrame = mStack.enterFrame(function->getStackSize(), function->getLocalCount(), function, mCode, mPC);
         mPC = 0;
 		mCode = function->getEntry();
         mReturnDepth++;
