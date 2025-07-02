@@ -16,8 +16,8 @@ namespace JesusVM {
 
     Class::Class(Module* module, moduleweb_class_info* info)
         : mInfo(info)
-        , mModule(module)
         , mState(ClassState::INITIALIZED)
+        , mModule(module)
         , mWaitingThreads(0) { }
 
     bool Class::link() {

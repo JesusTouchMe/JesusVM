@@ -720,7 +720,7 @@ namespace JesusVM::BaseOpHandler {
             Field* field = fieldRef->getField();
 
             auto getObject = [&executor, &object, field]() {
-                object = executor.getFrame()->popObject();
+                object = std::move(executor.getFrame()->popObject());
                 NullCheck(object);
 
                 if (!object->isInstance(field->getClass())) {

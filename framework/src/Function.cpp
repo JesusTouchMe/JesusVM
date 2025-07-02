@@ -338,7 +338,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocal(i, static_cast <Byte>(value));
+                    frame->setLocal(i, static_cast<Byte>(value));
 
                     break;
                 }
@@ -347,7 +347,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocal(i, static_cast <Short>(value));
+                    frame->setLocal(i, static_cast<Short>(value));
 
                     break;
                 }
@@ -356,7 +356,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocal(i, static_cast <Int>(value));
+                    frame->setLocal(i, static_cast<Int>(value));
 
                     break;
                 }
@@ -365,7 +365,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocal(i, static_cast <Long>(value));
+                    frame->setLocal(i, static_cast<Long>(value));
 
                     break;
                 }
@@ -374,7 +374,7 @@ namespace JesusVM {
                     auto value = oldFrame->pop();
 
                     i -= 1;
-                    frame->setLocal(i, static_cast <Char>(value));
+                    frame->setLocal(i, static_cast<Char>(value));
 
                     break;
                 }

@@ -287,8 +287,8 @@ namespace JesusVM {
 
     ObjectRef AllocObject(Class* clas);
     ObjectRef AllocArray(Class* clas, Long size);
-    ObjectRef AllocArrayOf(Class* base, Int size);
-    ObjectRef AllocPrimitiveArray(u8 typeId, Int size);
+    ObjectRef AllocArrayOf(Class* base, Long size);
+    ObjectRef AllocPrimitiveArray(u8 typeId, Long size);
 
     void NullCheck(Object* obj);
 }

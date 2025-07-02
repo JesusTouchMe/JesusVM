@@ -4,6 +4,7 @@
 #include "JesusVM/constpool/ConstPool.h"
 
 #include <cassert>
+#include <cstring>
 
 namespace JesusVM {
     Stack::Frame::Frame(u16 stackSize, u16 localCount, ConstPool& constPool, Module* module, Function* function, u8* returnCode, u32 returnPc)
@@ -24,26 +25,27 @@ namespace JesusVM {
         size_t size = stackBytes + stackTypesBytes + localsBytes + localTypesBytes + 3 * alignment;
 
         void* memory = std::malloc(size);
+        std::memset(memory, 0, size);
 
         auto base = reinterpret_cast<uintptr_t>(memory);
 
-        auto align_up = [](uintptr_t& p, size_t a) {
+        auto alignUp  = [](uintptr_t& p, size_t a) {
             p = (p + a - 1) & ~(a - 1);
         };
 
-        align_up(base, alignof(i64));
+        alignUp(base, alignof(i64));
         mStack = reinterpret_cast<i64*>(base);
         base += stackBytes;
 
-        align_up(base, alignof(u8));
+        alignUp(base, alignof(u8));
         mStackTypes = reinterpret_cast<u8*>(base);
         base += stackTypesBytes;
 
-        align_up(base, alignof(i64));
+        alignUp(base, alignof(i64));
         mLocals = reinterpret_cast<i64*>(base);
         base += localsBytes;
 
-        align_up(base, alignof(u8));
+        alignUp(base, alignof(u8));
         mLocalTypes = reinterpret_cast<u8*>(base);
         base += localTypesBytes;
 

@@ -317,13 +317,13 @@ namespace JesusVM {
         return {&array->object, false};
     }
 
-    ObjectRef AllocArrayOf(Class* base, Int size) {
+    ObjectRef AllocArrayOf(Class* base, Long size) {
         std::string name = std::format("[R{};", base->getName());
         Class* clas = Linker::LoadClass(base->getModule(), name);
         return AllocArray(clas, size);
     }
 
-    ObjectRef AllocPrimitiveArray(u8 typeId, Int size) {
+    ObjectRef AllocPrimitiveArray(u8 typeId, Long size) {
         Type type = CodeTypeToType(typeId);
 
         u64 totalSize = sizeof(Array) + GetTypeSize(type) * size;
