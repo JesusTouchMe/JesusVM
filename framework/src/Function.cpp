@@ -314,13 +314,12 @@ namespace JesusVM {
 
         u16 i = getNeededLocalsForArgs();
 
-
         for (auto& arg: std::ranges::reverse_view(getArgumentTypes())) {
             switch (arg.getInternalType()) {
                 case Type::REFERENCE: {
                     ObjectRef obj = oldFrame->popObject();
 
-                    i -= 2;
+                    i -= 1;
                     frame->setLocalObject(i, obj);
 
                     break;
@@ -329,7 +328,7 @@ namespace JesusVM {
                 case Type::HANDLE: {
                     auto value = oldFrame->popHandle();
 
-                    i -= 2;
+                    i -= 1;
                     frame->setLocalHandle(i, value);
 
                     break;
@@ -365,7 +364,7 @@ namespace JesusVM {
                 case Type::LONG: {
                     auto value = oldFrame->pop();
 
-                    i -= 2;
+                    i -= 1;
                     frame->setLocal(i, static_cast <Long>(value));
 
                     break;
