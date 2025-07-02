@@ -17,13 +17,13 @@ namespace JesusVM {
 
     void ConstantAscii::addTo(Stack::Frame* frame) {
         if (mStringObject == nullptr) {
-            ObjectRef array = AllocPrimitiveArray(T_CHAR, static_cast<Int>(mValue.length())); // we can be certain that it's not 2.1 billion bytes long because the longest piece of literature written by humans is around 20 million characters long
+            ObjectRef array = AllocPrimitiveArray(T_CHAR, static_cast<Long>(mValue.length())); // we can be certain that it's not 2.1 billion bytes long because the longest piece of literature written by humans is around 20 million characters long
             auto data = array->getArrayElements<Char>();
 
-            std::memcpy(data, mValue.data(), static_cast<Int>(mValue.length()));
+            std::memcpy(data, mValue.data(), static_cast<Long>(mValue.length()));
 
             mStringObject = AllocObject(rt::std::Primitives::String::self);
-            rt::std::Primitives::String::init->invoke<void>(mStringObject.get(), array.get());
+            mStringObject->setObject(rt::std::Primitives::String::data, array);
         }
 
         frame->pushObject(mStringObject);
