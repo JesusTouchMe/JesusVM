@@ -46,4 +46,16 @@ namespace JesusVM::StringPool {
 		auto inserted = pool->pool.emplace(str);
 		return *inserted.first;
 	}
+
+    const char* InternCString(std::string_view str) {
+	    std::lock_guard<std::mutex> lock(pool->mutex);
+
+	    auto it = pool->pool.find(str);
+	    if (it != pool->pool.end()) {
+	        return it->c_str();
+	    }
+
+	    auto inserted = pool->pool.emplace(str);
+	    return inserted.first->c_str();
+    }
 }

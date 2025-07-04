@@ -2,19 +2,23 @@
 
 #include "JesusVM/bytecode/Executor.h"
 
+#include "JesusVM/native_interface/ProvidedFunctions.h"
+
 #include "JesusVM/runtime/std/Primitives.h"
 
 #include <algorithm>
 
 namespace JesusVM {
-    Context vmContext;
+    _JesusVMNativeInterface nativeInterface;
 
     void Init() {
         Executor::InitDispatch();
+
+        NativeInterface::Prepare(&nativeInterface);
     }
 
-    VMContext GetContext() {
-        return reinterpret_cast<VMContext>(&vmContext);
+    VMContext* GetContext() {
+        return reinterpret_cast<VMContext*>(&nativeInterface);
     }
 
     std::string_view GetStringData(Object* object) {

@@ -60,6 +60,7 @@ namespace JesusVM {
         ClassKind getKind() const;
         ClassState getState() const;
 		std::string_view getName() const;
+        Class* getSuperClass() const;
         u64 getFieldBufferSize() const;
         u64 getTotalSize() const;
 

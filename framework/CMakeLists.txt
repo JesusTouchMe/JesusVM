@@ -29,6 +29,8 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
     src/bytecode/handlers/BaseHandler.cpp
         src/heap/Method.cpp
         src/constpool/ConstantMethod.cpp
+    src/heap/gc/References.cpp
+    src/native_interface/ProvidedFunctions.cpp
 )
 
 set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/bytecode/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
@@ -58,6 +60,8 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
     include/JesusVM/bytecode/handlers/BaseHandler.h
         include/JesusVM/heap/Method.h
         include/JesusVM/constpool/ConstantMethod.h
+    include/JesusVM/heap/gc/References.h
+    include/JesusVM/native_interface/ProvidedFunctions.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
@@ -70,6 +74,10 @@ target_include_directories(jesusvm-framework-jesusvm-framework
 		include
 )
 
+target_include_directories(jesusvm-framework-jesusvm-framework
+    PRIVATE
+        ${DynCall_SOURCE_DIR}/dyncall
+)
 
 if (${CMAKE_BUILD_TYPE} MATCHES Release|RelWithDebInfo)
     if(supported)
@@ -97,3 +105,4 @@ endif()
 target_compile_features(jesusvm-framework-jesusvm-framework PUBLIC cxx_std_20)
 target_link_libraries(jesusvm-framework-jesusvm-framework JesusVM::native)
 target_link_libraries(jesusvm-framework-jesusvm-framework JesusVM::moduleweb)
+target_link_libraries(jesusvm-framework-jesusvm-framework dyncall_s)

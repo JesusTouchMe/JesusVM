@@ -256,6 +256,37 @@ namespace JesusVM::Linker {
         }
     }
 
+    Module* AddExistingModule(Module* unsafeModule) {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        std::unique_ptr<Module> module(unsafeModule);
+
+        auto [it, success] = modules.emplace(
+                ModuleKey(module->getName(), module->getLinker()),
+                std::make_unique<LinkerModule>(
+                        LinkerModule(LinkerModule::Status::LOADING, nullptr, 0, Threading::CurrentThread::GetHandle(), module->getLinker())));
+
+        if (!success) {
+            return nullptr;
+        }
+
+        LinkerModule* linkerModule = it->second.get();
+
+        linkerModule->module = std::move(module);
+        linkerModule->status = LinkerModule::Status::LOADED;
+
+        condition.notify_all();
+
+        return linkerModule->module.get();
+    }
+
+    void LinkModule(Module* module) {
+        Function* init = module->getFunction("#LinkInit", "()V");
+        if (init != nullptr) {
+            init->invoke<void>();
+        }
+    }
+
     static inline void RemoveModule(ModuleKey& key) {
         modules.erase(key);
     }
@@ -313,7 +344,12 @@ namespace JesusVM::Linker {
         }
 
         auto moduleInfo = static_cast<moduleweb_module_info*>(std::malloc(sizeof(moduleweb_module_info))); // c struct. using new and make_unique is apparently bad
+        if (moduleInfo == nullptr) {
+            return nullptr;
+        }
+
         if (moduleweb_module_info_init(moduleInfo, name.data(), name.length(), stream.get())) {
+            std::free(moduleInfo);
             return nullptr;
         }
 

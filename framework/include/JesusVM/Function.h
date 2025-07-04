@@ -17,7 +17,7 @@
 
 namespace JesusVM {
 	template <typename ReturnType>
-	using NativeFunctionPtr = ReturnType(JESUSVM_CALL *)(VMContext, JValue*);
+	using NativeFunctionPtr = ReturnType(*)(VMContext, JValue*);
 
     class Executor;
     class Function;
@@ -121,6 +121,9 @@ namespace JesusVM {
 
     template<typename R, typename... Args>
     R Function::invokeNative(Args... args) {
+        std::cout << "invokeNative not implemented\n";
+        std::exit(1);
+
         if (!isNative()) {
             std::cout << "error: invokeNative on non-native function\n";
             std::exit(1);

@@ -140,6 +140,10 @@ namespace JesusVM {
 		return mName;
 	}
 
+    Class* Class::getSuperClass() const {
+        return mSuperClass;
+    }
+
     u64 Class::getFieldBufferSize() const {
         return mMemorySize;
     }

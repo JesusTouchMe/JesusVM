@@ -15,6 +15,9 @@ namespace JesusVM::Linker {
     void LoadPlugin(std::string_view name);
     void LinkNativeFunction(Function* function);
 
+    Module* AddExistingModule(Module* module);
+    void LinkModule(Module* module); // runs linker stuff on a module without taking it hostage
+
     Module* LoadModule(Object* linker, std::string_view name);
     void RemoveModule(Object* linker, std::string_view name);
 

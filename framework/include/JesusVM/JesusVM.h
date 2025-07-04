@@ -17,13 +17,9 @@
 #define ALIGN(x,a) (((x)+(a)-1)&~((a)-1))
 
 namespace JesusVM {
-    struct Context {
-
-    };
-
     void Init();
 
-    VMContext GetContext();
+    VMContext* GetContext();
 
     std::string_view GetStringData(Object* object);
 }

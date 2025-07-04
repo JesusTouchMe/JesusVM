@@ -29,7 +29,7 @@ namespace JesusVM {
         return container_of(this, Array, object);
     }
 
-    Int Object::getArrayLength() {
+    Long Object::getArrayLength() {
         return toArray()->size;
     }
 

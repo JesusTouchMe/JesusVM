@@ -29,8 +29,11 @@ typedef int moduleweb_file;
 #endif
 
 int moduleweb_file_open_read(moduleweb_file* file, const char* filename);
+int moduleweb_file_open_read_utf8(moduleweb_file* file, const char* filename);
 int moduleweb_file_open_write(moduleweb_file* file, const char* filename);
+int moduleweb_file_open_write_utf8(moduleweb_file* file, const char* filename);
 int moduleweb_file_open_read_write(moduleweb_file* file, const char* filename);
+int moduleweb_file_open_read_write_utf8(moduleweb_file* file, const char* filename);
 int moduleweb_file_close(moduleweb_file* file);
 
 int moduleweb_file_lock(moduleweb_file file);

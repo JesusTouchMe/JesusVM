@@ -10,6 +10,21 @@ typedef struct moduleweb_file_info {
     bool is_readable;
     bool is_writeable;
 } moduleweb_file_info;
+
+static LPWSTR utf8_to_utf16(const char* utf8) {
+    int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+    if (len == 0) return NULL;
+
+    LPWSTR utf16 = malloc(len * sizeof(LPWSTR));
+    if (!utf16) return NULL;
+
+    if (MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, len) == 0) {
+        free(utf16);
+        return NULL;
+    }
+
+    return utf16;
+}
 #endif
 
 int moduleweb_file_open_read(moduleweb_file* file, const char* filename) {
@@ -25,6 +40,53 @@ int moduleweb_file_open_read(moduleweb_file* file, const char* filename) {
             FILE_ATTRIBUTE_NORMAL,
             NULL
     );
+
+    if (handle == INVALID_HANDLE_VALUE) {
+        return 1;
+    }
+
+    moduleweb_file_info* file_info = malloc(sizeof(moduleweb_file_info));
+    if (file_info == NULL) {
+        CloseHandle(handle);
+        return 1;
+    }
+
+    file_info->handle = handle;
+    file_info->is_readable = true;
+    file_info->is_writeable = false;
+
+    *file = file_info;
+#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
+    int fd = open(filename, O_RDONLY, 0644);
+
+    if (fd < 0) {
+        return 1;
+    }
+
+    *file = fd;
+#endif
+
+    return 0;
+}
+
+int moduleweb_file_open_read_utf8(moduleweb_file* file, const char* filename) {
+    if (file == NULL) return 1;
+
+#ifdef PLATFORM_WINDOWS
+    LPWSTR wfilename = utf8_to_utf16(filename);
+    if (wfilename == NULL) return 1;
+
+    HANDLE handle = CreateFileW(
+            wfilename,
+            GENERIC_READ,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            NULL,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+    );
+
+    free(wfilename);
 
     if (handle == INVALID_HANDLE_VALUE) {
         return 1;
@@ -96,6 +158,53 @@ int moduleweb_file_open_write(moduleweb_file* file, const char* filename) {
     return 0;
 }
 
+int moduleweb_file_open_write_utf8(moduleweb_file* file, const char* filename) {
+    if (file == NULL) return 1;
+
+#ifdef PLATFORM_WINDOWS
+    LPWSTR wfilename = utf8_to_utf16(filename);
+    if (wfilename == NULL) return 1;
+
+    HANDLE handle = CreateFileW(
+            wfilename,
+            GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            NULL,
+            OPEN_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+    );
+
+    free(wfilename);
+
+    if (handle == INVALID_HANDLE_VALUE) {
+        return 1;
+    }
+
+    moduleweb_file_info* file_info = malloc(sizeof(moduleweb_file_info));
+    if (file_info == NULL) {
+        CloseHandle(handle);
+        return 1;
+    }
+
+    file_info->handle = handle;
+    file_info->is_readable = false;
+    file_info->is_writeable = true;
+
+    *file = file_info;
+#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
+    int fd = open(filename, O_RDWR | O_CREAT, 0644);
+
+    if (fd < 0) {
+        return 1;
+    }
+
+    *file = fd;
+#endif
+
+    return 0;
+}
+
 int moduleweb_file_open_read_write(moduleweb_file* file, const char* filename) {
     if (file == NULL) return 1;
 
@@ -109,6 +218,53 @@ int moduleweb_file_open_read_write(moduleweb_file* file, const char* filename) {
             FILE_ATTRIBUTE_NORMAL,
             NULL
     );
+
+    if (handle == INVALID_HANDLE_VALUE) {
+        return 1;
+    }
+
+    moduleweb_file_info* file_info = malloc(sizeof(moduleweb_file_info));
+    if (file_info == NULL) {
+        CloseHandle(handle);
+        return 1;
+    }
+
+    file_info->handle = handle;
+    file_info->is_readable = true;
+    file_info->is_writeable = true;
+
+    *file = file_info;
+#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS)
+    int fd = open(filename, O_RDWR | O_CREAT, 0644);
+
+    if (fd < 0) {
+        return 1;
+    }
+
+    *file = fd;
+#endif
+
+    return 0;
+}
+
+int moduleweb_file_open_read_write_utf8(moduleweb_file* file, const char* filename) {
+    if (file == NULL) return 1;
+
+#ifdef PLATFORM_WINDOWS
+    LPWSTR wfilename = utf8_to_utf16(filename);
+    if (wfilename == NULL) return 1;
+
+    HANDLE handle = CreateFileW(
+            wfilename,
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            NULL,
+            OPEN_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+    );
+
+    free(wfilename);
 
     if (handle == INVALID_HANDLE_VALUE) {
         return 1;

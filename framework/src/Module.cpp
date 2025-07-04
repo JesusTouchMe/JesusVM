@@ -6,7 +6,7 @@
 #include <algorithm>
 
 namespace JesusVM {
-	Module::Module( Object* linker, moduleweb_module_info* info)
+	Module::Module(Object* linker, moduleweb_module_info* info)
 		: mInfo(info)
         , mLinker(linker)
         , mName(info->name)
@@ -68,7 +68,11 @@ namespace JesusVM {
         return mInfo;
     }
 
-	std::string_view Module::getName() const {
+    Object* Module::getLinker() const {
+	    return mLinker;
+    }
+
+    std::string_view Module::getName() const {
 		return mName;
 	}
 

@@ -33,9 +33,9 @@ namespace JesusVM::rt::vm::System {
     extern Function* loadPlugin;
 
     [[noreturn]]
-    void exit_impl(VMContext ctx, JValue* args, Int code);
+    void exit_impl(VMContext ctx, Int code);
 
-    void loadPlugin_impl(VMContext ctx, JValue* args, JObject pluginName);
+    void loadPlugin_impl(VMContext ctx, JObject pluginName);
 }
 
 #endif // JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_RUNTIME_VM_SYSTEM_H

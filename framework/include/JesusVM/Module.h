@@ -35,6 +35,8 @@ namespace JesusVM {
 
         const moduleweb_module_info* getInfo();
 
+    	Object* getLinker() const;
+
 		std::string_view getName() const;
 		ConstPool& getConstPool();
 

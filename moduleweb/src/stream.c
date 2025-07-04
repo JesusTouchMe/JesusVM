@@ -48,6 +48,49 @@ int moduleweb_instream_open(moduleweb_instream* stream, const char* filename) {
     return 1;
 }
 
+int moduleweb_instream_open_utf8(moduleweb_instream* stream, const char* filename) {
+    stream->file.name = strdup(filename);
+    if (stream->file.name == NULL) {
+        stream->sys_errno = errno;
+        stream->moduleweb_errno = MODULEWEB_ERROR_ERRNO;
+        goto fail;
+    }
+
+    if (moduleweb_file_open_read_utf8(&stream->file.file, filename)) {
+        goto fail_filename;
+    }
+
+    if (moduleweb_file_lock(stream->file.file)) {
+        goto fail_file;
+    }
+
+    if (moduleweb_file_get_size(stream->file.file, &stream->file.size)) {
+        goto fail_file_locked;
+    }
+
+    stream->file.pos = 0;
+
+    stream->buffer = malloc(MODULEWEB_INSTREAM_BUFFER_SIZE);
+    stream->buffer_index = 0;
+    stream->buffer_size = 0;
+
+    stream->streaming_mode = MODULEWEB_STREAMING_FILE;
+
+    return 0;
+
+    fail_file_locked:
+    moduleweb_file_unlock(stream->file.file);
+
+    fail_file:
+    moduleweb_file_close(&stream->file.file);
+
+    fail_filename:
+    free(stream->file.name);
+
+    fail:
+    return 1;
+}
+
 void moduleweb_instream_close(moduleweb_instream* stream) {
     if (stream->streaming_mode != MODULEWEB_STREAMING_FILE) return;
 
@@ -63,7 +106,7 @@ void moduleweb_instream_close(moduleweb_instream* stream) {
     free(stream->buffer);
 }
 
-int moduleweb_instream_open_buffer(moduleweb_instream* stream, u8* buffer, u64 size, bool own_buffer) {
+int moduleweb_instream_open_buffer(moduleweb_instream* stream, const u8* buffer, u64 size, bool own_buffer) {
     stream->streaming_mode = MODULEWEB_STREAMING_MEMORY;
     stream->memory.ptr = buffer;
     stream->memory.size = size;

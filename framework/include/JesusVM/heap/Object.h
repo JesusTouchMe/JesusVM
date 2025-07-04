@@ -47,7 +47,7 @@ namespace JesusVM {
 
         Array* toArray();
 
-        Int getArrayLength();
+        Long getArrayLength();
 
         bool isInstance(Class* clas);
 
@@ -214,12 +214,20 @@ namespace JesusVM {
             }
         }
 
+        void releaseNoDeref() {
+            mObject = nullptr;
+        }
+
         operator Object*() const {
             return mObject;
         }
 
         operator JObject() const {
             return reinterpret_cast<JObject>(mObject); // this is safe
+        }
+
+        operator String() const {
+            return reinterpret_cast<String>(mObject);
         }
 
         Object* operator->() {

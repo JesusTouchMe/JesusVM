@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.26)
 
 set(SOURCES "src/JesusNative.cpp")
 
-set(HEADERS "include/JesusVM/JesusNative.h" "include/JesusVM/win32/JesusNative_platform.h")
+set(HEADERS "include/JesusVM/JesusNative.h" "include/JesusVM/JesusNative_platform.h")
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
 

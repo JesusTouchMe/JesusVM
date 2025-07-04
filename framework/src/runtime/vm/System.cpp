@@ -32,14 +32,11 @@ namespace JesusVM::rt::vm::System {
     Function* loadPlugin;
 
     [[noreturn]]
-    void exit_impl(VMContext ctx, JValue* args, Int code) {
-        code = args[0].I;
-
+    void exit_impl(VMContext ctx, Int code) {
         std::exit(code);
     }
 
-    void loadPlugin_impl(VMContext ctx, JValue* args, JObject path) {
-        path = args[0].R;
+    void loadPlugin_impl(VMContext ctx, JObject path) {
         auto object = reinterpret_cast<Object*>(path);
 
         std::string_view realPath = GetStringData(object);

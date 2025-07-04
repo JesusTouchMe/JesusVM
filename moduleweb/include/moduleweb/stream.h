@@ -33,7 +33,7 @@ typedef struct moduleweb_instream {
         } file;
 
         struct {
-            UNOWNED_OBJECT u8* ptr;
+            UNOWNED_OBJECT const u8* ptr;
             u64 size;
             u64 pos;
         } memory;
@@ -75,10 +75,11 @@ typedef struct moduleweb_outstream {
 //
 
 int moduleweb_instream_open(moduleweb_instream* stream, PARAM_COPIED const char* filename);
+int moduleweb_instream_open_utf8(moduleweb_instream* stream, PARAM_COPIED const char* filename);
 
 void moduleweb_instream_close(moduleweb_instream* stream);
 
-int moduleweb_instream_open_buffer(moduleweb_instream* stream, IF(own_buffer, PARAM_MOVED, PARAM_REFERENCED) u8* buffer, u64 size, bool own_buffer);
+int moduleweb_instream_open_buffer(moduleweb_instream* stream, IF(own_buffer, PARAM_MOVED, PARAM_REFERENCED) const u8* buffer, u64 size, bool own_buffer);
 
 void moduleweb_instream_close_buffer(moduleweb_instream* stream);
 

@@ -9,6 +9,7 @@
 
 namespace JesusVM::StringPool {
     std::string_view Intern(std::string_view str);
+    const char* InternCString(std::string_view str);
 }
 
 #endif // JESUSVM_STRINGPOOL_H
