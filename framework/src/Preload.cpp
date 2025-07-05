@@ -85,7 +85,7 @@ namespace JesusVM::Preload {
             { &rt::vm::System::self, "[H", &rt::vm::System::handleArray, false },
     };
 
-#   define PRELOAD_FIELD(owner, name, desc, var, opt) { &owner, name, desc, &var, opt }
+#   define PRELOAD_FIELD(owner, name, desc, var, opt) { &owner, name, desc, &var, opt },
     FieldEntry fieldEntries[] = {
 #       include "JesusVM/preload/Preload-Fields.h"
     };
@@ -99,6 +99,7 @@ namespace JesusVM::Preload {
 
     NativeOverrideEntry nativeOverrideEntries[] = {
             { &rt::vm::System::exit, reinterpret_cast<void*>(rt::vm::System::exit_impl) },
+            { &rt::vm::System::trap, reinterpret_cast<void*>(rt::vm::System::trap_impl) },
             { &rt::vm::System::loadPlugin, reinterpret_cast<void*>(rt::vm::System::loadPlugin_impl) },
     };
 

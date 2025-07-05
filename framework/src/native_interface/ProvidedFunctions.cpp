@@ -1,5 +1,6 @@
 // Copyright 2025 JesusTouchMe
 
+#include "JesusVM/JesusVM.h"
 #include "JesusVM/Linker.h"
 
 #include "JesusVM/heap/gc/References.h"
@@ -275,12 +276,12 @@ namespace JesusVM::NativeInterface {
 
     // Error operations
 
-    JESUSVM_NORETURN void Trap(VMContext* ctx, const char* message) {
-        std::cout << "trap not implemented!\n";
+    void Trap(VMContext* ctx, const char* message) {
+        ::JesusVM::Trap(reinterpret_cast<Object*>(NewString(ctx, message, strlen(message))), "<native-code>", -1, -1);
     }
 
     void AddTrapHook(VMContext* ctx, void hook(VMContext* ctx, TrapInfo* info)) {
-        std::cout << "trap hooks not implemented!\n";
+        ::JesusVM::AddTrapHook(hook);
     }
 
     // References
@@ -448,6 +449,46 @@ namespace JesusVM::NativeInterface {
     }
 
     template<class Ret, Type RetType>
+    constexpr Ret GetReturn(Executor& executor) {
+        if constexpr (RetType == Type::VOID) {
+            static_assert(std::is_same_v<Ret, void>);
+            return;
+        } else if constexpr (RetType == Type::REFERENCE) {
+            static_assert(std::is_same_v<Ret, JObject>);
+            return executor.getReturnValue().R;
+        } else if constexpr (RetType == Type::HANDLE) {
+            static_assert(std::is_same_v<Ret, Handle>);
+            return executor.getReturnValue().H;
+        } else if constexpr (RetType == Type::BYTE) {
+            static_assert(std::is_same_v<Ret, Byte>);
+            return executor.getReturnValue().B;
+        } else if constexpr (RetType == Type::SHORT) {
+            static_assert(std::is_same_v<Ret, Short>);
+            return executor.getReturnValue().S;
+        } else if constexpr (RetType == Type::INT) {
+            static_assert(std::is_same_v<Ret, Int>);
+            return executor.getReturnValue().I;
+        } else if constexpr (RetType == Type::LONG) {
+            static_assert(std::is_same_v<Ret, Long>);
+            return executor.getReturnValue().L;
+        } else if constexpr (RetType == Type::CHAR) {
+            static_assert(std::is_same_v<Ret, Char>);
+            return executor.getReturnValue().C;
+        } else if constexpr (RetType == Type::FLOAT) {
+            static_assert(std::is_same_v<Ret, Float>);
+            return executor.getReturnValue().F;
+        } else if constexpr (RetType == Type::DOUBLE) {
+            static_assert(std::is_same_v<Ret, Double>);
+            return executor.getReturnValue().D;
+        } else if constexpr (RetType == Type::BOOL) {
+            static_assert(std::is_same_v<Ret, Bool>);
+            return executor.getReturnValue().Z;
+        } else {
+            static_assert(false, "Unknown type");
+        }
+    }
+
+    template<class Ret, Type RetType>
     static Ret CallTFunctionA(VMContext* ctx, FunctionRef functionRef, const JValue* args, JObject thisArgument = nullptr) {
         Function* function = reinterpret_cast<Function*>(functionRef);
         Executor& executor = Threading::CurrentThread::GetExecutor();
@@ -502,9 +543,7 @@ namespace JesusVM::NativeInterface {
 
         executor.run();
 
-        if constexpr (!std::is_same_v<Ret, void>) {
-            return static_cast<Ret>(executor.getReturnValue());
-        }
+        return GetReturn<Ret, RetType>(executor);
     }
 
     template<class Ret, Type RetType>
@@ -532,10 +571,10 @@ namespace JesusVM::NativeInterface {
                     frame->setLocalHandle(i, va_arg(args, Handle));
                     break;
                 case Type::BYTE:
-                    frame->setLocal(i, va_arg(args, Byte));
+                    frame->setLocal(i, static_cast<Byte>(va_arg(args, int)));
                     break;
                 case Type::SHORT:
-                    frame->setLocal(i, va_arg(args, Short));
+                    frame->setLocal(i, static_cast<Short>(va_arg(args, int)));
                     break;
                 case Type::INT:
                     frame->setLocal(i, va_arg(args, Int));
@@ -544,14 +583,14 @@ namespace JesusVM::NativeInterface {
                     frame->setLocal(i, va_arg(args, Long));
                     break;
                 case Type::CHAR:
-                    frame->setLocal(i, va_arg(args, Char));
+                    frame->setLocal(i, static_cast<Char>(va_arg(args, int)));
                     break;
                 case Type::FLOAT:
                 case Type::DOUBLE:
                     std::cout << "floating point not implemented\n";
                     std::exit(1);
                 case Type::BOOL:
-                    frame->setLocal(i, va_arg(args, Bool));
+                    frame->setLocal(i, static_cast<Bool>(va_arg(args, int)));
                     break;
             }
 
@@ -560,9 +599,7 @@ namespace JesusVM::NativeInterface {
 
         executor.run();
 
-        if constexpr (!std::is_same_v<Ret, void>) {
-            return static_cast<Ret>(executor.getReturnValue());
-        }
+        return GetReturn<Ret, RetType>(executor);
     }
 
     void CallVoidFunction(VMContext* ctx, FunctionRef functionRef, ...) {
@@ -952,12 +989,12 @@ namespace JesusVM::NativeInterface {
 
     Bool CallBoolMethodA(VMContext* ctx, MethodRef method, JObject obj, const JValue* args) {
         FunctionRef function = DispatchMethod(ctx, GetObjectClass(ctx, obj), method);
-        return CallTFunctionA<bool, Type::BOOL>(ctx, function, args, obj);
+        return CallTFunctionA<Bool, Type::BOOL>(ctx, function, args, obj);
     }
 
     Bool CallBoolMethodV(VMContext* ctx, MethodRef method, JObject obj, va_list args) {
         FunctionRef function = DispatchMethod(ctx, GetObjectClass(ctx, obj), method);
-        return CallTFunctionV<bool, Type::BOOL>(ctx, function, args, obj);
+        return CallTFunctionV<Bool, Type::BOOL>(ctx, function, args, obj);
     }
 
     Byte CallByteMethod(VMContext* ctx, MethodRef method, JObject obj, ...) {

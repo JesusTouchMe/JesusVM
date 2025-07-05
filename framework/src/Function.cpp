@@ -414,7 +414,7 @@ namespace JesusVM {
         }
     }
 
-    VMContext Function::getNativeContext() {
+    VMContext* Function::getNativeContext() {
         return GetContext();
     }
 }

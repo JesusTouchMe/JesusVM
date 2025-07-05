@@ -135,7 +135,7 @@ typedef struct _ClassRef* ClassRef;
 typedef struct _FieldRef* FieldRef;
 typedef struct _MethodRef* MethodRef;
 
-typedef struct _TrapInfo* TrapInfo;
+typedef struct _TrapInfo TrapInfo;
 
 typedef struct _ArtificialClass ArtificialClass;
 typedef struct _ArtificialField ArtificialField;
@@ -151,7 +151,7 @@ typedef _JesusVMNativeInterface* VMContext;
 #endif
 
 struct _TrapInfo {
-    const char* message;
+    JObject message;
     struct {
         const char* file;
         Int line;
@@ -200,7 +200,7 @@ struct _JesusVMNativeInterface {
 
     // Error operations
 
-    JESUSVM_NORETURN void (*Trap)(VMContext* ctx, const char* message);
+    void (*Trap)(VMContext* ctx, const char* message);
     void (*AddTrapHook)(VMContext* ctx, void (*hook)(VMContext* ctx, TrapInfo* info));
 
     // References
@@ -451,7 +451,7 @@ struct _JesusVMContext {
 
     // Error operations
 
-    JESUSVM_NORETURN void Trap(const char* message) {
+    void Trap(const char* message) {
         _functions->Trap(this, message);
     }
 
@@ -1234,7 +1234,7 @@ inline ModuleRef CreateModuleMem(VMContext* ctx, const char* name, JObject linke
     return (*ctx)->CreateModuleMem(ctx, name, linker, data, data_length, mode);
 }
 
-inline JESUSVM_NORETURN void Trap(VMContext* ctx, const char* message) {
+inline void Trap(VMContext* ctx, const char* message) {
     (*ctx)->Trap(ctx, message);
 }
 

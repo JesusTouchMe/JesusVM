@@ -17,7 +17,7 @@
 
 namespace JesusVM {
 	template <typename ReturnType>
-	using NativeFunctionPtr = ReturnType(*)(VMContext, JValue*);
+	using NativeFunctionPtr = ReturnType(*)(VMContext*, ...);
 
     class Executor;
     class Function;
@@ -91,7 +91,7 @@ namespace JesusVM {
         void processArgs(Stack::Frame* frame, u16& localIndex, u16& argIndex, Iter typeIt, T&& arg, Rest&&... rest);
         inline void processArgs(Stack::Frame*, u16&, u16&, std::vector<TypeInfo>::iterator) {}
 
-        VMContext getNativeContext();
+    VMContext* getNativeContext();
 	};
 
     template<typename R, typename... Args>
@@ -142,10 +142,10 @@ namespace JesusVM {
 
         if constexpr (sizeof...(args) == 0) {
             if constexpr (std::is_same_v<R, void>) {
-                code(getNativeContext(), nullptr);
+                code(getNativeContext());
                 return;
             } else {
-                return code(getNativeContext(), nullptr);
+                return code(getNativeContext());
             }
         } else {
             std::array<JValue, sizeof...(args)> runtimeArgs{{args...}};

@@ -19,7 +19,7 @@ namespace JesusVM::NativeInterface {
 
     // Error operations
 
-    JESUSVM_NORETURN void Trap(VMContext* ctx, const char* message);
+    void Trap(VMContext* ctx, const char* message);
     void AddTrapHook(VMContext* ctx, void hook(VMContext* ctx, TrapInfo* info));
 
     // References

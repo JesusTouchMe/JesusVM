@@ -28,15 +28,35 @@ namespace JesusVM::rt::vm::System {
     Class* doubleArray;
     Class* handleArray;
 
+    namespace TrapInfo {
+        Class* self;
+        Field* message;
+        Field* file;
+        Field* line;
+        Field* column;
+    }
+
     Function* exit;
+    Function* trap;
     Function* loadPlugin;
 
     [[noreturn]]
-    void exit_impl(VMContext ctx, Int code) {
+    void exit_impl(VMContext* ctx, Int code) {
         std::exit(code);
     }
 
-    void loadPlugin_impl(VMContext ctx, JObject path) {
+    void trap_impl(VMContext* ctx, JObject infoObj) {
+        Object* info = reinterpret_cast<Object*>(infoObj);
+
+        Object* message = info->getObjectWeak(TrapInfo::message);
+        std::string_view file = GetStringData(info->getObjectWeak(TrapInfo::file));
+        Int line = info->getInt(TrapInfo::line);
+        Int column = info->getInt(TrapInfo::column);
+
+        Trap(message, std::string(file), line, column);
+    }
+
+    void loadPlugin_impl(VMContext* ctx, JObject path) {
         auto object = reinterpret_cast<Object*>(path);
 
         std::string_view realPath = GetStringData(object);

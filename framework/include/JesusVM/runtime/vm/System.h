@@ -29,13 +29,24 @@ namespace JesusVM::rt::vm::System {
     extern Class* doubleArray;
     extern Class* handleArray;
 
+    namespace TrapInfo {
+        extern Class* self;
+        extern Field* message;
+        extern Field* file;
+        extern Field* line;
+        extern Field* column;
+    }
+
     extern Function* exit;
+    extern Function* trap;
     extern Function* loadPlugin;
 
     [[noreturn]]
-    void exit_impl(VMContext ctx, Int code);
+    void exit_impl(VMContext* ctx, Int code);
 
-    void loadPlugin_impl(VMContext ctx, JObject pluginName);
+    void trap_impl(VMContext* ctx, JObject message);
+
+    void loadPlugin_impl(VMContext* ctx, JObject pluginName);
 }
 
 #endif // JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_RUNTIME_VM_SYSTEM_H

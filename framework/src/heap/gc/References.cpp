@@ -83,6 +83,7 @@ namespace JesusVM::GC {
                 return reinterpret_cast<Handle>(index);
             } else {
                 specialObjects.emplace_back(ptr, std::move(destructor));
+                return reinterpret_cast<Handle>(specialObjects.size() - 1);
             }
         }
 
