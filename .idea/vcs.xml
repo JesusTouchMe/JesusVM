@@ -5,6 +5,5 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-debug-visual-studio/_deps/libffi-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug-wsl/_deps/libffi-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/libffi-src" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/dyncall" vcs="hg4idea" />
   </component>
 </project>

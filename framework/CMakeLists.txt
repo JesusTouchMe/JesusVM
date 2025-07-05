@@ -76,7 +76,7 @@ target_include_directories(jesusvm-framework-jesusvm-framework
 
 target_include_directories(jesusvm-framework-jesusvm-framework
     PRIVATE
-        ${DynCall_SOURCE_DIR}/dyncall
+        ${dyncall_SOURCE_DIR}/dyncall
 )
 
 if (${CMAKE_BUILD_TYPE} MATCHES Release|RelWithDebInfo)
