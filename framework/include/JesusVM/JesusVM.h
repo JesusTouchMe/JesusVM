@@ -21,9 +21,10 @@ namespace JesusVM {
 
     VMContext* GetContext();
 
+    ObjectRef CreateString(std::string_view data);
     std::string_view GetStringData(Object* object);
 
-    void Trap(Object* message, std::string file, Int line, Int column);
+    [[noreturn]] void Trap(Object* message, std::string file, Int line, Int column);
     void AddTrapHook(void (*hook)(VMContext*, TrapInfo*));
 }
 

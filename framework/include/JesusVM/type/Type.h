@@ -77,7 +77,7 @@ namespace JesusVM {
             return mClassName[index] != 'R';
         }
 
-        bool isArray() {
+        bool isArray() const {
             return mClassName[0] == '[';
         }
 

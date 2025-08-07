@@ -3,6 +3,7 @@
 #include "JesusVM/Linker.h"
 #include "JesusVM/Preload.h"
 
+#include "JesusVM/runtime/std/Arrays.h"
 #include "JesusVM/runtime/std/Primitives.h"
 #include "JesusVM/runtime/vm/System.h"
 
@@ -101,6 +102,8 @@ namespace JesusVM::Preload {
             { &rt::vm::System::exit, reinterpret_cast<void*>(rt::vm::System::exit_impl) },
             { &rt::vm::System::trap, reinterpret_cast<void*>(rt::vm::System::trap_impl) },
             { &rt::vm::System::loadPlugin, reinterpret_cast<void*>(rt::vm::System::loadPlugin_impl) },
+            { &rt::vm::System::getOsName, reinterpret_cast<void*>(rt::vm::System::getOsName_impl) },
+            { &rt::std::Arrays::copy, reinterpret_cast<void*>(rt::std::Arrays::copy_impl) },
     };
 
     void PreloadSystemModules() {

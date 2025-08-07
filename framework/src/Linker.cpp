@@ -221,18 +221,33 @@ namespace JesusVM::Linker {
     }
 
     static std::string GetNativeFunctionName(Function* function) {
-        std::string name = "JesusVM_";
+        auto replace = [](std::string& str, char c, std::string_view replacement) {
+            size_t pos = 0;
+            while ((pos = str.find(c, pos)) != std::string::npos) {
+                str.replace(pos, 1, replacement);
+                pos += replacement.length();
+            }
+        };
+
+        std::string name = "JesusVM/";
         name += function->getModule()->getName();
-        name += '_';
+        name += '/';
         name += function->getName();
 
         if (!function->getArgumentTypes().empty()) {
-            name += "__";
+            name += "//";
 
             for (auto& arg: function->getArgumentTypes()) {
+                if (arg.getInternalType() == Type::REFERENCE && !arg.isArray()) name += 'R';
                 name += arg.getClassName();
+                if (arg.getInternalType() == Type::REFERENCE && !arg.isArray()) name += ';';
             }
         }
+
+        replace(name, '_', "_1");
+        replace(name, ';', "_2");
+        replace(name, '[', "_3");
+        replace(name, ':', "_4");
 
         std::replace(name.begin(), name.end(), '/', '_');
 

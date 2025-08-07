@@ -40,6 +40,7 @@ namespace JesusVM::rt::vm::System {
     extern Function* exit;
     extern Function* trap;
     extern Function* loadPlugin;
+    extern Function* getOsName;
 
     [[noreturn]]
     void exit_impl(VMContext* ctx, Int code);
@@ -47,6 +48,8 @@ namespace JesusVM::rt::vm::System {
     void trap_impl(VMContext* ctx, JObject message);
 
     void loadPlugin_impl(VMContext* ctx, JObject pluginName);
+
+    JObject getOsName_impl(VMContext* ctx);
 }
 
 #endif // JESUSVM_FRAMEWORK_INCLUDE_JESUSVM_RUNTIME_VM_SYSTEM_H

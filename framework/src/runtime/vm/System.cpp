@@ -39,6 +39,7 @@ namespace JesusVM::rt::vm::System {
     Function* exit;
     Function* trap;
     Function* loadPlugin;
+    Function* getOsName;
 
     [[noreturn]]
     void exit_impl(VMContext* ctx, Int code) {
@@ -56,12 +57,35 @@ namespace JesusVM::rt::vm::System {
         Trap(message, std::string(file), line, column);
     }
 
+    constexpr std::string_view GetOsName() {
+#ifdef _WIN64
+        return "Windows 64-bit";
+#elif _WIN32
+        return "Windows 32-bit";
+#elif __APPLE__ || __MACH__
+        return "MacOS";
+#elif __linux__
+        return "Linux";
+#elif __FreeBSD__
+        return "FreeBSD";
+#elif __unix || __unix__
+        return "Unix";
+#else
+        return "Other";
+#endif
+    }
+
     void loadPlugin_impl(VMContext* ctx, JObject path) {
         auto object = reinterpret_cast<Object*>(path);
 
         std::string_view realPath = GetStringData(object);
 
         Linker::LoadPlugin(realPath);
+    }
+
+    JObject getOsName_impl(VMContext* ctx) {
+        std::string_view name = GetOsName();
+        return ctx->NewString(name.data(), static_cast<Long>(name.size()));
     }
 
     namespace Object {

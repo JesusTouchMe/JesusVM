@@ -6,7 +6,7 @@
 
 #include "JesusVM/runtime/std/Primitives.h"
 
-#include <algorithm>
+#include <cstring>
 
 namespace JesusVM {
     _JesusVMNativeInterface nativeInterface;
@@ -21,6 +21,18 @@ namespace JesusVM {
 
     VMContext* GetContext() {
         return reinterpret_cast<VMContext*>(&nativeInterface);
+    }
+
+    ObjectRef CreateString(std::string_view data) {
+        ObjectRef array = AllocPrimitiveArray(T_CHAR, static_cast<Long>(data.length()));
+        auto elements = array->getArrayElements<Char>();
+
+        std::memcpy(elements, data.data(), static_cast<Long>(data.length()));
+
+        auto object = AllocObject(rt::std::Primitives::String::self);
+        object->setObject(rt::std::Primitives::String::data, array);
+
+        return std::move(object);
     }
 
     std::string_view GetStringData(Object* object) {
@@ -48,10 +60,11 @@ namespace JesusVM {
             hook(GetContext(), &trapInfo);
         }
 
-        if (!trapInfo.recoverable) {
-            //TODO: print error info, but it's an object so can't just use GetStringData
-            std::exit(1);
+        //TODO: this should be recoverable, but we still unwind the stack and start from a handler or something
+        if (message->getClass()->isAssignableTo(rt::std::Primitives::String::self)) {
+            std::cout << GetStringData(message) << "\n";
         }
+        std::exit(1);
     }
 
     void AddTrapHook(void(*hook)(VMContext*, TrapInfo*)) {

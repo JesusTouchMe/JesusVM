@@ -152,6 +152,14 @@ namespace JesusVM {
         return getFieldBufferSize() + align_up(sizeof(Object), 16);
     }
 
+    Type Class::getRepresentedPrimitive() const {
+        return mRepresentedPrimitive;
+    }
+
+    Class* Class::getArrayBaseClass() const {
+        return mArrayBaseClass;
+    }
+
     bool Class::isAssignableTo(Class* other) const {
         if (other == nullptr) return false;
 

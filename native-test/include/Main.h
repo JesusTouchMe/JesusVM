@@ -9,8 +9,6 @@
 extern "C" {
 #endif
 
-JESUSVM_EXPORT void JesusVM_std_IO_print__I(VMContext* ctx, Int value);
-
 #ifdef __cplusplus
 }
 #endif

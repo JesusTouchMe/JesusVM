@@ -64,6 +64,9 @@ namespace JesusVM {
         u64 getFieldBufferSize() const;
         u64 getTotalSize() const;
 
+        Type getRepresentedPrimitive() const;
+        Class* getArrayBaseClass() const;
+
         Field* getField(std::string_view name, std::string_view descriptor);
         Field* getField(ConstantName* name);
 
