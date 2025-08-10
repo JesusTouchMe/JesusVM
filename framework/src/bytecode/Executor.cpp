@@ -5,13 +5,8 @@
 
 #include "JesusVM/bytecode/handlers/BaseHandler.h"
 
-#include "JesusVM/constpool/ConstantClass.h"
-#include "JesusVM/constpool/ConstantField.h"
-#include "JesusVM/constpool/ConstantFunc.h"
-#include "JesusVM/constpool/ConstantGlobalVar.h"
-#include "JesusVM/constpool/ConstPool.h"
-
-#include "JesusVM/executors/VThread.h"
+#include "JesusVM/concurrency/Future.h"
+#include "JesusVM/concurrency/Scheduler.h"
 
 #include <ranges>
 
@@ -54,8 +49,10 @@ namespace JesusVM {
         , mCode(nullptr)
         , mPC(0)
         , mWide(false)
-		, mReturnDepth(0)
-        , mReturnValue(0) {}
+		, mReturnDepth(1)
+        , mReturnValue(static_cast<Long>(0))
+        , mAwaitingFuture(nullptr)
+        , mPaused(false) {}
 
     Stack::Frame* Executor::getFrame() const {
         return mFrame;
@@ -81,15 +78,58 @@ namespace JesusVM {
         mPC += branch;
     }
 
-    void Executor::run() {
-        i32 savedDepth = mReturnDepth - 1;
+	void Executor::enterFunction(Function* function) {
+		mFrame = mStack.enterFrame(function->getStackSize(), function->getLocalCount(), function, mCode, mPC);
+        mPC = 0;
+		mCode = function->getEntry();
+        mReturnDepth++;
+	}
 
-        while (savedDepth < mReturnDepth) {
-            executeInstruction();
+    void Executor::leaveFunction() {
+        mPC = mFrame->getReturnPC();
+        mCode = mFrame->getReturnCode();
+        mFrame = mStack.leaveFrame();
+
+        mReturnDepth--;
+    }
+
+    void Executor::runUntilComplete() {
+        while (!isComplete()) {
+            step();
         }
     }
 
-	void Executor::executeInstruction() {
+    bool Executor::runUntilYield() {
+        while (!isComplete()) {
+            step();
+
+            if (isAwaiting()) return false;
+        }
+
+        return true;
+    }
+
+    void Executor::await(Future* future) {
+        mAwaitingFuture = future;
+        mPaused = true;
+
+        Scheduler::PauseCurrentTaskOnFuture(future);
+    }
+
+    void Executor::resume() {
+        mAwaitingFuture = nullptr;
+        mPaused = false;
+    }
+
+    bool Executor::isAwaiting() const {
+        return mPaused;
+    }
+
+    bool Executor::isComplete() const {
+        return mReturnDepth > 0;
+    }
+
+    void Executor::step() {
 		u8 opcode = fetch();
         if (opcode >= 0xF0 && opcode <= 0xFF) {
             DispatchTable& table = mExtDispatchTables[opcode - 0xF0];
@@ -112,21 +152,6 @@ namespace JesusVM {
             handler(*this);
         }
 	}
-
-	void Executor::enterFunction(Function* function) {
-		mFrame = mStack.enterFrame(function->getStackSize(), function->getLocalCount(), function, mCode, mPC);
-        mPC = 0;
-		mCode = function->getEntry();
-        mReturnDepth++;
-	}
-
-    void Executor::leaveFunction() {
-        mPC = mFrame->getReturnPC();
-        mCode = mFrame->getReturnCode();
-        mFrame = mStack.leaveFrame();
-
-        mReturnDepth--;
-    }
 
     u8 Executor::fetch() {
         if (mPC >= mFrame->getCurrentFunction()->getBytecodeSize()) {

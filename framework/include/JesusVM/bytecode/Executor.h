@@ -11,6 +11,8 @@
 #include <array>
 
 namespace JesusVM {
+	class Future;
+
 	class Executor {
     friend class Function;
 	public:
@@ -46,12 +48,18 @@ namespace JesusVM {
 
 		void branch(i16 branch);
 
-        void run(); // run until return
-
-		void executeInstruction();
-
 		void enterFunction(Function* function);
         void leaveFunction();
+
+		void runUntilComplete();
+		bool runUntilYield();
+
+		void await(Future* future);
+		void resume();
+		bool isAwaiting() const;
+
+		bool isComplete() const;
+		void step();
 
 		u8 fetch();
 		u16 fetchShort();
@@ -71,6 +79,9 @@ namespace JesusVM {
 
         i32 mReturnDepth;
         JValue mReturnValue;
+
+		Future* mAwaitingFuture;
+		bool mPaused;
 
         static DispatchTable mDispatchTable;
         static std::array<DispatchTable, 16> mExtDispatchTables;

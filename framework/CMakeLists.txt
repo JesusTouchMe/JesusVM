@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.26)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
-set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/constpool/ConstPool.cpp" "src/Function.cpp" "src/bytecode/Executor.cpp" "src/executors/VThread.cpp" "src/executors/Thread.cpp" "src/heap/Class.cpp" "src/platform/NativePlugin.cpp"
+set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/constpool/ConstPool.cpp" "src/Function.cpp" "src/bytecode/Executor.cpp" "src/heap/Class.cpp" "src/platform/NativePlugin.cpp"
         src/Stack.cpp
         src/heap/Object.cpp
         src/type/Type.cpp
@@ -15,7 +15,6 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
     src/constpool/ConstantClass.cpp
         src/Linker.cpp
         src/constpool/Constant.cpp
-    src/executors/Threading.cpp
     src/Preload.cpp
     src/runtime/vm/System.cpp
     src/constpool/ConstantField.cpp
@@ -32,14 +31,16 @@ set(SOURCES "src/JesusVM.cpp" "src/Module.cpp" "src/util/StringPool.cpp" "src/co
     src/heap/gc/References.cpp
     src/native_interface/ProvidedFunctions.cpp
     src/runtime/std/Arrays.cpp
+    src/util/HandleRegistry.cpp
+    src/concurrency/Promise.cpp
+    src/concurrency/Future.cpp
 )
 
-set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/bytecode/Executor.h" "include/JesusVM/executors/Thread.h" "include/JesusVM/executors/VThread.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
+set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Module.h" "include/JesusVM/constpool/Constant.h" "include/JesusVM/Stack.h" "include/JesusVM/constpool/ConstPool.h" "include/JesusVM/Function.h" "include/JesusVM/type/Type.h" "include/JesusVM/heap/Class.h" "include/JesusVM/util/StringPool.h" "include/JesusVM/bytecode/Executor.h" "include/JesusVM/bytecode/Opcodes.h" "include/JesusVM/platform/NativePlugin.h"
         include/JesusVM/heap/Object.h
         include/JesusVM/heap/Field.h
     include/JesusVM/constpool/ConstantClass.h
         include/JesusVM/Linker.h
-        include/JesusVM/executors/Threading.h
     include/JesusVM/Preload.h
     include/JesusVM/preload/Preload-Modules.h
     include/JesusVM/runtime/vm/System.h
@@ -52,8 +53,6 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
     include/JesusVM/GlobalVar.h
     include/JesusVM/platform/Memory.h
     include/JesusVM/heap/gc/CycleCollector.h
-        include/JesusVM/executors/Daemon.h
-        src/executors/Daemon.cpp
         include/JesusVM/heap/gc/GC-Daemon.h
         include/JesusVM/util/Logging.h
         include/JesusVM/util/Profiler.h
@@ -64,6 +63,12 @@ set(HEADERS "include/JesusVM/JesusVM.h" "include/types.h" "include/JesusVM/Modul
     include/JesusVM/heap/gc/References.h
     include/JesusVM/native_interface/ProvidedFunctions.h
     include/JesusVM/runtime/std/Arrays.h
+    include/JesusVM/concurrency/Scheduler.h
+    include/JesusVM/concurrency/Scheduler.h
+    include/JesusVM/util/HandleRegistry.h
+    include/JesusVM/concurrency/Future.h
+    include/JesusVM/concurrency/Task.h
+    include/JesusVM/concurrency/Promise.h
 )
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SOURCES} ${HEADERS})
